@@ -13,11 +13,8 @@ import (
 )
 
 var (
-	emptyUuid       = uuid.New([]byte{0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11})
-	rootUuid        = uuid.New([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
-	StatusDraft     = 1
-	StatusCompleted = 2
-	StatusValidated = 3
+	emptyUuid       = GetReference(uuid.New([]byte{0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11}))
+	rootUuid        = GetReference(uuid.New([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}))
 )
 
 func InterfaceToJsonMessage(ntype string, data interface {}) json.RawMessage {
@@ -26,34 +23,57 @@ func InterfaceToJsonMessage(ntype string, data interface {}) json.RawMessage {
 	return v
 }
 
-func GetEmptyUuid() uuid.UUID {
+func GetEmptyReference() Reference {
 	return emptyUuid
 }
 
-func GetRootUuid() uuid.UUID {
+func GetRootReference() Reference {
 	return rootUuid
 }
 
 type NodeManager interface {
-	Find(query interface{}, offset int, limit int) []*Node
-	FindOne(query interface{}) *Node
-	Save(node *Node) (*Node, error)
-	Remove(query interface{}) error
+	FindBy(query sq.SelectBuilder, offset uint64, limit uint64) *list.List
+	FindOneBy(query sq.SelectBuilder) *Node
+	Find(uuid Reference) *Node
+	Remove(query sq.SelectBuilder) error
 	RemoveOne(node *Node) (*Node, error)
+	Save(node *Node) (*Node, error)
+	Notify(channel string, payload string)
+	GetHandler(node *Node) Handler
+	NewNode(t string) *Node
 }
 
 type PgNodeManager struct {
 	Logger     *log.Logger
-	Handlers   map[string] interface {}
+	Handlers   map[string]Handler
+	Listeners  map[string]Listener
 	Db         *sql.DB
 	ReadOnly   bool
 }
 
 func (m *PgNodeManager) SelectBuilder() sq.SelectBuilder {
 	return sq.
-		Select("id, uuid, type, name, revision, created_at, updated_at, set_uuid, parent_uuid, slug, created_by, updated_by, data, meta, deleted, source").
+		Select("id, uuid, type, name, revision, created_at, updated_at, set_uuid, parent_uuid, slug, created_by, updated_by, data, meta, deleted, source, status").
 		From("nodes").
 		PlaceholderFormat(sq.Dollar)
+}
+
+func (m *PgNodeManager) Notify(channel string, payload string) {
+	m.Logger.Printf("[PgNode] NOTIFY %s, %s ", channel, payload)
+
+	_, err := m.Db.Query(fmt.Sprintf("NOTIFY %s, '%s'", channel, payload))
+
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (m *PgNodeManager) NewNode(t string) *Node {
+	node := NewNode()
+	node.Type = t
+	node.Data, node.Meta = m.GetHandler(node).GetStruct()
+
+	return node
 }
 
 func (m *PgNodeManager) FindBy(query sq.SelectBuilder, offset uint64, limit uint64) *list.List {
@@ -91,7 +111,7 @@ func (m *PgNodeManager) FindOneBy(query sq.SelectBuilder) *Node {
 	return nil
 }
 
-func (m *PgNodeManager) Find(uuid uuid.UUID) *Node {
+func (m *PgNodeManager) Find(uuid Reference) *Node {
 	return m.FindOneBy(m.SelectBuilder().Where(sq.Eq{"uuid": uuid.String(), "deleted": false}))
 }
 
@@ -125,17 +145,20 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 		&meta,
 		&node.Deleted,
 		&Source,
+		&node.Status,
 	)
 
-	// transform UUID
-	node.Uuid, _       = uuid.ParseUUID(Uuid)
-	node.SetUuid, _    = uuid.ParseUUID(SetUuid)
-	node.CreatedBy, _  = uuid.ParseUUID(ParentUuid)
-	node.UpdatedBy, _  = uuid.ParseUUID(CreatedBy)
-	node.ParentUuid, _ = uuid.ParseUUID(UpdatedBy)
-	node.Source, _     = uuid.ParseUUID(Source)
+	var tmpUuid uuid.UUID
 
-	node.Data, node.Meta = m.Handlers[node.Type].(Handler).GetStruct()
+	// transform UUID
+	tmpUuid, _ = uuid.ParseUUID(Uuid);       node.Uuid = GetReference(tmpUuid)
+	tmpUuid, _ = uuid.ParseUUID(SetUuid);    node.SetUuid = GetReference(tmpUuid)
+	tmpUuid, _ = uuid.ParseUUID(ParentUuid); node.ParentUuid = GetReference(tmpUuid)
+	tmpUuid, _ = uuid.ParseUUID(CreatedBy);  node.CreatedBy = GetReference(tmpUuid)
+	tmpUuid, _ = uuid.ParseUUID(UpdatedBy);  node.UpdatedBy = GetReference(tmpUuid)
+	tmpUuid, _ = uuid.ParseUUID(Source);     node.Source = GetReference(tmpUuid)
+
+	node.Data, node.Meta = m.GetHandler(node).GetStruct()
 
 	err = json.Unmarshal(data, node.Data)
 	if err != nil {
@@ -150,7 +173,11 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 	return node
 }
 
-func (m *PgNodeManager) Remove(query sq.SelectBuilder) (error) {
+func (m *PgNodeManager) GetHandler(node *Node) Handler {
+	return m.Handlers[node.Type].(Handler)
+}
+
+func (m *PgNodeManager) Remove(query sq.SelectBuilder) error {
 	query = query.Where("deleted != ?", true)
 
 	for {
@@ -189,6 +216,7 @@ func (m *PgNodeManager) DumpNode(node *Node) {
 	m.Logger.Printf("[PgNode]  > Uuid:       %s", node.Uuid)
 	m.Logger.Printf("[PgNode]  > Type:       %s", node.Type)
 	m.Logger.Printf("[PgNode]  > Name:       %s", node.Name)
+	m.Logger.Printf("[PgNode]  > Status:     %s", node.Status)
 	m.Logger.Printf("[PgNode]  > Revision:   %d", node.Revision)
 	m.Logger.Printf("[PgNode]  > CreatedAt:  %+v", node.CreatedAt)
 	m.Logger.Printf("[PgNode]  > UpdatedAt:  %+v", node.UpdatedAt)
@@ -206,12 +234,16 @@ func (m *PgNodeManager) DumpNode(node *Node) {
 func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 	var err error
 
-	if node.Uuid == GetEmptyUuid() {
-		node.Uuid = uuid.NewV4()
+	if node.Uuid == GetEmptyReference() {
+		node.Uuid = GetReference(uuid.NewV4())
+	}
+
+	if node.Slug == "" {
+		node.Slug = node.Uuid.String()
 	}
 
 	query := sq.Insert(table).
-		Columns("uuid", "type", "revision", "name", "created_at", "updated_at", "set_uuid", "parent_uuid", "slug", "created_by", "updated_by", "data", "meta", "deleted", "source").
+		Columns("uuid", "type", "revision", "name", "created_at", "updated_at", "set_uuid", "parent_uuid", "slug", "created_by", "updated_by", "data", "meta", "deleted", "source", "status").
     	Values(
 			uuid.Formatter(node.Uuid, uuid.CleanHyphen),
 			node.Type,
@@ -227,7 +259,8 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 			string(InterfaceToJsonMessage(node.Type, node.Data)[:]),
 			string(InterfaceToJsonMessage(node.Type, node.Meta)[:]),
 			node.Deleted,
-			uuid.Formatter(node.Source, uuid.CleanHyphen)).
+			uuid.Formatter(node.Source, uuid.CleanHyphen),
+			node.Status).
 		Suffix("RETURNING \"id\"").
 		RunWith(m.Db).
 		PlaceholderFormat(sq.Dollar)
@@ -256,6 +289,7 @@ func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 		Set("data",        string(InterfaceToJsonMessage(node.Type, node.Data)[:])).
 		Set("meta",        string(InterfaceToJsonMessage(node.Type, node.Meta)[:])).
 		Set("source",      uuid.Formatter(node.Source, uuid.CleanHyphen)).
+		Set("status",      node.Status).
 
 		Where("id = ?", node.id)
 
@@ -279,8 +313,11 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 	}
 
 	var err error
+	handler := m.GetHandler(node)
 
 	if node.id == 0 {
+		handler.PreInsert(node, m)
+
 		node, err = m.insertNode(node, "nodes")
 		node, err = m.insertNode(node, "nodes_audit")
 
@@ -288,8 +325,12 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 			m.Logger.Printf("[PgNode] Creating node uuid: %s, id: %d, type: %s", node.Uuid, node.id, node.Type)
 		}
 
+		handler.PostInsert(node, m)
+
 		return node, err
 	}
+
+	handler.PreUpdate(node, m)
 
 	if m.Logger != nil {
 		m.Logger.Printf("[PgNode] Updating node uuid: %s with id: %d, type: %s", node.Uuid, node.id, node.Type)
@@ -316,6 +357,8 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 	node.UpdatedAt = saved.UpdatedAt
 
 	node, err = m.updateNode(node, "nodes")
+
+	handler.PostUpdate(node, m)
 
 	if err != nil {
 		panic(err)

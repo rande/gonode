@@ -1,0 +1,11 @@
+{
+    "Uuid": "64200eae-2539-4d92-a371-f906757f314d",
+    "Type": "core.user",
+    "Name": "The user API",
+    "Slug": "the-user-api",
+    "Data": {
+        "Name": "User API",
+        "Login": "user-api",
+        "Password": "{plain}user-api"
+    }
+}

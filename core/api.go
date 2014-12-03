@@ -4,21 +4,54 @@ import (
 	"io"
 	"encoding/json"
 	sq "github.com/lann/squirrel"
-	"github.com/twinj/uuid"
+	"bytes"
 )
 
-type Pager struct {
-	Elements []*Node
-	Page     uint64
-	Next     uint64
-	Previous uint64
-	Offset   uint64
-	Limit    uint64
+
+type SearchForm struct {
+	Page       uint64             `schema:"page"`
+	PerPage    uint64             `schema:"per_page"`
+	Uuid       string             `schema:"uuid"`
+	Type       string             `schema:"type"`
+	Name       string             `schema:"name"`
+	Slug       string             `schema:"slug"`
+	Data       map[string]string  `schema:"data"`
+	Meta       map[string]string  `schema:"meta"`
+	Status     string             `schema:"status"`
+	Weight     string             `schema:"weight"`
+	Revision   string             `schema:"revision"`
+//	CreatedAt  time.Time          `schema:"created_at"`
+//	UpdatedAt  time.Time          `schema:"updated_at"`
+	Enabled    string             `schema:"enabled"`
+	Deleted    string             `schema:"deleted"`
+	Current    string             `schema:"current"`
+//	Parents    []Reference        `schema:"parents"`
+	UpdatedBy  string             `schema:"updated_by"`
+	CreatedBy  string             `schema:"created_by"`
+	ParentUuid string             `schema:"parent_uuid"`
+	SetUuid    string             `schema:"set_uuid"`
+	Source     string             `schema:"source"`
+}
+
+func GetSearchForm() *SearchForm {
+	return &SearchForm{
+		Data: make(map[string]string),
+		Meta: make(map[string]string),
+	}
+}
+
+type ApiPager struct {
+	Elements []*Node `json:"elements"`
+	Page     uint64  `json:"page"`
+	PerPage  uint64  `json:"per_page"`
+	Next     uint64  `json:"next"`
+	Previous uint64  `json:"previous"`
 }
 
 type Api struct {
 	Version string
 	Manager *PgNodeManager
+	BaseUrl string
 }
 
 func (a *Api) serialize(w io.Writer, data interface {}) {
@@ -39,16 +72,31 @@ func (a *Api) deserialize(r io.Reader, data interface {}) {
 	}
 }
 
-func (a *Api) Find(w io.Writer, b sq.SelectBuilder, offset uint64, limit uint64) error {
-	query := a.Manager.SelectBuilder()
-	list := a.Manager.FindBy(query, offset, limit + 1)
+func (a *Api) SelectBuilder() sq.SelectBuilder {
+	return a.Manager.SelectBuilder()
+}
 
-	pager := &Pager{}
-	pager.Elements = make([]*Node, limit)
+func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uint64) error {
 
-	if (uint64(list.Len()) == limit + 1) {
-		pager.Next = offset / limit + 1
+	list := a.Manager.FindBy(query, page * perPage, perPage + 1)
+
+	pager := &ApiPager{
+		Page: page,
+		PerPage: perPage,
 	}
+
+	if (uint64(list.Len()) == perPage + 1) {
+		pager.Next = page + 1
+		pager.Elements = make([]*Node, perPage)
+	} else {
+		pager.Elements = make([]*Node, list.Len())
+	}
+
+	if (page > 1) {
+		pager.Previous = page - 1
+	}
+
+	a.Manager.Logger.Printf("Result len: %s", list.Len())
 
 	if list.Len() > 0 {
 		element := list.Front()
@@ -71,7 +119,26 @@ func (a *Api) Find(w io.Writer, b sq.SelectBuilder, offset uint64, limit uint64)
 func (a *Api) Save(r io.Reader, w io.Writer) error {
 	node := NewNode()
 
-	a.deserialize(r, node)
+	// we need to deserialize twice to load the correct Meta/Data structure
+	var data bytes.Buffer
+	read, err := data.ReadFrom(r)
+
+	reader := bytes.NewReader(data.Bytes())
+
+	if err != nil {
+		panic(err)
+	}
+
+	if (read == 0) {
+		panic("no data read from the request")
+	}
+
+	a.deserialize(reader, node)
+
+	reader.Seek(0, 0)
+
+	node.Data, node.Meta = a.Manager.GetHandler(node).GetStruct()
+	a.deserialize(reader, node)
 
 	saved := a.Manager.Find(node.Uuid)
 
@@ -98,28 +165,20 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 	return nil
 }
 
-func (a *Api) FindOne(reference string, w io.Writer) error {
-	v, err := uuid.ParseUUID(reference)
+func (a *Api) FindOne(uuid string, w io.Writer) error {
 
-	if err != nil {
-		panic(err)
-	}
-
-	a.serialize(w, a.Manager.Find(v))
+	a.serialize(w, a.Manager.Find(GetReferenceFromString(uuid)))
 
 	return nil
 }
 
-func (a *Api) RemoveOne(reference string, w io.Writer) error {
-	v, err := uuid.ParseUUID(reference)
+func (a *Api) RemoveOne(uuid string, w io.Writer) error {
 
-	if err != nil {
-		panic(err)
-	}
+	node := a.Manager.Find(GetReferenceFromString(uuid))
 
-	node := a.Manager.Find(v)
+	a.Manager.DumpNode(node)
 
-	a.Manager.RemoveOne(node)
+	node, _ = a.Manager.RemoveOne(node)
 
 	a.serialize(w, node)
 

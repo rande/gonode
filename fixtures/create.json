@@ -1,0 +1,10 @@
+{
+    "Type": "core.user",
+    "Name": "The user 12",
+    "Slug": "the-user-12",
+    "Data": {
+        "Name": "User API",
+        "Login": "user-api",
+        "Password": "{plain}user-api"
+    }
+}
