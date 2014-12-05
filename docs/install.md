@@ -16,7 +16,8 @@ Nodes Tables
         "name" CHARACTER VARYING( 2044 ) COLLATE "pg_catalog"."default" DEFAULT ''::CHARACTER VARYING NOT NULL, 
         "enabled" BOOLEAN DEFAULT 'true' NOT NULL, 
         "current" BOOLEAN DEFAULT 'false' NOT NULL, 
-        "revision" INTEGER DEFAULT '1' NOT NULL, 
+        "revision" INTEGER DEFAULT '1' NOT NULL,
+        "status" INTEGER DEFAULT '0' NOT NULL, 
         "deleted" BOOLEAN DEFAULT 'false' NOT NULL, 
         "data" jsonb DEFAULT '{}'::jsonb NOT NULL, 
         "meta" jsonb DEFAULT '{}'::jsonb NOT NULL, 
@@ -50,6 +51,7 @@ Audit Log node table
         "enabled" BOOLEAN DEFAULT 'true' NOT NULL, 
         "current" BOOLEAN DEFAULT 'false' NOT NULL, 
         "revision" INTEGER DEFAULT '1' NOT NULL, 
+        "status" INTEGER DEFAULT '0' NOT NULL,
         "deleted" BOOLEAN DEFAULT 'false' NOT NULL, 
         "data" jsonb DEFAULT '{}'::jsonb NOT NULL, 
         "meta" jsonb DEFAULT '{}'::jsonb NOT NULL, 
@@ -63,3 +65,6 @@ Audit Log node table
         "updated_by" UUid NOT NULL, 
      PRIMARY KEY ( "id" )
     );
+    
+    
+{"Type":"core.user","Name":"The user 12","Slug":"the-user-12","Data":{"Name":"","Login":"user12","Password":"{plain}user12"},"Meta":{},"Status":0,"Weight":0,"Revision":1,"CreatedAt":"2014-11-22T00:28:33.141819Z","UpdatedAt":"2014-11-22T00:28:33.141822Z","Enabled":false,"Deleted":false,"Parents":null,"Uuid":"b50b7a12-9529-4ca0-af3c-a84d54d47083","UpdatedBy":"00000000-0000-1000-0000-000000000000","CreatedBy":"00000000-0000-1000-0000-000000000000","ParentUuid":"11111111-1111-1111-1111-111111111111","SetUuid":"11111111-1111-1111-1111-111111111111","Source":"11111111-1111-1111-1111-111111111111"}

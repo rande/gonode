@@ -12,13 +12,13 @@ type SearchForm struct {
 	Page       uint64             `schema:"page"`
 	PerPage    uint64             `schema:"per_page"`
 	Uuid       string             `schema:"uuid"`
-	Type       string             `schema:"type"`
+	Type       []string           `schema:"type"`
 	Name       string             `schema:"name"`
 	Slug       string             `schema:"slug"`
-	Data       map[string]string  `schema:"data"`
-	Meta       map[string]string  `schema:"meta"`
-	Status     string             `schema:"status"`
-	Weight     string             `schema:"weight"`
+	Data       map[string][]string  `schema:"data"`
+	Meta       map[string][]string  `schema:"meta"`
+	Status     []string             `schema:"status"`
+	Weight     []string             `schema:"weight"`
 	Revision   string             `schema:"revision"`
 //	CreatedAt  time.Time          `schema:"created_at"`
 //	UpdatedAt  time.Time          `schema:"updated_at"`
@@ -26,17 +26,17 @@ type SearchForm struct {
 	Deleted    string             `schema:"deleted"`
 	Current    string             `schema:"current"`
 //	Parents    []Reference        `schema:"parents"`
-	UpdatedBy  string             `schema:"updated_by"`
-	CreatedBy  string             `schema:"created_by"`
-	ParentUuid string             `schema:"parent_uuid"`
-	SetUuid    string             `schema:"set_uuid"`
-	Source     string             `schema:"source"`
+	UpdatedBy  []string           `schema:"updated_by"`
+	CreatedBy  []string           `schema:"created_by"`
+	ParentUuid []string           `schema:"parent_uuid"`
+	SetUuid    []string           `schema:"set_uuid"`
+	Source     []string           `schema:"source"`
 }
 
 func GetSearchForm() *SearchForm {
 	return &SearchForm{
-		Data: make(map[string]string),
-		Meta: make(map[string]string),
+		Data: make(map[string][]string),
+		Meta: make(map[string][]string),
 	}
 }
 

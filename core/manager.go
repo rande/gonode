@@ -174,7 +174,11 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 }
 
 func (m *PgNodeManager) GetHandler(node *Node) Handler {
-	return m.Handlers[node.Type].(Handler)
+	if handler, ok := m.Handlers[node.Type]; ok {
+		return handler.(Handler)
+	}
+
+	return m.Handlers["default"].(Handler)
 }
 
 func (m *PgNodeManager) Remove(query sq.SelectBuilder) error {

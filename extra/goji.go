@@ -6,6 +6,7 @@ import (
 	"github.com/zenazn/goji"
 	"github.com/zenazn/goji/web"
 	nc "github.com/rande/gonode/core"
+	sq "github.com/lann/squirrel"
 	"github.com/gorilla/schema"
 )
 
@@ -40,7 +41,6 @@ func ConfigureGoji(manager *nc.PgNodeManager, prefix string) {
 	})
 
 	goji.Get(prefix + "/nodes", func(res http.ResponseWriter, req *http.Request) {
-
 		res.Header().Set("Content-Type", "application/json")
 
 		query := api.SelectBuilder()
@@ -56,7 +56,7 @@ func ConfigureGoji(manager *nc.PgNodeManager, prefix string) {
 			values := rexMeta.FindStringSubmatch(name)
 
 			if len(values) == 2 {
-				searchForm.Meta[values[1]] = value[0]
+				searchForm.Meta[values[1]] = value
 			}
 		}
 
@@ -65,7 +65,7 @@ func ConfigureGoji(manager *nc.PgNodeManager, prefix string) {
 			values := rexMeta.FindStringSubmatch(name)
 
 			if len(values) == 2 {
-				searchForm.Meta[values[1]] = value[0]
+				searchForm.Meta[values[1]] = value
 			}
 		}
 
@@ -81,16 +81,16 @@ func ConfigureGoji(manager *nc.PgNodeManager, prefix string) {
 			searchForm.PerPage = 32
 		}
 
-		if searchForm.Source != "" {
-			query = query.Where("source = ?", searchForm.Source)
+		if len(searchForm.Source) != 0 {
+			query = query.Where(sq.Eq{"source": searchForm.Source})
 		}
 
 		if searchForm.Enabled != "" {
 			query = query.Where("enabled = ?", searchForm.Enabled)
 		}
 
-		if searchForm.Type != "" {
-			query = query.Where("type = ?", searchForm.Type)
+		if len(searchForm.Type) != 0 {
+			query = query.Where(sq.Eq{"type": searchForm.Type})
 		}
 
 		if searchForm.Current != "" {
@@ -101,12 +101,12 @@ func ConfigureGoji(manager *nc.PgNodeManager, prefix string) {
 			query = query.Where("deleted = ?", searchForm.Deleted)
 		}
 
-		if searchForm.Uuid != "" {
-			query = query.Where("uuid = ?", searchForm.Uuid)
+		if len(searchForm.Uuid) != 0 {
+			query = query.Where(sq.Eq{"uuid": searchForm.Uuid})
 		}
 
-		if searchForm.ParentUuid != "" {
-			query = query.Where("parent_uuid = ?", searchForm.ParentUuid)
+		if len(searchForm.ParentUuid) != 0 {
+			query = query.Where(sq.Eq{"parent_uuid": searchForm.ParentUuid})
 		}
 
 		if searchForm.Slug != "" {
@@ -117,31 +117,33 @@ func ConfigureGoji(manager *nc.PgNodeManager, prefix string) {
 			query = query.Where("revision = ?", searchForm.Revision)
 		}
 
-		if searchForm.Status != "" {
-			query = query.Where("status = ?", searchForm.Status)
+		if len(searchForm.Status) != 0 {
+			query = query.Where(sq.Eq{"status": searchForm.Status})
 		}
 
+		// Parse Meta value
 		for name, value := range searchForm.Meta {
-			query = query.Where(fmt.Sprintf("meta->>'%s' = ?", name), value)
+			//-- SELECT uuid, "data" #> '{tags,1}' as tags FROM nodes WHERE  "data" @> '{"tags": ["sport"]}'
+			//-- SELECT uuid, "data" #> '{tags}' AS tags FROM nodes WHERE  "data" -> 'tags' ?| array['sport'];
+			if len(value) > 1 {
+				query = query.Where(sq.ExprSlice(fmt.Sprintf("meta->'%s' ??| array[" + sq.Placeholders(len(value))+ "]", name), len(value), value),)
+			}
+
+			if len(value) == 1 {
+				query = query.Where(sq.Expr(fmt.Sprintf("meta->>'%s' = ?", name), value))
+			}
 		}
 
+		// Parse Data value
 		for name, value := range searchForm.Data {
-			query = query.Where(fmt.Sprintf("data->>'%s' = ?", name), value)
+			if len(value) > 1 {
+				query = query.Where(sq.ExprSlice(fmt.Sprintf("data->'%s' ??| array[" + sq.Placeholders(len(value))+ "]", name), len(value), value),)
+			}
+
+			if len(value) == 1 {
+				query = query.Where(sq.Expr(fmt.Sprintf("data->>'%s' = ?", name), value))
+			}
 		}
-
-
-//		query = query.Where("meta->>'Foo' = ?", "markdown")
-
-		//
-		//		if len(req.FormValue("set")) > 0 {
-		//			query["set"] = bson.RegEx{req.FormValue("set"), "i"}
-		//		}
-		//
-		//		if _, ok := req.Form["types"]; ok {
-		//			query["type"] = bson.M{
-		//				"$in": req.Form["types"],
-		//			}
-		//		}
 
 		api.Find(res, query, searchForm.Page, searchForm.PerPage)
 	})
