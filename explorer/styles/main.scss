@@ -1,0 +1,133 @@
+@import "../bower_components/bootstrap-sass/lib/bootstrap";
+@import "../bower_components/fontawesome/scss/font-awesome";
+
+/* Move down content because we have a fixed navbar that is 50px tall */
+body {
+  padding-top: 50px;
+}
+
+/*
+ * Global add-ons
+ */
+
+.sub-header {
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+/*
+ * Top navigation
+ * Hide default border to remove 1px line.
+ */
+.navbar-fixed-top {
+  border: 0;
+}
+
+/*
+ * Sidebar
+ */
+
+/* Hide for mobile, show later */
+.sidebar {
+  display: none;
+}
+@media (min-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 51px;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    display: block;
+    padding: 20px;
+    overflow-x: hidden;
+    overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+    background-color: #f5f5f5;
+    border-right: 1px solid #eee;
+  }
+}
+
+/* Sidebar navigation */
+.nav-sidebar {
+  margin-right: -21px; /* 20px padding + 1px border */
+  margin-bottom: 20px;
+  margin-left: -20px;
+}
+.nav-sidebar > li > a {
+  padding-right: 20px;
+  padding-left: 20px;
+}
+.nav-sidebar > .active > a,
+.nav-sidebar > .active > a:hover,
+.nav-sidebar > .active > a:focus {
+  color: #fff;
+  background-color: #428bca;
+}
+
+
+/*
+ * Main content
+ */
+
+.main {
+  padding: 20px;
+}
+@media (min-width: 768px) {
+  .main {
+    padding-right: 40px;
+    padding-left: 40px;
+  }
+}
+.main .page-header {
+  margin-top: 0;
+}
+
+/*
+ * http://simple.be/web/color/codes
+ */
+
+.card {
+  background-color: #f4ed7c;
+  -webkit-box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.45);
+     -moz-box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.45);
+          box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.45);
+
+  padding: 5px;
+  margin: 5px;
+  min-height: 70px;
+  max-height: 70px;
+}
+
+.card-icon {
+  min-height: 70px;
+  max-height: 70px;
+  float: left;
+  margin-right: 5px;
+}
+
+.card-notification {
+  float: right !important;
+  position: absolute;
+  top: 7px;
+  right: 24px;
+}
+
+.card-information {
+  position: absolute;
+  bottom: 5px;
+  right: 23px;
+  font-size: 10px;
+  font-style: italic;
+}
+
+.card-user {
+  background-color: #e5dbcc;
+}
+
+.card-media {
+  background-color: #ffffff;
+}
+
+.card-post {
+  background-color: #5e68c4;
+}
