@@ -22,9 +22,8 @@ var View = React.createClass({
 function getRoutes() {
   return <Router.Route name="gonodes" handler={View} >
 
-    <Router.Route name="gonodes.list"  path="list" handler={List}>
-      <Router.Route name="gonodes.edit"  path="edit/:uuid" handler={Form} />
-    </Router.Route>
+    <Router.Route name="gonodes.list"  path="list" handler={List} />
+    <Router.Route name="gonodes.edit"  path="edit/:uuid" handler={Form} />
 
     <Router.DefaultRoute handler={List} />
   </Router.Route>

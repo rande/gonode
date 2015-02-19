@@ -1,6 +1,6 @@
 /** @jsx React.DOM */
 
-jest.dontMock('../Table.jsx');
+jest.dontMock('../List.jsx');
 jest.dontMock('lodash');
 jest.dontMock('react-router');
 jest.dontMock('react-admin');
@@ -10,7 +10,7 @@ describe('Table', function() {
     var React = require('react/addons');
     var Admin = require('react-admin');
 
-    var Component = require('../Table.jsx');
+    var Component = require('../List.jsx');
     var TestUtils = React.addons.TestUtils;
 
     var StubComponent = Admin.stubRouterContext(Component, {someProp: 'foo'});

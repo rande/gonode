@@ -1,10 +1,13 @@
 .PHONY: test run
 
+default: build run
+
 run:
 	cd explorer && go run main.go -bind :9090
 
 test:
 	go test -v ./core ./handlers
+	cd explorer && npm test
 
 build:
 	cd explorer && gulp build

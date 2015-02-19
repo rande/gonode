@@ -21,6 +21,11 @@ var List = ReactAdmin.createTable({
   refreshGrid: function(filters) {
     var endpoint = ReactAdmin.Container("gonodes.api.endpoint");
 
+    if (!endpoint) {
+      // need to migrate this to a ReFlux store
+      return;
+    }
+
     endpoint.get(this.getFilters(filters), function(error, res) {
       if (!this.isMounted()) {
         return;
