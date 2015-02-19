@@ -28,3 +28,7 @@ func (h *DefaultHandler) PostInsert(node *nc.Node, m nc.NodeManager) error {
 func (h *DefaultHandler) PostUpdate(node *nc.Node, m nc.NodeManager) error {
 	return nil
 }
+
+func (h *DefaultHandler) Validate(node *nc.Node, m nc.NodeManager, errors nc.Errors) {
+
+}

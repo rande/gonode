@@ -1,4 +1,4 @@
-package gonode
+package core
 
 import (
 	pq "github.com/lib/pq"
@@ -14,6 +14,7 @@ type Handler interface {
 	PostUpdate(node *Node, m NodeManager) error
 	PreInsert(node *Node, m NodeManager) error
 	PostInsert(node *Node, m NodeManager) error
+	Validate(node *Node, m NodeManager, e Errors)
 }
 
 type Listener interface {

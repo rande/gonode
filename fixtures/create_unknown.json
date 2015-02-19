@@ -1,6 +1,9 @@
 {
-    "type": "core.unknown",
+    "type": "medicament.unknown",
     "data": {
+        "vid": "k72S8XYqi0c"
+    },
+    "meta": {
         "vid": "k72S8XYqi0c"
     }
 }

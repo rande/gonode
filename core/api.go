@@ -1,4 +1,4 @@
-package gonode
+package core
 
 import (
 	"io"
@@ -11,6 +11,7 @@ import (
 type SearchForm struct {
 	Page       uint64             `schema:"page"`
 	PerPage    uint64             `schema:"per_page"`
+	OrderBy    []string           `schema:"order_by"`
 	Uuid       string             `schema:"uuid"`
 	Type       []string           `schema:"type"`
 	Name       string             `schema:"name"`
@@ -37,6 +38,7 @@ func GetSearchForm() *SearchForm {
 	return &SearchForm{
 		Data: make(map[string][]string),
 		Meta: make(map[string][]string),
+		OrderBy: []string{"updated_at,ASC"},
 	}
 }
 
@@ -67,6 +69,9 @@ func (a *Api) deserialize(r io.Reader, data interface {}) {
 	decoder := json.NewDecoder(r)
 	err := decoder.Decode(data)
 
+	a.Manager.Logger.Printf("desiarialize=%s", r)
+	a.Manager.Logger.Printf("desiarialize=%+v)", data)
+
 	if err != nil {
 		panic(err)
 	}
@@ -78,7 +83,7 @@ func (a *Api) SelectBuilder() sq.SelectBuilder {
 
 func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uint64) error {
 
-	list := a.Manager.FindBy(query, page * perPage, perPage + 1)
+	list := a.Manager.FindBy(query, (page - 1) * perPage, perPage + 1)
 
 	pager := &ApiPager{
 		Page: page,
@@ -135,6 +140,8 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 
 	a.deserialize(reader, node)
 
+	a.Manager.Logger.Printf("trying to save node.uuid=%s", node.Uuid)
+
 	reader.Seek(0, 0)
 
 	node.Data, node.Meta = a.Manager.GetHandler(node).GetStruct()
@@ -143,6 +150,8 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 	saved := a.Manager.Find(node.Uuid)
 
 	if saved != nil {
+		a.Manager.Logger.Printf("find uuid: %s", node.Uuid)
+
 		if node.Type != saved.Type {
 			panic("Type mismatch")
 		}
@@ -152,10 +161,20 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 		}
 
 		if node.Revision != saved.Revision {
-			panic("Revision mismatch, please saved from the latest revision")
+			return RevisionError
 		}
 
 		node.id = saved.id
+	} else {
+		a.Manager.Logger.Printf("cannot find uuid: %s", node.Uuid)
+	}
+
+	a.Manager.Logger.Printf("saving node.id=%s, node.uuid=%s", node.id, node.Uuid)
+
+	if ok, errors := a.Manager.Validate(node); !ok {
+		a.serialize(w, errors)
+
+		return ValidationError
 	}
 
 	a.Manager.Save(node)

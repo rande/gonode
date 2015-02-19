@@ -79,6 +79,10 @@ func (h *ImageHandler) PostUpdate(node *nc.Node, m nc.NodeManager) error {
 	return nil
 }
 
+func (h *ImageHandler) Validate(node *nc.Node, m nc.NodeManager, errors nc.Errors) {
+
+}
+
 type ImageDownloadListener struct {
 	Fs afero.Fs
 	HttpClient nc.HttpClient

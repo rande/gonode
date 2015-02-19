@@ -1,4 +1,4 @@
-package gonode
+package core
 
 import (
 	"net/http"

@@ -71,6 +71,9 @@ func (h *YoutubeHandler) PostUpdate(node *nc.Node, m nc.NodeManager) error {
 	return nil
 }
 
+func (h *YoutubeHandler) Validate(node *nc.Node, m nc.NodeManager, errors nc.Errors) {
+
+}
 
 type YoutubeListener struct {
 	HttpClient nc.HttpClient

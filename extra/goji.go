@@ -2,6 +2,7 @@ package extra
 
 import (
 	"fmt"
+	"bufio"
 	"net/http"
 	"github.com/zenazn/goji"
 	"github.com/zenazn/goji/web"
@@ -18,30 +19,59 @@ func ConfigureGoji(manager *nc.PgNodeManager, prefix string) {
 
 	goji.Get(prefix + "/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
+		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
 
 		api.FindOne(c.URLParams["uuid"], res)
 	})
 
 	goji.Post(prefix + "/nodes", func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
+		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
 
-		api.Save(req.Body, res)
+		w := bufio.NewWriter(res)
+
+		err := api.Save(req.Body, w)
+
+		if err == nc.RevisionError {
+			res.WriteHeader(http.StatusConflict)
+		}
+
+		if err == nc.ValidationError {
+			res.WriteHeader(http.StatusPreconditionFailed)
+		}
+
+		w.Flush()
 	})
 
 	goji.Put(prefix + "/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
+		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
 
-		api.Save(req.Body, res)
+		w := bufio.NewWriter(res)
+
+		err := api.Save(req.Body, w)
+
+		if err == nc.RevisionError {
+			res.WriteHeader(http.StatusConflict)
+		}
+
+		if err == nc.ValidationError {
+			res.WriteHeader(http.StatusPreconditionFailed)
+		}
+
+		w.Flush()
 	})
 
 	goji.Delete(prefix + "/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
+		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
 
 		api.RemoveOne(c.URLParams["uuid"], res)
 	})
 
 	goji.Get(prefix + "/nodes", func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
+		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
 
 		query := api.SelectBuilder()
 
@@ -120,6 +150,8 @@ func ConfigureGoji(manager *nc.PgNodeManager, prefix string) {
 		if len(searchForm.Status) != 0 {
 			query = query.Where(sq.Eq{"status": searchForm.Status})
 		}
+
+		query = query.OrderBy("updated_at DESC")
 
 		// Parse Meta value
 		for name, value := range searchForm.Meta {

@@ -38,3 +38,7 @@ func (h *PostHandler) PostInsert(node *nc.Node, m nc.NodeManager) error {
 func (h *PostHandler) PostUpdate(node *nc.Node, m nc.NodeManager) error {
 	return nil
 }
+
+func (h *PostHandler) Validate(node *nc.Node, m nc.NodeManager, errors nc.Errors) {
+
+}

@@ -1,4 +1,4 @@
-package gonode
+package core
 
 import (
 	_ "github.com/lib/pq"
@@ -53,7 +53,7 @@ type PgNodeManager struct {
 
 func (m *PgNodeManager) SelectBuilder() sq.SelectBuilder {
 	return sq.
-		Select("id, uuid, type, name, revision, created_at, updated_at, set_uuid, parent_uuid, slug, created_by, updated_by, data, meta, deleted, source, status").
+		Select("id, uuid, type, name, revision, created_at, updated_at, set_uuid, parent_uuid, slug, created_by, updated_by, data, meta, deleted, enabled, source, status, weight").
 		From("nodes").
 		PlaceholderFormat(sq.Dollar)
 }
@@ -112,7 +112,7 @@ func (m *PgNodeManager) FindOneBy(query sq.SelectBuilder) *Node {
 }
 
 func (m *PgNodeManager) Find(uuid Reference) *Node {
-	return m.FindOneBy(m.SelectBuilder().Where(sq.Eq{"uuid": uuid.String(), "deleted": false}))
+	return m.FindOneBy(m.SelectBuilder().Where(sq.Eq{"uuid": uuid.String()}))
 }
 
 func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
@@ -144,8 +144,10 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 		&data,
 		&meta,
 		&node.Deleted,
+		&node.Enabled,
 		&Source,
 		&node.Status,
+		&node.Weight,
 	)
 
 	var tmpUuid uuid.UUID
@@ -221,6 +223,9 @@ func (m *PgNodeManager) DumpNode(node *Node) {
 	m.Logger.Printf("[PgNode]  > Type:       %s", node.Type)
 	m.Logger.Printf("[PgNode]  > Name:       %s", node.Name)
 	m.Logger.Printf("[PgNode]  > Status:     %s", node.Status)
+	m.Logger.Printf("[PgNode]  > Weight:     %s", node.Weight)
+	m.Logger.Printf("[PgNode]  > Deleted:    %s", node.Deleted)
+	m.Logger.Printf("[PgNode]  > Enabled:    %s", node.Enabled)
 	m.Logger.Printf("[PgNode]  > Revision:   %d", node.Revision)
 	m.Logger.Printf("[PgNode]  > CreatedAt:  %+v", node.CreatedAt)
 	m.Logger.Printf("[PgNode]  > UpdatedAt:  %+v", node.UpdatedAt)
@@ -247,7 +252,10 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 	}
 
 	query := sq.Insert(table).
-		Columns("uuid", "type", "revision", "name", "created_at", "updated_at", "set_uuid", "parent_uuid", "slug", "created_by", "updated_by", "data", "meta", "deleted", "source", "status").
+		Columns(
+			"uuid", "type", "revision", "name", "created_at", "updated_at", "set_uuid",
+			"parent_uuid", "slug", "created_by", "updated_by", "data", "meta", "deleted",
+			"enabled", "source", "status", "weight").
     	Values(
 			uuid.Formatter(node.Uuid, uuid.CleanHyphen),
 			node.Type,
@@ -263,8 +271,10 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 			string(InterfaceToJsonMessage(node.Type, node.Data)[:]),
 			string(InterfaceToJsonMessage(node.Type, node.Meta)[:]),
 			node.Deleted,
+			node.Enabled,
 			uuid.Formatter(node.Source, uuid.CleanHyphen),
-			node.Status).
+			node.Status,
+			node.Weight).
 		Suffix("RETURNING \"id\"").
 		RunWith(m.Db).
 		PlaceholderFormat(sq.Dollar)
@@ -290,10 +300,12 @@ func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 		Set("created_by",  uuid.Formatter(node.CreatedBy, uuid.CleanHyphen)).
 		Set("updated_by",  uuid.Formatter(node.UpdatedBy, uuid.CleanHyphen)).
 		Set("deleted",     node.Deleted).
+		Set("enabled",     node.Enabled).
 		Set("data",        string(InterfaceToJsonMessage(node.Type, node.Data)[:])).
 		Set("meta",        string(InterfaceToJsonMessage(node.Type, node.Meta)[:])).
 		Set("source",      uuid.Formatter(node.Source, uuid.CleanHyphen)).
 		Set("status",      node.Status).
+		Set("weight",      node.Weight).
 
 		Where("id = ?", node.id)
 
@@ -369,4 +381,28 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 	}
 
 	return node, err
+}
+
+func (m *PgNodeManager) Validate(node *Node) (bool, Errors) {
+	errors := NewErrors()
+
+	if (node.Name == "") {
+		errors.AddError("name", "Login cannot be empty")
+	}
+
+	if (node.Slug == "") {
+		errors.AddError("slug", "Name cannot be empty")
+	}
+
+	if (node.Type == "") {
+		errors.AddError("type", "Type cannot be empty")
+	}
+
+	if (node.Status < 0 || node.Status > 4) {
+		errors.AddError("status", "Invalid status")
+	}
+
+	m.GetHandler(node).Validate(node, m, errors)
+
+	return !errors.HasErrors(), errors
 }

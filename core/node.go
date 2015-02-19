@@ -1,4 +1,4 @@
-package gonode
+package core
 
 import (
 	"time"
@@ -17,7 +17,7 @@ type Reference struct {
 	uuid.UUID
 }
 
-func (m Reference) MarshalJSON() ([]byte, error) {
+func (m *Reference) MarshalJSON() ([]byte, error) {
     // Manually calling Marshal for Contents
     cont, err := json.Marshal(uuid.Formatter(m.UUID, uuid.CleanHyphen))
     if err != nil {
@@ -28,8 +28,18 @@ func (m Reference) MarshalJSON() ([]byte, error) {
     return cont, nil
 }
 
-func (m Reference) UnmarshalJSON(data []byte) error {
-	tmpUuid, _ := uuid.ParseUUID(string(data))
+func (m *Reference) UnmarshalJSON(data []byte) error {
+
+	if len(data) < 32 {
+		panic("invalid uuid size")
+	}
+
+	tmpUuid, err := uuid.ParseUUID(string(data[1:len(data)-1]))
+
+	if err != nil {
+		return err
+	}
+
 	m.UUID      = GetReference(tmpUuid)
 
 	return nil
