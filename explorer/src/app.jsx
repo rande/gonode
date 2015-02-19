@@ -11,7 +11,7 @@ var Dashboard = require('layouts/Dashboard.jsx');
 var GoNodesApplication = require('applications/gonodes');
 
 ReactAdmin.Container()
-  .set("gonodes.api.endpoint", new ReactAdmin.EndPoint('http://192.168.30.20:9090/nodes', {'Accept':'application/json'}));
+  .set("gonodes.api.endpoint", new ReactAdmin.EndPoint('/nodes', {'Accept':'application/json'}));
 
 /**
  *  Define the global layout of your application

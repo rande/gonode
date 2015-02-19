@@ -20,7 +20,7 @@ var gulp = require('gulp'),
 
     p = {
       jsx: './src/app.jsx',
-      scss: 'styles/main.scss',
+      scss: './src/styles/main.scss',
       bundle: 'app.js',
       distJs: 'dist/js',
       distCss: 'dist/css'
@@ -71,8 +71,8 @@ gulp.task('watch-network', function() {
       patterns: ['src/**.js*'],
       tasks: 'browserify'
     }, {
-      patterns: 'styles/*.scss',
-      tasks: ['styles', 'fonts']
+      patterns: 'src/styles/*.scss',
+      tasks: ['src/styles', 'fonts']
     }]
   })
 
