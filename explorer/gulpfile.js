@@ -83,6 +83,7 @@ gulp.task('browserify', function() {
   browserify(p.jsx, {
       basedir: __dirname,
       debug: true,
+      bundleExternal: false,
       paths: ['./node_modules','./src']
     })
     .transform(reactify)

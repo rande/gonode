@@ -72,3 +72,7 @@ func (h *UserHandler) Validate(node *Node, m NodeManager, errors Errors) {
 		errors.AddError("data.password", "Password cannot be empty")
 	}
 }
+
+func (h *UserHandler) GetDownloadData(node *Node) *DownloadData {
+	return GetDownloadData()
+}

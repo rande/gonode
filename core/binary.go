@@ -5,69 +5,75 @@ import (
 	"os"
 	"time"
 	"fmt"
+	"github.com/twinj/uuid"
 )
 
+func GetFileLocation(node *Node) string {
+	strUuid := uuid.Formatter(node.Uuid, uuid.CleanHyphen)
 
-func NewSecureFs(fs afero.Fs, path string) *secureFs {
-	return &secureFs{
+	return fmt.Sprintf("%s/%s/%s.bin", strUuid[0:2], strUuid[2:4], strUuid[4:])
+}
+
+func NewSecureFs(fs afero.Fs, path string) *SecureFs {
+	return &SecureFs{
 		fs: fs,
 		path: path,
 	}
 }
 
-type secureFs struct {
+type SecureFs struct {
 	fs   afero.Fs
 	path string
 }
 
-func (s *secureFs) securePath(name string) string {
+func (s *SecureFs) securePath(name string) string {
 	return fmt.Sprintf("%s/%s", s.path, name)
 }
 
-func (s *secureFs) Create(name string) (afero.File, error) {
+func (s *SecureFs) Create(name string) (afero.File, error) {
 	return s.fs.Create(s.securePath(name))
 }
 
-func (s *secureFs) Mkdir(name string, perm os.FileMode) error {
+func (s *SecureFs) Mkdir(name string, perm os.FileMode) error {
 	return s.fs.Mkdir(s.securePath(name), perm)
 }
 
-func (s *secureFs) MkdirAll(path string, perm os.FileMode) error {
+func (s *SecureFs) MkdirAll(path string, perm os.FileMode) error {
 	return s.fs.MkdirAll(s.securePath(path), perm)
 }
 
-func (s *secureFs) Open(name string) (afero.File, error) {
+func (s *SecureFs) Open(name string) (afero.File, error) {
 	return s.fs.Open(s.securePath(name))
 }
 
-func (s *secureFs) OpenFile(name string, flag int, perm os.FileMode) (afero.File, error) {
+func (s *SecureFs) OpenFile(name string, flag int, perm os.FileMode) (afero.File, error) {
 	return s.fs.OpenFile(s.securePath(name), flag, perm)
 }
 
-func (s *secureFs) Remove(name string) error {
+func (s *SecureFs) Remove(name string) error {
 	return s.fs.Remove(s.securePath(name))
 }
 
-func (s *secureFs) RemoveAll(path string) error {
+func (s *SecureFs) RemoveAll(path string) error {
 	return s.fs.RemoveAll(path)
 }
 
-func (s *secureFs) Rename(oldname, newname string) error {
+func (s *SecureFs) Rename(oldname, newname string) error {
 	return s.fs.Rename(s.securePath(oldname), s.securePath(newname))
 }
 
-func (s *secureFs) Stat(name string) (os.FileInfo, error) {
+func (s *SecureFs) Stat(name string) (os.FileInfo, error) {
 	return s.fs.Stat(s.securePath(name))
 }
 
-func (s *secureFs) Name() string {
+func (s *SecureFs) Name() string {
 	return "SecureFs"
 }
 
-func (s *secureFs) Chmod(name string, mode os.FileMode) error {
+func (s *SecureFs) Chmod(name string, mode os.FileMode) error {
 	return s.fs.Chmod(s.securePath(name), mode)
 }
 
-func (s *secureFs) Chtimes(name string, atime time.Time, mtime time.Time) error {
+func (s *SecureFs) Chtimes(name string, atime time.Time, mtime time.Time) error {
 	return s.fs.Chtimes(s.securePath(name), atime, mtime)
 }

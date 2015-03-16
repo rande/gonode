@@ -75,21 +75,25 @@ func (h *YoutubeHandler) Validate(node *nc.Node, m nc.NodeManager, errors nc.Err
 
 }
 
+func (h *YoutubeHandler) GetDownloadData(node *nc.Node) *nc.DownloadData {
+	return nc.GetDownloadData()
+}
+
 type YoutubeListener struct {
 	HttpClient nc.HttpClient
 }
 
-func (l *YoutubeListener) Handle(notification *pq.Notification, m nc.NodeManager) {
+func (l *YoutubeListener) Handle(notification *pq.Notification, m nc.NodeManager) (int, error) {
 	reference := nc.GetReferenceFromString(notification.Extra)
 
 	node := m.Find(reference)
 
 	if node == nil {
-		return
+		return nc.PubSubListenContinue, nil
 	}
 
 	if node.Data.(*Youtube).Status == nc.ProcessStatusDone {
-		return
+		return nc.PubSubListenContinue, nil
 	}
 
 	resp, err := l.HttpClient.Get(fmt.Sprintf("https://www.youtube.com/oembed?url=http://www.youtube.com/watch?v=%s&format=json", node.Data.(*Youtube).Vid))
@@ -98,7 +102,7 @@ func (l *YoutubeListener) Handle(notification *pq.Notification, m nc.NodeManager
 		node.Data.(*Youtube).Error = "Error while retrieving json response"
 		m.Save(node)
 
-		return
+		return nc.PubSubListenContinue, err
 	}
 
 	defer resp.Body.Close()
@@ -111,7 +115,7 @@ func (l *YoutubeListener) Handle(notification *pq.Notification, m nc.NodeManager
 		node.Data.(*Youtube).Error = "Error while decoding json"
 		m.Save(node)
 
-		return
+		return nc.PubSubListenContinue, err
 	}
 
 	node.Data.(*Youtube).Status = nc.ProcessStatusDone
@@ -127,4 +131,6 @@ func (l *YoutubeListener) Handle(notification *pq.Notification, m nc.NodeManager
 
 		m.Save(image)
 	}
+
+	return nc.PubSubListenContinue, nil
 }

@@ -39,11 +39,32 @@ var FormElement = React.createClass({
 
   render: function() {
     return (
-      <div>
-        <ReactAdmin.TextInput form={this.props.form} property="data.name" label="Name"/>
+      <div className="row">
+        <div className="col-sm-6">
 
-        <ReactAdmin.TextInput form={this.props.form} property="data.login" label="Login"/>
-        <ReactAdmin.TextInput form={this.props.form} property="data.password" label="Password"/>
+          <div className="col-sm-6">
+            <ReactAdmin.TextInput form={this.props.form} property="data.firstname" label="Firstname"/>
+          </div>
+          <div className="col-sm-6">
+            <ReactAdmin.TextInput form={this.props.form} property="data.lastname" label="Lastname"/>
+          </div>
+
+          <ReactAdmin.TextInput form={this.props.form} property="data.email" label="Email"/>
+          <ReactAdmin.TextInput form={this.props.form} property="data.login" label="Login"/>
+          <ReactAdmin.TextInput form={this.props.form} property="data.newpassword" label="New Password" help="Set a new password for the user"/>
+
+          <ReactAdmin.TextInput form={this.props.form} property="data.locale" label="Locale"/>
+          <ReactAdmin.TextInput form={this.props.form} property="data.timezone" label="Timezone"/>
+        </div>
+
+        <div className="col-sm-6">
+          <ReactAdmin.BooleanInput form={this.props.form} property="data.locked" label="Deleted" />
+          <ReactAdmin.BooleanInput form={this.props.form} property="data.enabled" label="Enabled" />
+          <ReactAdmin.BooleanInput form={this.props.form} property="data.expired" label="Expired" />
+
+          <ReactAdmin.Radio form={this.props.form} property="data.gender" name="Gender" value="m" label="Male" />
+          <ReactAdmin.Radio form={this.props.form} property="data.gender" name="Gender" value="f" label="Female" />
+        </div>
       </div>
     );
   }

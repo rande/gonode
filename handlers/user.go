@@ -2,22 +2,42 @@ package handlers
 
 import (
 	nc "github.com/rande/gonode/core"
+	v "github.com/asaskevich/govalidator"
+	"golang.org/x/crypto/bcrypt"
 	"regexp"
 )
 
 var (
-	validPassword, _ = regexp.Compile("{([a-zA-Z0-9]*)}(.*)");
+	validPassword, _ = regexp.Compile("{([a-zA-Z0-9]*)}(.*)")
 	validPasswordAlgo = []string{"plain", "md5", "bcrypt"}
 )
 
-type UserMeta struct {
+const (
+	USER_GENDER_MALE = "m"
+	USER_GENDER_FEMALE = "f"
+)
 
+type UserMeta struct {
+	PasswordCost int     `json:"password_cost"`
+	PasswordAlgo string  `json:"password_algo"`
 }
 
 type User struct {
-	Name     string `json:"name"`
-	Login    string `json:"login"`
-	Password string `json:"password"`
+	FirstName   string   `json:"firstname"`
+	LastName    string   `json:"lastname"`
+	Email       string   `json:"email"`
+	DateOfBirth string   `json:"dateofbirth"`
+	Locked      bool     `json:"locked"`
+	Enabled     bool     `json:"enabled"`
+	Expired     bool     `json:"expired"`
+	Roles       []string `json:"roles"`
+	Gender      string   `json:"gender"`
+	Locale      string   `json:"locale"`
+	Timezone    string   `json:"timezone"`
+
+	Login       string   `json:"login"`
+	Password    string   `json:"password"`
+	NewPassword string   `json:"newpassword,omitempty"`
 }
 
 type UserHandler struct {
@@ -25,14 +45,21 @@ type UserHandler struct {
 }
 
 func (h *UserHandler) GetStruct() (nc.NodeData, nc.NodeMeta) {
-	return &User{}, &UserMeta{}
+	return &User{}, &UserMeta{
+		PasswordCost: 10,
+		PasswordAlgo: "bcrypt",
+	}
 }
 
 func (h *UserHandler) PreInsert(node *nc.Node, m nc.NodeManager) error {
+	updatePassword(node)
+
 	return nil
 }
 
 func (h *UserHandler) PreUpdate(node *nc.Node, m nc.NodeManager) error {
+	updatePassword(node)
+
 	return nil
 }
 
@@ -48,32 +75,40 @@ func (h *UserHandler) Validate(node *nc.Node, m nc.NodeManager, errors nc.Errors
 
 	data := node.Data.(*User)
 
-	if (data.Login == "") {
+	if data.Login == "" {
 		errors.AddError("data.login", "Login cannot be empty")
 	}
 
-	if (data.Name == "") {
-		errors.AddError("data.name", "Name cannot be empty")
+	if data.Email != "" && !v.IsEmail(data.Email) {
+		errors.AddError("data.email", "Email is not valid")
 	}
 
-	if (data.Password == "") {
-		errors.AddError("data.password", "Password cannot be empty")
-	} else if (!validPassword.Match([]byte(data.Password))) {
-		errors.AddError("data.password", "Invalid password format")
+	if data.Gender != "" && (data.Gender != USER_GENDER_FEMALE && data.Gender != USER_GENDER_MALE) {
+		errors.AddError("data.gender", "Invalid gender code")
+	}
+}
+
+func (h *UserHandler) GetDownloadData(node *nc.Node) *nc.DownloadData {
+	return nc.GetDownloadData()
+}
+
+
+func updatePassword(node *nc.Node) error {
+	data := node.Data.(*User)
+	meta := node.Meta.(*UserMeta)
+
+	if data.NewPassword == "" {
+		return nil;
 	}
 
-	if (!errors.HasError("data.password")) {
-		result := validPassword.FindStringSubmatch(data.Password)
+	password, err := bcrypt.GenerateFromPassword([]byte(data.NewPassword), meta.PasswordCost)
 
-		invalid := true
-		for _, v := range validPasswordAlgo {
-			if v == result[1] {
-				invalid = false
-			}
-		}
-
-		if invalid {
-			errors.AddError("data.password", "Invalid algorithm selected")
-		}
+	if err != nil {
+		return err
 	}
+
+	data.Password = string(password)
+	data.NewPassword = ""
+
+	return nil
 }

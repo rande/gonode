@@ -3,6 +3,7 @@
 var React = require('react');
 var B = require('react-bootstrap');
 var Router = require('react-router');
+var Reflux = require('reflux');
 var _ = require('lodash');
 
 var ReactAdmin = require('react-admin');
@@ -62,9 +63,8 @@ var CompositePassword = ReactAdmin.createInput({
   }
 });
 
-
 var Form = React.createClass({
-  mixins: [Router.State],
+  mixins: [Router.State, Reflux.ListenerMixin],
 
   getInitialState: function() {
     return {
@@ -76,7 +76,26 @@ var Form = React.createClass({
   },
 
   componentDidMount: function() {
+    var streamStore = ReactAdmin.Container("gonodes.stores.stream");
+
+    this.listenTo(streamStore, this.onStreamUpdate);
+
     this.loadData();
+  },
+
+  onStreamUpdate: function(data) {
+    console.log("receive an update from the node");
+
+    setTimeout(function() {
+      if (data.revision > this.state.node.revision) {
+        console.log("new version available");
+
+        ReactAdmin.Status.Action("warning", "The object has been updated by an external user, so the current form has been updated!", 5000);
+
+        this.loadData();
+      }
+    }.bind(this), 500); // wait a bit before reloading, avoid race condition
+
   },
 
   refreshView: function() {
@@ -85,16 +104,26 @@ var Form = React.createClass({
     });
   },
 
+  componentWillReceiveProps: function() {
+    this.loadData();
+  },
+
   submit: function() {
     var endpoint = ReactAdmin.Container("gonodes.api.endpoint");
 
     endpoint.put('/' + this.getParams().uuid, this.state.node, function(res) {
       if (res.ok) {
+
+        ReactAdmin.Status.Action("success", "The subject has been saved!");
+
         this.setState({
           node: res.body,
           errors: {}
         });
       } else {
+
+        ReactAdmin.Status.Action("danger", "An error occurs while saving", 4000);
+
         this.setState({
           errors: res.body
         });
@@ -104,6 +133,7 @@ var Form = React.createClass({
 
   loadData: function() {
     var endpoint = ReactAdmin.Container("gonodes.api.endpoint");
+    var update = ReactAdmin.Container("admin.reflux.action.update");
 
     endpoint.get('/' + this.getParams().uuid, function(error, response) {
       if (!this.isMounted()) {
@@ -111,13 +141,15 @@ var Form = React.createClass({
       }
 
       if (!response) {
-        throw e;
-        console.log("response not defined");
+        console.log("response not defined", error);
+
+        update("KO", "An error occurs while loading data");
         return;
       }
 
       if (!response.ok) {
         // an error occurs
+        update("KO", "An unexpected error occurs while loading data");
         return;
       }
 
@@ -147,71 +179,26 @@ var Form = React.createClass({
         <form>
           <div className="row">
             <div className="col-sm-6">
-              <ReactAdmin.TextInput form={this} property="data.password" label="Password"/>
-            </div>
-            <div className="col-sm-6">
-              <CompositePassword form={this} property="data.password" label="Password" help="Configure your password"/>
-            </div>
-          </div>
-
-          <hr />
-          <div className="row">
-            <div className="col-sm-6">
               <ReactAdmin.TextInput form={this} property="name" label="Name" help="Enter the name"/>
+              <ReactAdmin.TextInput form={this} property="slug" label="Slug" help="Enter the slug"/>
             </div>
-            <div className="col-sm-6">
-              <ReactAdmin.TextAreaInput form={this} property="name" label="Name"/>
-            </div>
-          </div>
-
-          <hr />
-          <ReactAdmin.TextInput form={this} property="slug" label="Slug" help="Enter the slug"/>
-
-          <hr />
-          <div className="row">
-            <div className="col-sm-6">
-              <ReactAdmin.BooleanRadio form={this} property="enabled" name="enabled" value="true" label="Enabled" help="Enable the node" />
-              <ReactAdmin.BooleanRadio form={this} property="enabled" name="enabled" value="false" label="Disabled" help="Disable the node" />
-            </div>
-
             <div className="col-sm-6">
               <ReactAdmin.BooleanSelect form={this} property="enabled" label="enabled">
                   <option value="1">Yes</option>
                   <option value="0">No</option>
               </ReactAdmin.BooleanSelect>
-            </div>
-          </div>
 
-          <hr />
-          <ReactAdmin.BooleanInput form={this} property="deleted" label="Deleted" />
-
-          <hr />
-          <div className="row">
-            <div className="col-sm-4">
               <ReactAdmin.NumberSelect form={this} property="status" label="Status">
-                  <option value="1">Status 1</option>
-                  <option value="2">Status 2</option>
-                  <option value="3">Status 3</option>
-                  <option value="4">Status 4</option>
+                  <option value="0">New</option>
+                  <option value="1">Draft</option>
+                  <option value="2">Completed</option>
+                  <option value="3">Validated</option>
               </ReactAdmin.NumberSelect>
-            </div>
 
-            <div className="col-sm-4">
-              <ReactAdmin.NumberRadio form={this} property="status" name="status" value="1" label="Status 1" />
-              <ReactAdmin.NumberRadio form={this} property="status" name="status" value="2" label="Status 2" />
-              <ReactAdmin.NumberRadio form={this} property="status" name="status" value="3" label="Status 3" />
-              <ReactAdmin.NumberRadio form={this} property="status" name="status" value="4" label="Status 4" />
-            </div>
-
-            <div className="col-sm-4">
-              <ReactAdmin.NumberInput form={this} property="status" help="numeral status" label="Status" />
+              <ReactAdmin.NumberInput form={this} property="weight" help="error message " label="Weight" />
             </div>
           </div>
 
-          <hr />
-          <ReactAdmin.NumberInput form={this} property="weight" help="error message " label="Weight" />
-
-          <hr />
           {CustomForm}
         </form>
 

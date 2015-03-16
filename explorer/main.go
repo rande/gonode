@@ -2,6 +2,7 @@ package main
 
 import (
 	nc "github.com/rande/gonode/core"
+	. "github.com/rande/goapp"
 	nh "github.com/rande/gonode/handlers"
 	"github.com/rande/gonode/extra"
 	"net/http"
@@ -11,127 +12,180 @@ import (
 	sq "github.com/lann/squirrel"
 	"github.com/spf13/afero"
 	"strconv"
-	"fmt"
-	"time"
 	"os"
 	"github.com/hypebeast/gojistatic"
-	"github.com/zenazn/goji"
+  "github.com/zenazn/goji/web"
+  "github.com/zenazn/goji/web/middleware"
+  "github.com/zenazn/goji/bind"
+  "github.com/zenazn/goji/graceful"
+//  "time"
+  "flag"
 )
 
-func main() {
-	manager := GetManager(nil)
+func init() {
+  bind.WithFlag()
+  if fl := log.Flags(); fl&log.Ltime != 0 {
+    log.SetFlags(fl | log.Lmicroseconds)
+  }
+//  graceful.DoubleKickWindow(2 * time.Second)
+}
 
+func Serve(mux *web.Mux) {
+  if !flag.Parsed() {
+    flag.Parse()
+  }
+
+  mux.Compile()
+  // Install our handler at the root of the standard net/http default mux.
+  // This allows packages like expvar to continue working as expected.
+  http.Handle("/", mux)
+
+  listener := bind.Default()
+  log.Println("Starting Goji on", listener.Addr())
+
+  graceful.HandleSignals()
+  bind.Ready()
+  graceful.PreHook(func() { log.Printf("Goji received signal, gracefully stopping") })
+  graceful.PostHook(func() { log.Printf("Goji stopped") })
+
+  err := graceful.Serve(listener, http.DefaultServeMux)
+
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  graceful.Wait()
+}
+
+func main() {
 //	LoadFixtures(manager, 256)
 //	Check(manager, manager.Logger)
 
+  app := NewApp()
 
-	extra.ConfigureGoji(manager, "")
+  // TODO: move this code to a dedicated init method in the extra folder
+  //       to share common code
+  // configure main services
+  app.Set("logger", func(app *App) interface {} {
+      return log.New(os.Stdout, "", log.Lshortfile)
+  })
 
-	ListenMessages(manager)
+  app.Set("gonode.fs", func(app *App) interface {} {
+      return nc.NewSecureFs(&afero.OsFs{}, "/tmp/gnode")
+  })
 
-  goji.Use(gojistatic.Static("dist", gojistatic.StaticOptions{SkipLogging: false, Prefix: "dist"}))
+  app.Set("gonode.http_client", func(app *App) interface {} {
+      return &http.Client{}
+  })
+
+  app.Set("gonode.manager", func(app *App) interface {} {
+      fs := app.Get("gonode.fs").(*nc.SecureFs)
+
+      return &nc.PgNodeManager{
+          Logger: app.Get("logger").(*log.Logger),
+          Db: app.Get("gonode.postgres.connection").(*sql.DB),
+          ReadOnly: false,
+          Handlers: map[string]nc.Handler{
+              "default":       &nh.DefaultHandler{},
+              "media.image":   &nh.ImageHandler{
+                  Fs: fs,
+              },
+              "media.youtube": &nh.YoutubeHandler{},
+              "blog.post":     &nh.PostHandler{},
+              "core.user":     &nh.UserHandler{},
+          },
+      }
+  })
+
+  app.Set("gonode.postgres.connection", func(app *App) interface {} {
+      sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+      db, err := sql.Open("postgres", "postgres://safre:safre@localhost/safre")
+      db.SetMaxIdleConns(8)
+      db.SetMaxOpenConns(64)
+
+      if err != nil {
+        log.Fatal(err)
+      }
+
+      err = db.Ping()
+      if err != nil {
+        log.Fatal(err)
+      }
+
+      return db
+  })
+
+  app.Set("gonode.api", func(app *App) interface {} {
+      return &nc.Api{
+        Manager: app.Get("gonode.manager").(*nc.PgNodeManager),
+        Version: "1.0.0",
+      }
+  })
+
+  app.Set("goji.mux", func(app *App) interface {} {
+      mux := web.New()
+
+      mux.Use(middleware.RequestID)
+      mux.Use(middleware.Logger)
+      mux.Use(middleware.Recoverer)
+      mux.Use(middleware.AutomaticOptions)
+
+      mux.Use(gojistatic.Static("dist", gojistatic.StaticOptions{SkipLogging: true, Prefix: "dist"}))
+
+      return mux
+  })
+
+  app.Set("gonode.postgres.subscriber", func(app *App) interface {} {
+      return nc.NewSubscriber(
+        "postgres://safre:safre@localhost/safre",
+        app.Get("logger").(*log.Logger),
+      )
+  })
+
+  app.Set("gonode.listener.youtube", func(app *App) interface {} {
+      client := app.Get("gonode.http_client").(*http.Client)
+
+      return &nh.YoutubeListener{
+          HttpClient: client,
+      }
+  })
+
+  app.Set("gonode.listener.file_downloader", func(app *App) interface {} {
+      client := app.Get("gonode.http_client").(*http.Client)
+      fs := app.Get("gonode.fs").(*nc.SecureFs)
+
+      return &nh.ImageDownloadListener{
+          Fs: fs,
+          HttpClient: client,
+      }
+  })
+
+  // need to find a way to trigger the handler registration
+  sub := app.Get("gonode.postgres.subscriber").(*nc.Subscriber)
+  sub.ListenMessage("media_youtube_update", func(app *App) nc.SubscriberHander {
+      manager := app.Get("gonode.manager").(*nc.PgNodeManager)
+      listener := app.Get("gonode.listener.youtube").(*nh.YoutubeListener)
+
+      return func(notification *pq.Notification) (int, error) {
+        return listener.Handle(notification, manager)
+      }
+    }(app))
+  sub.ListenMessage("media_file_download", func(app *App) nc.SubscriberHander {
+      manager := app.Get("gonode.manager").(*nc.PgNodeManager)
+      listener := app.Get("gonode.listener.file_downloader").(*nh.ImageDownloadListener)
+
+      return func(notification *pq.Notification) (int, error) {
+        return listener.Handle(notification, manager)
+      }
+    }(app))
+
+  // load the current application
+	extra.ConfigureGoji(app)
 
   // start http server
-	goji.Serve()
+  Serve(app.Get("goji.mux").(*web.Mux))
 }
 
-func ListenMessage(name string, listenerHandler nc.Listener, manager nc.NodeManager) {
-	var conninfo string = "postgres://safre:safre@localhost/safre"
-
-	reportProblem := func(ev pq.ListenerEventType, err error) {
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-	}
-
-	// listen to the specific channel
-	listener := pq.NewListener(conninfo, 10 * time.Second, time.Minute, reportProblem)
-	err := listener.Listen(name)
-	if err != nil {
-		panic(err)
-	}
-
-	// iterate over received notifications, for now, we start only one consumer with no concurrence
-	for {
-		select {
-			case notification := <-listener.Notify:
-
-				if notification == nil {
-					fmt.Println("received a nil notification, the underlying driver reconnect")
-					continue
-				}
-				fmt.Println("received notification, new work available")
-
-				listenerHandler.Handle(notification, manager)
-
-			case <-time.After(90 * time.Second):
-				go func() {
-					listener.Ping()
-				}()
-				// Check if there's more work available, just in case it takes
-				// a while for the Listener to notice connection loss and
-				// reconnect.
-				fmt.Println("received no work for 90 seconds, checking for new work")
-		}
-	}
-}
-
-func ListenMessages(manager nc.NodeManager) {
-	for name, listener := range GetListeners()  {
-		go ListenMessage(name, listener, manager)
-	}
-}
-
-func GetHandlers() map[string]nc.Handler {
-	return map[string]nc.Handler{
-		"default":       &nh.DefaultHandler{},
-		"media.image":   &nh.ImageHandler{},
-		"media.youtube": &nh.YoutubeHandler{},
-		"blog.post":     &nh.PostHandler{},
-		"core.user":     &nh.UserHandler{},
-	}
-}
-
-func GetListeners() map[string]nc.Listener {
-	return map[string]nc.Listener{
-		"media_youtube_update": &nh.YoutubeListener{
-			HttpClient: &http.Client{},
-		},
-		"media_file_download": &nh.ImageDownloadListener{
-			Fs: nc.NewSecureFs(&afero.OsFs{}, "/tmp/gnode"),
-			HttpClient: &http.Client{},
-		},
-	}
-}
-
-func GetManager(logger *log.Logger) *nc.PgNodeManager {
-
-	if logger == nil {
-		logger = log.New(os.Stdout, "Notification > ", log.Lshortfile)
-	}
-
-	sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	db, err := sql.Open("postgres", "postgres://safre:safre@localhost/safre")
-	db.SetMaxIdleConns(8)
-	db.SetMaxOpenConns(64)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = db.Ping()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return &nc.PgNodeManager{
-		Logger: logger,
-		Db: db,
-		ReadOnly: false,
-		Handlers: GetHandlers(),
-		Listeners: GetListeners(),
-	}
-}
 
 func Check(manager *nc.PgNodeManager, logger *log.Logger) {
 	query := manager.SelectBuilder()
@@ -209,9 +263,12 @@ func GetFakeUserNode(pos int) *nc.Node {
 	node.Slug = "the-user-"+strconv.Itoa(pos)
 	node.Data = &nh.User{
 		Login: "user"+strconv.Itoa(pos),
-		Password: "{plain}user"+strconv.Itoa(pos),
+		NewPassword: "user"+strconv.Itoa(pos),
 	}
-	node.Meta = &nh.UserMeta{}
+	node.Meta = &nh.UserMeta{
+    PasswordCost: 10,
+    PasswordAlgo: "bcrypt",
+  }
 
 	return node
 }
@@ -232,9 +289,12 @@ func LoadFixtures(m *nc.PgNodeManager, max int) {
 	admin.Slug = "the-admin-user"
 	admin.Data = &nh.User{
 		Login: "admin",
-		Password: "{plain}admin",
+		NewPassword: "admin",
 	}
-	admin.Meta = &nh.UserMeta{}
+	admin.Meta = &nh.UserMeta{
+    PasswordCost: 10,
+    PasswordAlgo: "bcrypt",
+  }
 
 	m.Save(admin)
 

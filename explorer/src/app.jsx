@@ -1,59 +1,89 @@
 'use strict';
 
-var React = require('react');
+var React = require('react/addons');
 var Router = require('react-router');
 var B = require('react-bootstrap');
 var RB = require('react-router-bootstrap');
 var ReactAdmin = require('react-admin');
+var Reflux = require('reflux');
+var _ = require('lodash');
 
 var Dashboard = require('layouts/Dashboard.jsx');
 
 var GoNodesApplication = require('applications/gonodes');
 
 ReactAdmin.Container()
-  .set("gonodes.api.endpoint", new ReactAdmin.EndPoint('/nodes', {'Accept':'application/json'}));
+  .set("gonodes.api.endpoint", new ReactAdmin.EndPoint('/nodes', {'Accept':'application/json'}))
+  .set("admin.reflux.action.status", ReactAdmin.Status.Action)
+;
 
 /**
  *  Define the global layout of your application
  *  The Router.RouteHandler call is required to render sub view defined
  *  on each defined applications.
  */
-var Header = React.createClass({
-  render: function() {
-    return (
-      <B.Navbar inverse={true} fixedTop={true} fluid={true} role="navigation">
-        <div className="navbar-header">
-          <button type="button" className="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span className="sr-only">Toggle navigation</span>
-            <span className="icon-bar"></span>
-            <span className="icon-bar"></span>
-            <span className="icon-bar"></span>
-          </button>
-          <Router.Link to="homepage" className="navbar-brand">React Admin</Router.Link>
-        </div>
-
-        <div id="navbar" className="navbar-collapse collapse">
-          <B.Nav activeKey={1} right={true} navbar={true}>
-            <RB.NavItemLink eventKey={1} to="gonodes.list">Nodes</RB.NavItemLink>
-          </B.Nav>
-
-          <form className="navbar-form navbar-right">
-            <input type="text" bsClass="form-control" placeholder="Search..." />
-          </form>
-        </div>
-      </B.Navbar>
-    );
-  }
-});
-
 var App = React.createClass({
+  mixins: [Reflux.ListenerMixin],
+  getInitialState: function() {
+    return {
+       showNotification: false,
+       countNotification: 0,
+       apps: []
+    };
+  },
+  componentDidMount: function () {
+      this.listenTo(ReactAdmin.Notification.Store, this.onNotification);
+  },
+  onNotification: function(notification) {
+      this.setState({
+        countNotification: this.state.countNotification + 1
+      });
+  },
+  toggleNotification: function(event) {
+      this.setState({
+        showNotification: !this.state.showNotification,
+        countNotification: !this.state.showNotification ? 0 : this.state.countNotification
+      });
+
+      event.stopPropagation();
+      event.preventDefault();
+  },
   render: function () {
+    var leftColumn = this.state.showNotification ? "col-md-9" : "col-md-12";
+    var rightColumn = this.state.showNotification ? "col-md-3" : "hide";
+
+    var classes = React.addons.classSet({
+      'label label-danger': true,
+      'hide': this.state.countNotification == 0
+    });
+
     return (
       <div>
-        <Header />
+        <B.Navbar inverse={true} fixedTop={true} fluid={true} brand="React Admin">
+            <B.Nav activeKey={1} right={true} navbar={true}>
+              <RB.NavItemLink to="homepage">Dashboard</RB.NavItemLink>
+              <RB.NavItemLink to="gonodes.list">Nodes</RB.NavItemLink>
+              <B.NavItem onClick={this.toggleNotification}>
+                <i className="fa fa-bell-o"></i>
+                <span className={classes}>{this.state.countNotification}</span>
+              </B.NavItem>
+            </B.Nav>
+        </B.Navbar>
+
         <div className="container-fluid">
+          <ReactAdmin.Status.Component />
           <div className="row">
-            <Router.RouteHandler />
+            <div className={leftColumn}>
+              <div className="row">
+                <Router.RouteHandler />
+              </div>
+            </div>
+
+            <div className={rightColumn}>
+              <div className="row">
+                <ReactAdmin.Notification.Component />
+              </div>
+            </div>
           </div>
         </div>
       </div>

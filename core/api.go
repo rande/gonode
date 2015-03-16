@@ -69,8 +69,8 @@ func (a *Api) deserialize(r io.Reader, data interface {}) {
 	decoder := json.NewDecoder(r)
 	err := decoder.Decode(data)
 
-	a.Manager.Logger.Printf("desiarialize=%s", r)
-	a.Manager.Logger.Printf("desiarialize=%+v)", data)
+	a.Manager.Logger.Printf("deserialize=%s", r)
+	a.Manager.Logger.Printf("deserialize=%+v)", data)
 
 	if err != nil {
 		panic(err)
@@ -82,7 +82,6 @@ func (a *Api) SelectBuilder() sq.SelectBuilder {
 }
 
 func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uint64) error {
-
 	list := a.Manager.FindBy(query, (page - 1) * perPage, perPage + 1)
 
 	pager := &ApiPager{
@@ -185,14 +184,12 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 }
 
 func (a *Api) FindOne(uuid string, w io.Writer) error {
-
 	a.serialize(w, a.Manager.Find(GetReferenceFromString(uuid)))
 
 	return nil
 }
 
 func (a *Api) RemoveOne(uuid string, w io.Writer) error {
-
 	node := a.Manager.Find(GetReferenceFromString(uuid))
 
 	a.Manager.DumpNode(node)

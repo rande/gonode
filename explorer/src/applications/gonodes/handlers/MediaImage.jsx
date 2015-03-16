@@ -36,13 +36,52 @@ var FormElement = React.createClass({
     form: React.PropTypes.object.isRequired
   },
 
+  refresh: function(event) {
+    ReactAdmin.WriteValue(this.props.form.state.node, "meta.source_status", 0 /* Init */)
+
+    this.props.form.submit();
+  },
+
   render: function() {
+    var node = this.props.form.state.node;
+
+    var RefreshButton = false;
+    if (node.uuid && node.meta.source_status != 1 /* Update */) {
+        RefreshButton = <B.Button bsStyle="primary" onClick={this.refresh}><i className="fa fa-refresh"></i>Refresh</B.Button>
+    }
+
+    var Preview = false;
+
+    if (node.uuid && node.meta.source_status == 2 /* Done */) {
+        Preview = <img src={ "/nodes/" + node.uuid + "?raw"} width="200px" />
+    }
+
     return (
       <div>
-        <ReactAdmin.TextInput form={this.props.form} property="data.name" label="Name"/>
+        <div className="col-sm-6">
+          <ReactAdmin.TextInput form={this.props.form} property="data.name" label="Name"/>
 
-        <ReactAdmin.TextInput form={this.props.form} property="data.reference" label="Reference"/>
-        <ReactAdmin.TextInput form={this.props.form} property="data.source_url" label="Source URL"/>
+          <ReactAdmin.TextInput form={this.props.form} property="data.reference" label="Reference"/>
+          <ReactAdmin.TextInput form={this.props.form} property="data.source_url" label="Source URL"/>
+        </div>
+
+        <div className="col-sm-6">
+
+          <p>
+            {Preview}
+            <ul>
+              <li>Status: {node.meta.source_status}</li>
+              <li>Error: {node.meta.source_error}</li>
+              <li>{RefreshButton}</li>
+            </ul>
+            <ul>
+              <li>Dimension: {node.meta.width}x{node.meta.height}</li>
+              <li>Size: {node.meta.size}</li>
+              <li>ContentType: {node.meta.content_type}</li>
+              <li>Length: {node.meta.length}</li>
+            </ul>
+          </p>
+        </div>
       </div>
     );
   }

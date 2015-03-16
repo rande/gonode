@@ -17,7 +17,7 @@ func Test_ImageHandler(t *testing.T) {
 	a.IsType(&ImageMeta{}, meta)
 	a.IsType(&Image{}, data)
 
-	a.Equal(data.(*Image).SourceStatus, nc.ProcessStatusInit)
+	a.Equal(meta.(*ImageMeta).SourceStatus, nc.ProcessStatusInit)
 	a.Equal(data.(*Image).SourceUrl, "")
 }
 
@@ -33,17 +33,17 @@ func Test_ImageHandler_PreInsert(t *testing.T) {
 
 	// no url => keep status
 	handler.PreInsert(node, manager)
-	a.Equal(node.Data.(*Image).SourceStatus, nc.ProcessStatusInit)
+	a.Equal(node.Meta.(*ImageMeta).SourceStatus, nc.ProcessStatusInit)
 
 	// url => update status
 	node.Data.(*Image).SourceUrl = "http://myimage.com/salut.jpg"
 	handler.PreInsert(node, manager)
-	a.Equal(node.Data.(*Image).SourceStatus, nc.ProcessStatusUpdate)
+	a.Equal(node.Meta.(*ImageMeta).SourceStatus, nc.ProcessStatusUpdate)
 
 	// url, status done => no update
-	node.Data.(*Image).SourceStatus = nc.ProcessStatusDone
+	node.Meta.(*ImageMeta).SourceStatus = nc.ProcessStatusDone
 	handler.PreInsert(node, manager)
-	a.Equal(node.Data.(*Image).SourceStatus, nc.ProcessStatusDone)
+	a.Equal(node.Meta.(*ImageMeta).SourceStatus, nc.ProcessStatusDone)
 }
 
 func Test_ImageHandler_PreUpdate(t *testing.T) {
@@ -58,17 +58,17 @@ func Test_ImageHandler_PreUpdate(t *testing.T) {
 
 	// no url => keep status
 	handler.PreUpdate(node, manager)
-	a.Equal(node.Data.(*Image).SourceStatus, nc.ProcessStatusInit)
+	a.Equal(node.Meta.(*ImageMeta).SourceStatus, nc.ProcessStatusInit)
 
 	// url => update status
 	node.Data.(*Image).SourceUrl = "http://myimage.com/salut.jpg"
 	handler.PreUpdate(node, manager)
-	a.Equal(node.Data.(*Image).SourceStatus, nc.ProcessStatusUpdate)
+	a.Equal(node.Meta.(*ImageMeta).SourceStatus, nc.ProcessStatusUpdate)
 
 	// url, status done => no update
-	node.Data.(*Image).SourceStatus = nc.ProcessStatusDone
+	node.Meta.(*ImageMeta).SourceStatus = nc.ProcessStatusDone
 	handler.PreUpdate(node, manager)
-	a.Equal(node.Data.(*Image).SourceStatus, nc.ProcessStatusDone)
+	a.Equal(node.Meta.(*ImageMeta).SourceStatus, nc.ProcessStatusDone)
 }
 
 func Test_ImageHandler_PostUpdate(t *testing.T) {
@@ -84,17 +84,17 @@ func Test_ImageHandler_PostUpdate(t *testing.T) {
 
 	// no url => keep status
 	handler.PostUpdate(node, manager)
-	a.Equal(node.Data.(*Image).SourceStatus, nc.ProcessStatusInit)
+	a.Equal(node.Meta.(*ImageMeta).SourceStatus, nc.ProcessStatusInit)
 
 	// url => keep status
 	node.Data.(*Image).SourceUrl = "http://myimage.com/salut.jpg"
-	node.Data.(*Image).SourceStatus = nc.ProcessStatusUpdate
+	node.Meta.(*ImageMeta).SourceStatus = nc.ProcessStatusUpdate
 
 	handler.PostUpdate(node, manager)
 
 	manager.AssertCalled(t, "Notify", "media_file_download", node.Uuid.String())
 
-	a.Equal(node.Data.(*Image).SourceStatus, nc.ProcessStatusUpdate)
+	a.Equal(node.Meta.(*ImageMeta).SourceStatus, nc.ProcessStatusUpdate)
 }
 
 func Test_ImageHandler_PostInsert(t *testing.T) {
@@ -110,15 +110,15 @@ func Test_ImageHandler_PostInsert(t *testing.T) {
 
 	// no url => keep status
 	handler.PostInsert(node, manager)
-	a.Equal(node.Data.(*Image).SourceStatus, nc.ProcessStatusInit)
+	a.Equal(node.Meta.(*ImageMeta).SourceStatus, nc.ProcessStatusInit)
 
 	// url => keep status
 	node.Data.(*Image).SourceUrl = "http://myimage.com/salut.jpg"
-	node.Data.(*Image).SourceStatus = nc.ProcessStatusUpdate
+	node.Meta.(*ImageMeta).SourceStatus = nc.ProcessStatusUpdate
 
 	handler.PostInsert(node, manager)
 
 	manager.AssertCalled(t, "Notify", "media_file_download", node.Uuid.String())
 
-	a.Equal(node.Data.(*Image).SourceStatus, nc.ProcessStatusUpdate)
+	a.Equal(node.Meta.(*ImageMeta).SourceStatus, nc.ProcessStatusUpdate)
 }

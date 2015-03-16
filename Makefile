@@ -3,7 +3,12 @@
 default: clean test build
 
 install:
+	go get all
 	cd explorer && npm install && npm install react-admin
+
+update:
+	go get -u all
+	cd explorer && npm update && npm update react-admin
 
 run:
 	cd explorer && go run main.go -bind :9090

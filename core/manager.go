@@ -10,6 +10,7 @@ import (
 	"container/list"
 	sq "github.com/lann/squirrel"
 	"fmt"
+	"strings"
 )
 
 var (
@@ -22,6 +23,7 @@ func InterfaceToJsonMessage(ntype string, data interface {}) json.RawMessage {
 
 	return v
 }
+
 
 func GetEmptyReference() Reference {
 	return emptyUuid
@@ -46,7 +48,6 @@ type NodeManager interface {
 type PgNodeManager struct {
 	Logger     *log.Logger
 	Handlers   map[string]Handler
-	Listeners  map[string]Listener
 	Db         *sql.DB
 	ReadOnly   bool
 }
@@ -61,7 +62,7 @@ func (m *PgNodeManager) SelectBuilder() sq.SelectBuilder {
 func (m *PgNodeManager) Notify(channel string, payload string) {
 	m.Logger.Printf("[PgNode] NOTIFY %s, %s ", channel, payload)
 
-	_, err := m.Db.Query(fmt.Sprintf("NOTIFY %s, '%s'", channel, payload))
+	_, err := m.Db.Query(fmt.Sprintf("NOTIFY %s, '%s'", channel, strings.Replace(payload, "'","''", -1)))
 
 	if err != nil {
 		panic(err)
@@ -186,6 +187,8 @@ func (m *PgNodeManager) GetHandler(node *Node) Handler {
 func (m *PgNodeManager) Remove(query sq.SelectBuilder) error {
 	query = query.Where("deleted != ?", true)
 
+	now := time.Now()
+
 	for {
 		nodes := m.FindBy(query, 0, 1024)
 
@@ -196,7 +199,18 @@ func (m *PgNodeManager) Remove(query sq.SelectBuilder) error {
 		for e := nodes.Front(); e != nil; e = e.Next() {
 			node := e.Value.(*Node)
 			node.Deleted = true
+			node.UpdatedAt = now
+
 			m.Save(node)
+
+			m.sendNotification("manager_action",  &ModelEvent{
+				Type:     node.Type,
+				Name:     node.Name,
+				Action:   "SoftDelete",
+				Subject:  uuid.Formatter(node.Uuid, uuid.CleanHyphen),
+				Revision: node.Revision,
+				Date:     node.UpdatedAt,
+			})
 
 			m.Logger.Printf("[PgNode] Soft Delete: Uuid:%+v - type: %s", node.Uuid, node.Type)
 		}
@@ -206,9 +220,19 @@ func (m *PgNodeManager) Remove(query sq.SelectBuilder) error {
 }
 
 func (m *PgNodeManager) RemoveOne(node *Node) (*Node, error) {
+	node.UpdatedAt = time.Now()
 	node.Deleted = true
 
 	m.Logger.Printf("[PgNode] Soft Delete: Uuid:%+v - type: %s", node.Uuid, node.Type)
+
+	m.sendNotification("manager_action",  &ModelEvent{
+		Type:     node.Type,
+		Action:   "SoftDelete",
+		Subject:  uuid.Formatter(node.Uuid, uuid.CleanHyphen),
+		Revision: node.Revision,
+		Date:     node.UpdatedAt,
+		Name:     node.Name,
+	})
 
 	return m.Save(node)
 }
@@ -341,6 +365,14 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 			m.Logger.Printf("[PgNode] Creating node uuid: %s, id: %d, type: %s", node.Uuid, node.id, node.Type)
 		}
 
+		m.sendNotification("manager_action",  &ModelEvent{
+			Type:    node.Type,
+			Action:  "Create",
+			Subject: uuid.Formatter(node.Uuid, uuid.CleanHyphen),
+			Date:    node.CreatedAt,
+			Name:    node.Name,
+		})
+
 		handler.PostInsert(node, m)
 
 		return node, err
@@ -380,7 +412,22 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 		panic(err)
 	}
 
+	m.sendNotification("manager_action",  &ModelEvent{
+		Type:     node.Type,
+		Action:   "Update",
+		Subject:  uuid.Formatter(node.Uuid, uuid.CleanHyphen),
+		Revision: node.Revision,
+		Date:     node.UpdatedAt,
+		Name:     node.Name,
+	})
+
 	return node, err
+}
+
+func (m *PgNodeManager) sendNotification(channel string, element interface {}) {
+	data, _ := json.Marshal(element)
+
+	m.Notify(channel, string(data[:]))
 }
 
 func (m *PgNodeManager) Validate(node *Node) (bool, Errors) {
@@ -398,7 +445,7 @@ func (m *PgNodeManager) Validate(node *Node) (bool, Errors) {
 		errors.AddError("type", "Type cannot be empty")
 	}
 
-	if (node.Status < 0 || node.Status > 4) {
+	if (node.Status < 0 || node.Status > 3) {
 		errors.AddError("status", "Invalid status")
 	}
 

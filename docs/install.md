@@ -28,7 +28,8 @@ Nodes Tables
         "created_at" TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
         "created_by" UUid NOT NULL, 
         "updated_at" TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
-        "updated_by" UUid NOT NULL, 
+        "updated_by" UUid NOT NULL,
+        "weight" INTEGER DEFAULT '0' NOT NULL,
      PRIMARY KEY ( "id" )
     , CONSTRAINT "slug" UNIQUE( "parent_uuid","slug","revision" ), CONSTRAINT "uuid" UNIQUE( "revision","uuid" ) );
     
@@ -62,7 +63,8 @@ Audit Log node table
         "created_at" TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
         "created_by" UUid NOT NULL, 
         "updated_at" TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
-        "updated_by" UUid NOT NULL, 
+        "updated_by" UUid NOT NULL,
+        "weight" INTEGER DEFAULT '0' NOT NULL,
      PRIMARY KEY ( "id" )
     );
     

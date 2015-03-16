@@ -8,8 +8,25 @@ var ReactAdmin = require('react-admin');
 var NodeInformationCard = require('../helpers/NodeInformationCard.jsx');
 var NodeNotificationCard = require('../helpers/NodeNotificationCard.jsx');
 
+module.exports.NotificationElement = React.createClass({
+  propTypes: {
+    subject: React.PropTypes.string.isRequired,
+    type: React.PropTypes.string.isRequired,
+    revision: React.PropTypes.number.isRequired,
+    date: React.PropTypes.string.isRequired,
+    action: React.PropTypes.string.isRequired
+  },
+  render: function() {
+      return (
+        <div className="notification-element">
+          <Router.Link to="gonodes.edit" params={{uuid: this.props.subject}}>{this.props.name}</Router.Link> <br />
+          Action: {this.props.action} - ({this.props.type} / #{this.props.revision})
+        </div>
+      );
+  }
+})
 
-var ListElement = React.createClass({
+module.exports.ListElement = React.createClass({
   propTypes: {
     node: React.PropTypes.object.isRequired
   },
@@ -33,7 +50,7 @@ var ListElement = React.createClass({
   }
 });
 
-var FormElement = React.createClass({
+module.exports.FormElement = React.createClass({
   propTypes: {
     form: React.PropTypes.object.isRequired
   },
@@ -46,10 +63,3 @@ var FormElement = React.createClass({
     );
   }
 });
-
-module.exports = {
-  ListElement: ListElement,
-  FormElement: FormElement
-}
-
-

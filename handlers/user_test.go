@@ -23,6 +23,9 @@ func Test_UserHandler_Validate_EmptyData(t *testing.T) {
 	a.IsType(&UserMeta{}, node.Meta)
 	a.IsType(&User{}, node.Data)
 
+	node.Data.(*User).Email = "invalid email"
+	node.Data.(*User).Gender = "v"
+
 	errors := nc.NewErrors()
 	manager := &mock.MockedManager{}
 
@@ -34,52 +37,33 @@ func Test_UserHandler_Validate_EmptyData(t *testing.T) {
 	a.True(errors.HasError("data.login"))
 	a.Equal([]string{"Login cannot be empty"}, errors.GetError("data.login"))
 
-	a.True(errors.HasError("data.name"))
-	a.Equal([]string{"Name cannot be empty"}, errors.GetError("data.name"))
+	a.True(errors.HasError("data.email"))
+	a.Equal([]string{"Email is not valid"}, errors.GetError("data.email"))
 
-	a.True(errors.HasError("data.password"))
-	a.Equal([]string{"Password cannot be empty"}, errors.GetError("data.password"))
+	a.True(errors.HasError("data.gender"))
+	a.Equal([]string{"Invalid gender code"}, errors.GetError("data.gender"))
 }
 
-func Test_UserHandler_Validate_InvalidPassword(t *testing.T) {
-
+func GeneratePasswordTest(t *testing.T) {
 	a := assert.New(t)
 	handler, node := GetUserHandleNode()
 
-	node.Data.(*User).Password = "password"
+	node.Data.(*User).NewPassword = "password"
 
-	errors := nc.NewErrors()
 	manager := &mock.MockedManager{}
-	handler.Validate(node, manager, errors)
 
-	a.True(errors.HasError("data.password"))
-	a.Equal([]string{"Invalid password format"}, errors.GetError("data.password"))
+	a.False(len(node.Data.(*User).Password) > 0)
+
+	handler.PreInsert(node, manager)
+
+	a.Equal(0, len(node.Data.(*User).NewPassword))
+	a.True(len(node.Data.(*User).Password) > 0)
 }
 
-func Test_UserHandler_Validate_ValidPassword(t *testing.T) {
-
-	a := assert.New(t)
-	handler, node := GetUserHandleNode()
-
-	node.Data.(*User).Password = "{plain}password"
-
-	errors := nc.NewErrors()
-	manager := &mock.MockedManager{}
-	handler.Validate(node, manager, errors)
-
-	a.False(errors.HasError("data.password"))
+func Test_UserHandler_GeneratePassword_PreInsert(t *testing.T) {
+	GeneratePasswordTest(t)
 }
 
-func Test_UserHandler_Validate_InvalidPasswordAlgo(t *testing.T) {
-	a := assert.New(t)
-	handler, node := GetUserHandleNode()
-
-	node.Data.(*User).Password = "{wrong}password"
-
-	errors := nc.NewErrors()
-	manager := &mock.MockedManager{}
-	handler.Validate(node, manager, errors)
-
-	a.True(errors.HasError("data.password"))
-	a.Equal([]string{"Invalid algorithm selected"}, errors.GetError("data.password"))
+func Test_UserHandler_GeneratePassword_PreUpdate(t *testing.T) {
+	GeneratePasswordTest(t)
 }

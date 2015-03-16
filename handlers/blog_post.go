@@ -42,3 +42,8 @@ func (h *PostHandler) PostUpdate(node *nc.Node, m nc.NodeManager) error {
 func (h *PostHandler) Validate(node *nc.Node, m nc.NodeManager, errors nc.Errors) {
 
 }
+
+func (h *PostHandler) GetDownloadData(node *nc.Node) *nc.DownloadData {
+	return nc.GetDownloadData()
+}
+

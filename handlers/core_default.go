@@ -32,3 +32,7 @@ func (h *DefaultHandler) PostUpdate(node *nc.Node, m nc.NodeManager) error {
 func (h *DefaultHandler) Validate(node *nc.Node, m nc.NodeManager, errors nc.Errors) {
 
 }
+
+func (h *DefaultHandler) GetDownloadData(node *nc.Node) *nc.DownloadData {
+	return nc.GetDownloadData()
+}

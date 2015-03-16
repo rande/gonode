@@ -7,62 +7,69 @@ import (
 	"fmt"
 	"github.com/spf13/afero"
 	"io"
+	"net/http"
 )
 
 type ExifMeta map[string]string
 
 type ImageMeta struct {
-	Width       int      `json:"width"`
-	Height      int      `json:"height"`
-	Size        int      `json:"size"`
-	ContentType int      `json:"content_type"`
-	Length      int      `json:"length"`
-	Exif        ExifMeta `json:"exif"`
-	Hash        string   `json:"hash"`
+	Width        int      `json:"width"`
+	Height       int      `json:"height"`
+	Size         int      `json:"size"`
+	ContentType  string   `json:"content_type"`
+	Length       int      `json:"length"`
+	Exif         ExifMeta `json:"exif"`
+	Hash         string   `json:"hash"`
+	SourceStatus int      `json:"source_status"`
+	SourceError  string   `json:"source_error"`
 }
 
 type Image struct {
 	Reference    string   `json:"reference"`
 	Name         string   `json:"name"`
 	SourceUrl    string   `json:"source_url"`
-	SourceStatus int      `json:"source_status"`
-	SourceError  string   `json:"source_error"`
 }
 
 type ImageHandler struct {
-
+	Fs afero.Fs
 }
 
 func (h *ImageHandler) GetStruct() (nc.NodeData, nc.NodeMeta) {
 	return &Image{
+
+	}, &ImageMeta{
 		SourceStatus: nc.ProcessStatusInit,
-	}, &ImageMeta{}
+	}
 }
 
 func (h *ImageHandler) PreInsert(node *nc.Node, m nc.NodeManager) error {
-	image := node.Data.(*Image)
+	data := node.Data.(*Image)
+	meta := node.Meta.(*ImageMeta)
 
-	if image.SourceUrl != "" && image.SourceStatus == nc.ProcessStatusInit {
-		image.SourceStatus = nc.ProcessStatusUpdate
+	if data.SourceUrl != "" && meta.SourceStatus == nc.ProcessStatusInit {
+		meta.SourceStatus = nc.ProcessStatusUpdate
+		meta.SourceError = ""
 	}
 
 	return nil
 }
 
 func (h *ImageHandler) PreUpdate(node *nc.Node, m nc.NodeManager) error {
-	image := node.Data.(*Image)
+	data := node.Data.(*Image)
+	meta := node.Meta.(*ImageMeta)
 
-	if image.SourceUrl != "" && image.SourceStatus == nc.ProcessStatusInit {
-		image.SourceStatus = nc.ProcessStatusUpdate
+	if data.SourceUrl != "" && meta.SourceStatus == nc.ProcessStatusInit {
+		meta.SourceStatus = nc.ProcessStatusUpdate
+		meta.SourceError = ""
 	}
 
 	return nil
 }
 
 func (h *ImageHandler) PostInsert(node *nc.Node, m nc.NodeManager) error {
-	image := node.Data.(*Image)
+	meta := node.Meta.(*ImageMeta)
 
-	if image.SourceStatus == nc.ProcessStatusUpdate {
+	if meta.SourceStatus == nc.ProcessStatusUpdate {
 		m.Notify("media_file_download", node.Uuid.String())
 	}
 
@@ -70,9 +77,9 @@ func (h *ImageHandler) PostInsert(node *nc.Node, m nc.NodeManager) error {
 }
 
 func (h *ImageHandler) PostUpdate(node *nc.Node, m nc.NodeManager) error {
-	image := node.Data.(*Image)
+	meta := node.Meta.(*ImageMeta)
 
-	if image.SourceStatus == nc.ProcessStatusUpdate {
+	if meta.SourceStatus == nc.ProcessStatusUpdate {
 		m.Notify("media_file_download", node.Uuid.String())
 	}
 
@@ -83,12 +90,31 @@ func (h *ImageHandler) Validate(node *nc.Node, m nc.NodeManager, errors nc.Error
 
 }
 
+func (h *ImageHandler) GetDownloadData(node *nc.Node) *nc.DownloadData {
+	meta := node.Meta.(*ImageMeta)
+
+	data := nc.GetDownloadData()
+	data.Filename = node.Name
+	data.ContentType = meta.ContentType
+	data.Stream = func(node *nc.Node, w io.Writer) {
+		file, err := h.Fs.Open(nc.GetFileLocation(node))
+
+		if err != nil {
+			panic(err)
+		}
+
+		io.Copy(w, file)
+	}
+
+	return data
+}
+
 type ImageDownloadListener struct {
 	Fs afero.Fs
 	HttpClient nc.HttpClient
 }
 
-func (l *ImageDownloadListener) Handle(notification *pq.Notification, m nc.NodeManager) {
+func (l *ImageDownloadListener) Handle(notification *pq.Notification, m nc.NodeManager) (int, error) {
 
 	reference := nc.GetReferenceFromString(notification.Extra)
 
@@ -97,26 +123,26 @@ func (l *ImageDownloadListener) Handle(notification *pq.Notification, m nc.NodeM
 
 	if node == nil {
 		fmt.Printf("Uuid does not exist: %s\n", notification.Extra)
-		return
+		return nc.PubSubListenContinue, nil
 	}
 
-	image := node.Data.(*Image)
+	data := node.Data.(*Image)
 	meta := node.Meta.(*ImageMeta)
 
-	if image.SourceStatus == nc.ProcessStatusDone {
+	if meta.SourceStatus == nc.ProcessStatusDone {
 		fmt.Printf("Nothing to update: %s\n", notification.Extra)
 
-		return
+		return nc.PubSubListenContinue, nil
 	}
 
-	resp, err := l.HttpClient.Get(image.SourceUrl)
+	resp, err := l.HttpClient.Get(data.SourceUrl)
 
 	if err != nil {
-		image.SourceStatus = nc.ProcessStatusError
-		image.SourceError = "Unable to retrieve the remote file"
+		meta.SourceStatus = nc.ProcessStatusError
+		meta.SourceError = "Unable to retrieve the remote file"
 		m.Save(node)
 
-		panic(err)
+		return nc.PubSubListenContinue, err
 	}
 
 	defer resp.Body.Close()
@@ -125,18 +151,26 @@ func (l *ImageDownloadListener) Handle(notification *pq.Notification, m nc.NodeM
 
 	l.Fs.MkdirAll(fmt.Sprintf("%s/%s", strUuid[0:2], strUuid[2:4]), 0755)
 
-	file, _ := l.Fs.Create(fmt.Sprintf("%s/%s/%s.bin", strUuid[0:2], strUuid[2:4], strUuid[4:]))
+	file, _ := l.Fs.Create(nc.GetFileLocation(node))
 
 	written, err := io.Copy(file, resp.Body)
 
+	raw := make([]byte, 512)
+
+	file.Seek(0, 0)
+	file.Read(raw)
+	file.Seek(0, 0)
+
+	meta.ContentType = http.DetectContentType(raw)
+
 	if err != nil {
-		panic(err)
+		return nc.PubSubListenContinue, err
 	}
 
-	fmt.Printf("Binary length: %ds\n", written)
-
 	meta.Size = int(written)
-	image.SourceStatus = nc.ProcessStatusDone
+	meta.SourceStatus = nc.ProcessStatusDone
 
 	m.Save(node)
+
+	return nc.PubSubListenContinue, nil
 }

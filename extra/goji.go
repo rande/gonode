@@ -4,27 +4,126 @@ import (
 	"fmt"
 	"bufio"
 	"net/http"
-	"github.com/zenazn/goji"
 	"github.com/zenazn/goji/web"
 	nc "github.com/rande/gonode/core"
 	sq "github.com/lann/squirrel"
 	"github.com/gorilla/schema"
+	"github.com/gorilla/websocket"
+	"github.com/lib/pq"
+	"time"
+	"container/list"
+	"github.com/zenazn/goji/graceful"
+	. "github.com/rande/goapp"
+	"log"
 )
 
-func ConfigureGoji(manager *nc.PgNodeManager, prefix string) {
-	api := &nc.Api{
-		Manager: manager,
-		Version: "1.0.0",
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
+
+func readLoop(c *websocket.Conn) {
+	for {
+		if _, _, err := c.NextReader(); err != nil {
+			return
+		}
 	}
+}
 
-	goji.Get(prefix + "/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
-		res.Header().Set("Content-Type", "application/json")
-		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
+func ConfigureGoji(app *App) {
 
-		api.FindOne(c.URLParams["uuid"], res)
+	mux     := app.Get("goji.mux").(*web.Mux)
+	logger  := app.Get("logger").(*log.Logger)
+	manager := app.Get("gonode.manager").(*nc.PgNodeManager)
+	api     := app.Get("gonode.api").(*nc.Api)
+	prefix  := ""
+	sub     := app.Get("gonode.postgres.subscriber").(*nc.Subscriber)
+
+	var webSocketList = list.New()
+
+	sub.ListenMessage("manager_action", func(notification *pq.Notification) (int, error) {
+		logger.Printf("WebSocket: Sending message \n");
+
+		for e := webSocketList.Front(); e != nil; e = e.Next() {
+			if err := e.Value.(*websocket.Conn).WriteMessage(websocket.TextMessage, []byte(notification.Extra)); err != nil {
+				logger.Printf("Error writing to websocket")
+			}
+		}
+
+		return nc.PubSubListenContinue, nil
 	})
 
-	goji.Post(prefix + "/nodes", func(res http.ResponseWriter, req *http.Request) {
+	graceful.PreHook(func() {
+		logger.Printf("Closing PostgreSQL subcriber \n");
+		sub.Stop()
+
+		logger.Printf("Closing websocket connections \n");
+		for e := webSocketList.Front(); e != nil; e = e.Next() {
+			e.Value.(*websocket.Conn).Close()
+		}
+	})
+
+	mux.Get(prefix + "/nodes/stream", func(res http.ResponseWriter, req *http.Request) {
+		ws, err := upgrader.Upgrade(res, req, nil)
+		if err != nil {
+			panic(err)
+			return
+		}
+
+		element := webSocketList.PushBack(ws)
+
+		var closeDefer = func() {
+			ws.Close()
+			webSocketList.Remove(element)
+		}
+
+		defer closeDefer()
+
+		go readLoop(ws)
+
+		// ping remote client, avoid keeping open connection
+		for {
+			time.Sleep(2 * time.Second);
+			if err := ws.WriteMessage(websocket.TextMessage, []byte("PING")); err != nil {
+				return
+			}
+		}
+	})
+
+	mux.Get(prefix + "/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
+
+		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
+
+		values := req.URL.Query()
+
+		if _, raw := values["raw"]; raw {
+			node := manager.Find(nc.GetReferenceFromString(c.URLParams["uuid"]))
+
+			if node == nil {
+				res.WriteHeader(404);
+
+				return
+			}
+
+			handler := manager.GetHandler(node)
+
+			data := handler.GetDownloadData(node)
+
+			res.Header().Set("Content-Type", data.ContentType)
+
+//			if download {
+//				res.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", data.Filename));
+//			}
+
+			data.Stream(node, res)
+		} else {
+			// send the json value
+			res.Header().Set("Content-Type", "application/json")
+			api.FindOne(c.URLParams["uuid"], res)
+		}
+	})
+
+	mux.Post(prefix + "/nodes", func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
 		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
 
@@ -43,7 +142,7 @@ func ConfigureGoji(manager *nc.PgNodeManager, prefix string) {
 		w.Flush()
 	})
 
-	goji.Put(prefix + "/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
+	mux.Put(prefix + "/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
 		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
 
@@ -62,14 +161,14 @@ func ConfigureGoji(manager *nc.PgNodeManager, prefix string) {
 		w.Flush()
 	})
 
-	goji.Delete(prefix + "/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
+	mux.Delete(prefix + "/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
 		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
 
 		api.RemoveOne(c.URLParams["uuid"], res)
 	})
 
-	goji.Get(prefix + "/nodes", func(res http.ResponseWriter, req *http.Request) {
+	mux.Get(prefix + "/nodes", func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
 		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
 
