@@ -2,8 +2,8 @@ package mock
 
 import (
 	"github.com/stretchr/testify/mock"
-	"net/http"
 	"io"
+	"net/http"
 	"net/url"
 )
 
@@ -40,6 +40,3 @@ func (c *MockedHttpClient) PostForm(url string, data url.Values) (resp *http.Res
 
 	return args.Get(0).(*http.Response), args.Error(1)
 }
-
-
-

@@ -1,9 +1,9 @@
 package core
 
 import (
-	"time"
-	"github.com/twinj/uuid"
 	"encoding/json"
+	"github.com/twinj/uuid"
+	"time"
 )
 
 var (
@@ -18,14 +18,14 @@ type Reference struct {
 }
 
 func (m *Reference) MarshalJSON() ([]byte, error) {
-    // Manually calling Marshal for Contents
-    cont, err := json.Marshal(uuid.Formatter(m.UUID, uuid.CleanHyphen))
-    if err != nil {
-        return nil, err
-    }
+	// Manually calling Marshal for Contents
+	cont, err := json.Marshal(uuid.Formatter(m.UUID, uuid.CleanHyphen))
+	if err != nil {
+		return nil, err
+	}
 
-    // Stitching it all together
-    return cont, nil
+	// Stitching it all together
+	return cont, nil
 }
 
 func (m *Reference) UnmarshalJSON(data []byte) error {
@@ -34,13 +34,13 @@ func (m *Reference) UnmarshalJSON(data []byte) error {
 		panic("invalid uuid size")
 	}
 
-	tmpUuid, err := uuid.ParseUUID(string(data[1:len(data)-1]))
+	tmpUuid, err := uuid.ParseUUID(string(data[1 : len(data)-1]))
 
 	if err != nil {
 		return err
 	}
 
-	m.UUID      = GetReference(tmpUuid)
+	m.UUID = GetReference(tmpUuid)
 
 	return nil
 }
@@ -61,25 +61,25 @@ func GetReference(uuid uuid.UUID) Reference {
 
 type Node struct {
 	id         int
-	Uuid       Reference     `json:"uuid"`
-	Type       string        `json:"type"`
-	Name       string        `json:"name"`
-	Slug       string        `json:"slug"`
-	Data       interface {}  `json:"data"`
-	Meta       interface {}  `json:"meta"`
-	Status     int           `json:"status"`
-	Weight     int           `json:"weight"`
-	Revision   int           `json:"revision"`
-	CreatedAt  time.Time     `json:"created_at"`
-	UpdatedAt  time.Time     `json:"updated_at"`
-	Enabled    bool          `json:"enabled"`
-	Deleted    bool          `json:"deleted"`
-	Parents    []Reference   `json:"parents"`
-	UpdatedBy  Reference     `json:"updated_by"`
-	CreatedBy  Reference     `json:"created_by"`
-	ParentUuid Reference     `json:"parent_uuid"`
-	SetUuid    Reference     `json:"set_uuid"`
-	Source     Reference     `json:"source"`
+	Uuid       Reference   `json:"uuid"`
+	Type       string      `json:"type"`
+	Name       string      `json:"name"`
+	Slug       string      `json:"slug"`
+	Data       interface{} `json:"data"`
+	Meta       interface{} `json:"meta"`
+	Status     int         `json:"status"`
+	Weight     int         `json:"weight"`
+	Revision   int         `json:"revision"`
+	CreatedAt  time.Time   `json:"created_at"`
+	UpdatedAt  time.Time   `json:"updated_at"`
+	Enabled    bool        `json:"enabled"`
+	Deleted    bool        `json:"deleted"`
+	Parents    []Reference `json:"parents"`
+	UpdatedBy  Reference   `json:"updated_by"`
+	CreatedBy  Reference   `json:"created_by"`
+	ParentUuid Reference   `json:"parent_uuid"`
+	SetUuid    Reference   `json:"set_uuid"`
+	Source     Reference   `json:"source"`
 }
 
 func (node *Node) Id() int {

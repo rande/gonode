@@ -1,15 +1,15 @@
 package core
 
 import (
-	pq "github.com/lib/pq"
-	"time"
-	"log"
 	"container/list"
+	pq "github.com/lib/pq"
+	"log"
+	"time"
 )
 
 const (
 	PubSubListenContinue = 1
-	PubSubListenStop = 0
+	PubSubListenStop     = 0
 
 	ProcessStatusInit   = 0
 	ProcessStatusUpdate = 1
@@ -24,13 +24,13 @@ type Listener interface {
 type SubscriberHander func(notification *pq.Notification) (int, error)
 
 type ModelEvent struct {
-	Subject  string     `json:"subject"`
-	Action   string     `json:"action"`
-	Type     string     `json:"type"`
-	Revision int        `json:"revision"`
-	Date     time.Time  `json:"date"`
-	Extra    string     `json:"extra"`
-	Name     string     `json:"name"`
+	Subject  string    `json:"subject"`
+	Action   string    `json:"action"`
+	Type     string    `json:"type"`
+	Revision int       `json:"revision"`
+	Date     time.Time `json:"date"`
+	Extra    string    `json:"extra"`
+	Name     string    `json:"name"`
 }
 
 func NewSubscriber(conninfo string, logger *log.Logger) *Subscriber {
@@ -72,7 +72,7 @@ func (s *Subscriber) register() {
 	}
 
 	// listen to the specific channel
-	s.listener = pq.NewListener(s.conninfo, 10 * time.Second, time.Minute, reportProblem)
+	s.listener = pq.NewListener(s.conninfo, 10*time.Second, time.Minute, reportProblem)
 
 	go s.waitAndDispatch()
 }

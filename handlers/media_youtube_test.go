@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"github.com/rande/gonode/test/mock"
-	"github.com/rande/gonode/test"
-	nc "github.com/rande/gonode/core"
 	"github.com/lib/pq"
+	nc "github.com/rande/gonode/core"
+	"github.com/rande/gonode/test"
+	"github.com/rande/gonode/test/mock"
 	"github.com/stretchr/testify/assert"
-	"testing"
 	"net/http"
+	"testing"
 )
 
 func Test_YoutubeHandler(t *testing.T) {

@@ -1,29 +1,28 @@
 package core
 
 import (
-	_ "github.com/lib/pq"
-	"database/sql"
-	"log"
-	"encoding/json"
-	"time"
-	"github.com/twinj/uuid"
 	"container/list"
-	sq "github.com/lann/squirrel"
+	"database/sql"
+	"encoding/json"
 	"fmt"
+	sq "github.com/lann/squirrel"
+	_ "github.com/lib/pq"
+	"github.com/twinj/uuid"
+	"log"
 	"strings"
+	"time"
 )
 
 var (
-	emptyUuid       = GetReference(uuid.New([]byte{0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11}))
-	rootUuid        = GetReference(uuid.New([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}))
+	emptyUuid = GetReference(uuid.New([]byte{0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11}))
+	rootUuid  = GetReference(uuid.New([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}))
 )
 
-func InterfaceToJsonMessage(ntype string, data interface {}) json.RawMessage {
+func InterfaceToJsonMessage(ntype string, data interface{}) json.RawMessage {
 	v, _ := json.Marshal(data)
 
 	return v
 }
-
 
 func GetEmptyReference() Reference {
 	return emptyUuid
@@ -46,10 +45,10 @@ type NodeManager interface {
 }
 
 type PgNodeManager struct {
-	Logger     *log.Logger
-	Handlers   map[string]Handler
-	Db         *sql.DB
-	ReadOnly   bool
+	Logger   *log.Logger
+	Handlers map[string]Handler
+	Db       *sql.DB
+	ReadOnly bool
 }
 
 func (m *PgNodeManager) SelectBuilder() sq.SelectBuilder {
@@ -62,7 +61,7 @@ func (m *PgNodeManager) SelectBuilder() sq.SelectBuilder {
 func (m *PgNodeManager) Notify(channel string, payload string) {
 	m.Logger.Printf("[PgNode] NOTIFY %s, %s ", channel, payload)
 
-	_, err := m.Db.Exec(fmt.Sprintf("NOTIFY %s, '%s'", channel, strings.Replace(payload, "'","''", -1)))
+	_, err := m.Db.Exec(fmt.Sprintf("NOTIFY %s, '%s'", channel, strings.Replace(payload, "'", "''", -1)))
 
 	if err != nil {
 		panic(err)
@@ -124,7 +123,7 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 
 	Uuid := ""
 	SetUuid := ""
-	ParentUuid :=  ""
+	ParentUuid := ""
 	CreatedBy := ""
 	UpdatedBy := ""
 	Source := ""
@@ -154,12 +153,18 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 	var tmpUuid uuid.UUID
 
 	// transform UUID
-	tmpUuid, _ = uuid.ParseUUID(Uuid);       node.Uuid = GetReference(tmpUuid)
-	tmpUuid, _ = uuid.ParseUUID(SetUuid);    node.SetUuid = GetReference(tmpUuid)
-	tmpUuid, _ = uuid.ParseUUID(ParentUuid); node.ParentUuid = GetReference(tmpUuid)
-	tmpUuid, _ = uuid.ParseUUID(CreatedBy);  node.CreatedBy = GetReference(tmpUuid)
-	tmpUuid, _ = uuid.ParseUUID(UpdatedBy);  node.UpdatedBy = GetReference(tmpUuid)
-	tmpUuid, _ = uuid.ParseUUID(Source);     node.Source = GetReference(tmpUuid)
+	tmpUuid, _ = uuid.ParseUUID(Uuid)
+	node.Uuid = GetReference(tmpUuid)
+	tmpUuid, _ = uuid.ParseUUID(SetUuid)
+	node.SetUuid = GetReference(tmpUuid)
+	tmpUuid, _ = uuid.ParseUUID(ParentUuid)
+	node.ParentUuid = GetReference(tmpUuid)
+	tmpUuid, _ = uuid.ParseUUID(CreatedBy)
+	node.CreatedBy = GetReference(tmpUuid)
+	tmpUuid, _ = uuid.ParseUUID(UpdatedBy)
+	node.UpdatedBy = GetReference(tmpUuid)
+	tmpUuid, _ = uuid.ParseUUID(Source)
+	node.Source = GetReference(tmpUuid)
 
 	node.Data, node.Meta = m.GetHandler(node).GetStruct()
 
@@ -203,7 +208,7 @@ func (m *PgNodeManager) Remove(query sq.SelectBuilder) error {
 
 			m.Save(node)
 
-			m.sendNotification("manager_action",  &ModelEvent{
+			m.sendNotification("manager_action", &ModelEvent{
 				Type:     node.Type,
 				Name:     node.Name,
 				Action:   "SoftDelete",
@@ -225,7 +230,7 @@ func (m *PgNodeManager) RemoveOne(node *Node) (*Node, error) {
 
 	m.Logger.Printf("[PgNode] Soft Delete: Uuid:%+v - type: %s", node.Uuid, node.Type)
 
-	m.sendNotification("manager_action",  &ModelEvent{
+	m.sendNotification("manager_action", &ModelEvent{
 		Type:     node.Type,
 		Action:   "SoftDelete",
 		Subject:  uuid.Formatter(node.Uuid, uuid.CleanHyphen),
@@ -277,28 +282,28 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 
 	query := sq.Insert(table).
 		Columns(
-			"uuid", "type", "revision", "name", "created_at", "updated_at", "set_uuid",
-			"parent_uuid", "slug", "created_by", "updated_by", "data", "meta", "deleted",
-			"enabled", "source", "status", "weight").
-    	Values(
-			uuid.Formatter(node.Uuid, uuid.CleanHyphen),
-			node.Type,
-			node.Revision,
-			node.Name,
-			node.CreatedAt,
-			node.UpdatedAt,
-			uuid.Formatter(node.SetUuid, uuid.CleanHyphen),
-			uuid.Formatter(node.ParentUuid, uuid.CleanHyphen),
-			node.Slug,
-			uuid.Formatter(node.CreatedBy, uuid.CleanHyphen),
-			uuid.Formatter(node.UpdatedBy, uuid.CleanHyphen),
-			string(InterfaceToJsonMessage(node.Type, node.Data)[:]),
-			string(InterfaceToJsonMessage(node.Type, node.Meta)[:]),
-			node.Deleted,
-			node.Enabled,
-			uuid.Formatter(node.Source, uuid.CleanHyphen),
-			node.Status,
-			node.Weight).
+		"uuid", "type", "revision", "name", "created_at", "updated_at", "set_uuid",
+		"parent_uuid", "slug", "created_by", "updated_by", "data", "meta", "deleted",
+		"enabled", "source", "status", "weight").
+		Values(
+		uuid.Formatter(node.Uuid, uuid.CleanHyphen),
+		node.Type,
+		node.Revision,
+		node.Name,
+		node.CreatedAt,
+		node.UpdatedAt,
+		uuid.Formatter(node.SetUuid, uuid.CleanHyphen),
+		uuid.Formatter(node.ParentUuid, uuid.CleanHyphen),
+		node.Slug,
+		uuid.Formatter(node.CreatedBy, uuid.CleanHyphen),
+		uuid.Formatter(node.UpdatedBy, uuid.CleanHyphen),
+		string(InterfaceToJsonMessage(node.Type, node.Data)[:]),
+		string(InterfaceToJsonMessage(node.Type, node.Meta)[:]),
+		node.Deleted,
+		node.Enabled,
+		uuid.Formatter(node.Source, uuid.CleanHyphen),
+		node.Status,
+		node.Weight).
 		Suffix("RETURNING \"id\"").
 		RunWith(m.Db).
 		PlaceholderFormat(sq.Dollar)
@@ -312,25 +317,24 @@ func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 	var err error
 
 	query := sq.Update("nodes").RunWith(m.Db).PlaceholderFormat(sq.Dollar).
-		Set("uuid",        uuid.Formatter(node.Uuid, uuid.CleanHyphen)).
-		Set("type",        node.Type).
-		Set("revision",    node.Revision).
-		Set("name",        node.Name).
-		Set("created_at",  node.CreatedAt).
-		Set("updated_at",  node.UpdatedAt).
-		Set("set_uuid",    uuid.Formatter(node.SetUuid, uuid.CleanHyphen)).
+		Set("uuid", uuid.Formatter(node.Uuid, uuid.CleanHyphen)).
+		Set("type", node.Type).
+		Set("revision", node.Revision).
+		Set("name", node.Name).
+		Set("created_at", node.CreatedAt).
+		Set("updated_at", node.UpdatedAt).
+		Set("set_uuid", uuid.Formatter(node.SetUuid, uuid.CleanHyphen)).
 		Set("parent_uuid", uuid.Formatter(node.ParentUuid, uuid.CleanHyphen)).
-		Set("slug",        node.Slug).
-		Set("created_by",  uuid.Formatter(node.CreatedBy, uuid.CleanHyphen)).
-		Set("updated_by",  uuid.Formatter(node.UpdatedBy, uuid.CleanHyphen)).
-		Set("deleted",     node.Deleted).
-		Set("enabled",     node.Enabled).
-		Set("data",        string(InterfaceToJsonMessage(node.Type, node.Data)[:])).
-		Set("meta",        string(InterfaceToJsonMessage(node.Type, node.Meta)[:])).
-		Set("source",      uuid.Formatter(node.Source, uuid.CleanHyphen)).
-		Set("status",      node.Status).
-		Set("weight",      node.Weight).
-
+		Set("slug", node.Slug).
+		Set("created_by", uuid.Formatter(node.CreatedBy, uuid.CleanHyphen)).
+		Set("updated_by", uuid.Formatter(node.UpdatedBy, uuid.CleanHyphen)).
+		Set("deleted", node.Deleted).
+		Set("enabled", node.Enabled).
+		Set("data", string(InterfaceToJsonMessage(node.Type, node.Data)[:])).
+		Set("meta", string(InterfaceToJsonMessage(node.Type, node.Meta)[:])).
+		Set("source", uuid.Formatter(node.Source, uuid.CleanHyphen)).
+		Set("status", node.Status).
+		Set("weight", node.Weight).
 		Where("id = ?", node.id)
 
 	_, err = query.Exec()
@@ -339,7 +343,7 @@ func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 		log.Fatal(err)
 	}
 
-	if (m.Logger != nil) {
+	if m.Logger != nil {
 		strQuery, _, _ := query.ToSql()
 		m.Logger.Printf("[PgNode] Update: %s", strQuery)
 	}
@@ -365,7 +369,7 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 			m.Logger.Printf("[PgNode] Creating node uuid: %s, id: %d, type: %s", node.Uuid, node.id, node.Type)
 		}
 
-		m.sendNotification("manager_action",  &ModelEvent{
+		m.sendNotification("manager_action", &ModelEvent{
 			Type:    node.Type,
 			Action:  "Create",
 			Subject: uuid.Formatter(node.Uuid, uuid.CleanHyphen),
@@ -412,7 +416,7 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 		panic(err)
 	}
 
-	m.sendNotification("manager_action",  &ModelEvent{
+	m.sendNotification("manager_action", &ModelEvent{
 		Type:     node.Type,
 		Action:   "Update",
 		Subject:  uuid.Formatter(node.Uuid, uuid.CleanHyphen),
@@ -424,7 +428,7 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 	return node, err
 }
 
-func (m *PgNodeManager) sendNotification(channel string, element interface {}) {
+func (m *PgNodeManager) sendNotification(channel string, element interface{}) {
 	data, _ := json.Marshal(element)
 
 	m.Notify(channel, string(data[:]))
@@ -433,19 +437,19 @@ func (m *PgNodeManager) sendNotification(channel string, element interface {}) {
 func (m *PgNodeManager) Validate(node *Node) (bool, Errors) {
 	errors := NewErrors()
 
-	if (node.Name == "") {
+	if node.Name == "" {
 		errors.AddError("name", "Login cannot be empty")
 	}
 
-	if (node.Slug == "") {
+	if node.Slug == "" {
 		errors.AddError("slug", "Name cannot be empty")
 	}
 
-	if (node.Type == "") {
+	if node.Type == "" {
 		errors.AddError("type", "Type cannot be empty")
 	}
 
-	if (node.Status < 0 || node.Status > 3) {
+	if node.Status < 0 || node.Status > 3 {
 		errors.AddError("status", "Invalid status")
 	}
 

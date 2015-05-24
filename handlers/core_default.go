@@ -1,12 +1,11 @@
 package handlers
 
 import (
-	nc "github.com/rande/gonode/core"
 	"encoding/json"
+	nc "github.com/rande/gonode/core"
 )
 
 type DefaultHandler struct {
-
 }
 
 func (h *DefaultHandler) GetStruct() (nc.NodeData, nc.NodeMeta) {

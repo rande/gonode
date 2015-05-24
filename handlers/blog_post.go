@@ -5,7 +5,7 @@ import (
 )
 
 type PostMeta struct {
-	Format string     `json:"format"`
+	Format string `json:"format"`
 }
 
 type Post struct {
@@ -16,7 +16,6 @@ type Post struct {
 }
 
 type PostHandler struct {
-
 }
 
 func (h *PostHandler) GetStruct() (nc.NodeData, nc.NodeMeta) {
@@ -46,4 +45,3 @@ func (h *PostHandler) Validate(node *nc.Node, m nc.NodeManager, errors nc.Errors
 func (h *PostHandler) GetDownloadData(node *nc.Node) *nc.DownloadData {
 	return nc.GetDownloadData()
 }
-

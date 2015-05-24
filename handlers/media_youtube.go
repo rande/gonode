@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	nc "github.com/rande/gonode/core"
-	"github.com/lib/pq"
-	"fmt"
 	"encoding/json"
+	"fmt"
+	"github.com/lib/pq"
+	nc "github.com/rande/gonode/core"
 )
 
 type YoutubeMeta struct {
@@ -24,13 +24,12 @@ type YoutubeMeta struct {
 }
 
 type Youtube struct {
-	Vid     string `json:"vid,omitempty"`
-	Status  int    `json:"status,omitempty"`
-	Error   string `json:"error,omitempty"`
+	Vid    string `json:"vid,omitempty"`
+	Status int    `json:"status,omitempty"`
+	Error  string `json:"error,omitempty"`
 }
 
 type YoutubeHandler struct {
-
 }
 
 func (h *YoutubeHandler) GetStruct() (nc.NodeData, nc.NodeMeta) {

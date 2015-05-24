@@ -1,8 +1,8 @@
 package core
 
 import (
-	"net/http"
 	"io"
+	"net/http"
 	"net/url"
 )
 

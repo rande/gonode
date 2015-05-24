@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	nc "github.com/rande/gonode/core"
-	"github.com/lib/pq"
-	"github.com/twinj/uuid"
 	"fmt"
+	"github.com/lib/pq"
+	nc "github.com/rande/gonode/core"
 	"github.com/spf13/afero"
+	"github.com/twinj/uuid"
 	"io"
 	"net/http"
 )
@@ -25,9 +25,9 @@ type ImageMeta struct {
 }
 
 type Image struct {
-	Reference    string   `json:"reference"`
-	Name         string   `json:"name"`
-	SourceUrl    string   `json:"source_url"`
+	Reference string `json:"reference"`
+	Name      string `json:"name"`
+	SourceUrl string `json:"source_url"`
 }
 
 type ImageHandler struct {
@@ -35,11 +35,9 @@ type ImageHandler struct {
 }
 
 func (h *ImageHandler) GetStruct() (nc.NodeData, nc.NodeMeta) {
-	return &Image{
-
-	}, &ImageMeta{
-		SourceStatus: nc.ProcessStatusInit,
-	}
+	return &Image{}, &ImageMeta{
+			SourceStatus: nc.ProcessStatusInit,
+		}
 }
 
 func (h *ImageHandler) PreInsert(node *nc.Node, m nc.NodeManager) error {
@@ -110,7 +108,7 @@ func (h *ImageHandler) GetDownloadData(node *nc.Node) *nc.DownloadData {
 }
 
 type ImageDownloadListener struct {
-	Fs afero.Fs
+	Fs         afero.Fs
 	HttpClient nc.HttpClient
 }
 

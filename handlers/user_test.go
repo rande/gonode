@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"github.com/stretchr/testify/assert"
-	"testing"
 	nc "github.com/rande/gonode/core"
 	"github.com/rande/gonode/test/mock"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func GetUserHandleNode() (nc.Handler, *nc.Node) {

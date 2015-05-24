@@ -3,7 +3,7 @@ package core
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
-//	"github.com/twinj/uuid"
+	//	"github.com/twinj/uuid"
 )
 
 func Test_NewNode(t *testing.T) {

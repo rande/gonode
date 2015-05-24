@@ -4,8 +4,8 @@ import (
 	"io"
 )
 
-type NodeData interface {}
-type NodeMeta interface {}
+type NodeData interface{}
+type NodeMeta interface{}
 
 type DownloadData struct {
 	ContentType  string
@@ -29,12 +29,11 @@ type Handler interface {
 
 func GetDownloadData() *DownloadData {
 	return &DownloadData{
-		ContentType: "application/octet-stream",
-		Filename: "gonode-notype.bin",
+		ContentType:  "application/octet-stream",
+		Filename:     "gonode-notype.bin",
 		CacheControl: "private",
 		Stream: func(node *Node, w io.Writer) {
 			io.WriteString(w, "No content defined to be download for this node")
 		},
 	}
 }
-

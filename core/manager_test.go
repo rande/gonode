@@ -23,7 +23,6 @@ func Test_Manager_Validate(t *testing.T) {
 }
 
 type UserMeta struct {
-
 }
 
 type User struct {
@@ -33,7 +32,6 @@ type User struct {
 }
 
 type UserHandler struct {
-
 }
 
 func (h *UserHandler) GetStruct() (NodeData, NodeMeta) {
@@ -60,15 +58,15 @@ func (h *UserHandler) Validate(node *Node, m NodeManager, errors Errors) {
 
 	data := node.Data.(*User)
 
-	if (data.Login == "") {
+	if data.Login == "" {
 		errors.AddError("data.login", "Login cannot be empty")
 	}
 
-	if (data.Name == "") {
+	if data.Name == "" {
 		errors.AddError("data.name", "Name cannot be empty")
 	}
 
-	if (data.Password == "") {
+	if data.Password == "" {
 		errors.AddError("data.password", "Password cannot be empty")
 	}
 }

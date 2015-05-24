@@ -1,25 +1,25 @@
 package handlers
 
 import (
-	nc "github.com/rande/gonode/core"
 	v "github.com/asaskevich/govalidator"
+	nc "github.com/rande/gonode/core"
 	"golang.org/x/crypto/bcrypt"
 	"regexp"
 )
 
 var (
-	validPassword, _ = regexp.Compile("{([a-zA-Z0-9]*)}(.*)")
+	validPassword, _  = regexp.Compile("{([a-zA-Z0-9]*)}(.*)")
 	validPasswordAlgo = []string{"plain", "md5", "bcrypt"}
 )
 
 const (
-	USER_GENDER_MALE = "m"
+	USER_GENDER_MALE   = "m"
 	USER_GENDER_FEMALE = "f"
 )
 
 type UserMeta struct {
-	PasswordCost int     `json:"password_cost"`
-	PasswordAlgo string  `json:"password_algo"`
+	PasswordCost int    `json:"password_cost"`
+	PasswordAlgo string `json:"password_algo"`
 }
 
 type User struct {
@@ -35,13 +35,12 @@ type User struct {
 	Locale      string   `json:"locale"`
 	Timezone    string   `json:"timezone"`
 
-	Login       string   `json:"login"`
-	Password    string   `json:"password"`
-	NewPassword string   `json:"newpassword,omitempty"`
+	Login       string `json:"login"`
+	Password    string `json:"password"`
+	NewPassword string `json:"newpassword,omitempty"`
 }
 
 type UserHandler struct {
-
 }
 
 func (h *UserHandler) GetStruct() (nc.NodeData, nc.NodeMeta) {
@@ -92,13 +91,12 @@ func (h *UserHandler) GetDownloadData(node *nc.Node) *nc.DownloadData {
 	return nc.GetDownloadData()
 }
 
-
 func updatePassword(node *nc.Node) error {
 	data := node.Data.(*User)
 	meta := node.Meta.(*UserMeta)
 
 	if data.NewPassword == "" {
-		return nil;
+		return nil
 	}
 
 	password, err := bcrypt.GenerateFromPassword([]byte(data.NewPassword), meta.PasswordCost)

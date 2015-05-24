@@ -1,11 +1,11 @@
 package core
 
 import (
+	"fmt"
 	"github.com/spf13/afero"
+	"github.com/twinj/uuid"
 	"os"
 	"time"
-	"fmt"
-	"github.com/twinj/uuid"
 )
 
 func GetFileLocation(node *Node) string {
@@ -16,7 +16,7 @@ func GetFileLocation(node *Node) string {
 
 func NewSecureFs(fs afero.Fs, path string) *SecureFs {
 	return &SecureFs{
-		fs: fs,
+		fs:   fs,
 		path: path,
 	}
 }

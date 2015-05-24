@@ -9,7 +9,6 @@ type TestCloserReader struct {
 	Data io.Reader
 }
 
-
 func (t *TestCloserReader) Read(p []byte) (n int, err error) {
 	return t.Data.Read(p)
 }

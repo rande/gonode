@@ -1,14 +1,14 @@
 package mock
 
 import (
-	"github.com/stretchr/testify/mock"
-	sq "github.com/lann/squirrel"
 	"container/list"
+	sq "github.com/lann/squirrel"
 	nc "github.com/rande/gonode/core"
+	"github.com/stretchr/testify/mock"
 )
 
 type MockedManager struct {
-  mock.Mock
+	mock.Mock
 }
 
 func (m *MockedManager) FindBy(query sq.SelectBuilder, offset uint64, limit uint64) *list.List {

@@ -1,43 +1,42 @@
 package core
 
 import (
-	"io"
+	"bytes"
 	"encoding/json"
 	sq "github.com/lann/squirrel"
-	"bytes"
+	"io"
 )
 
-
 type SearchForm struct {
-	Page       uint64             `schema:"page"`
-	PerPage    uint64             `schema:"per_page"`
-	OrderBy    []string           `schema:"order_by"`
-	Uuid       string             `schema:"uuid"`
-	Type       []string           `schema:"type"`
-	Name       string             `schema:"name"`
-	Slug       string             `schema:"slug"`
-	Data       map[string][]string  `schema:"data"`
-	Meta       map[string][]string  `schema:"meta"`
-	Status     []string             `schema:"status"`
-	Weight     []string             `schema:"weight"`
-	Revision   string             `schema:"revision"`
-//	CreatedAt  time.Time          `schema:"created_at"`
-//	UpdatedAt  time.Time          `schema:"updated_at"`
-	Enabled    string             `schema:"enabled"`
-	Deleted    string             `schema:"deleted"`
-	Current    string             `schema:"current"`
-//	Parents    []Reference        `schema:"parents"`
-	UpdatedBy  []string           `schema:"updated_by"`
-	CreatedBy  []string           `schema:"created_by"`
-	ParentUuid []string           `schema:"parent_uuid"`
-	SetUuid    []string           `schema:"set_uuid"`
-	Source     []string           `schema:"source"`
+	Page     uint64              `schema:"page"`
+	PerPage  uint64              `schema:"per_page"`
+	OrderBy  []string            `schema:"order_by"`
+	Uuid     string              `schema:"uuid"`
+	Type     []string            `schema:"type"`
+	Name     string              `schema:"name"`
+	Slug     string              `schema:"slug"`
+	Data     map[string][]string `schema:"data"`
+	Meta     map[string][]string `schema:"meta"`
+	Status   []string            `schema:"status"`
+	Weight   []string            `schema:"weight"`
+	Revision string              `schema:"revision"`
+	//	CreatedAt  time.Time          `schema:"created_at"`
+	//	UpdatedAt  time.Time          `schema:"updated_at"`
+	Enabled string `schema:"enabled"`
+	Deleted string `schema:"deleted"`
+	Current string `schema:"current"`
+	//	Parents    []Reference        `schema:"parents"`
+	UpdatedBy  []string `schema:"updated_by"`
+	CreatedBy  []string `schema:"created_by"`
+	ParentUuid []string `schema:"parent_uuid"`
+	SetUuid    []string `schema:"set_uuid"`
+	Source     []string `schema:"source"`
 }
 
 func GetSearchForm() *SearchForm {
 	return &SearchForm{
-		Data: make(map[string][]string),
-		Meta: make(map[string][]string),
+		Data:    make(map[string][]string),
+		Meta:    make(map[string][]string),
 		OrderBy: []string{"updated_at,ASC"},
 	}
 }
@@ -56,7 +55,7 @@ type Api struct {
 	BaseUrl string
 }
 
-func (a *Api) serialize(w io.Writer, data interface {}) {
+func (a *Api) serialize(w io.Writer, data interface{}) {
 	encoder := json.NewEncoder(w)
 	err := encoder.Encode(data)
 
@@ -65,7 +64,7 @@ func (a *Api) serialize(w io.Writer, data interface {}) {
 	}
 }
 
-func (a *Api) deserialize(r io.Reader, data interface {}) {
+func (a *Api) deserialize(r io.Reader, data interface{}) {
 	decoder := json.NewDecoder(r)
 	err := decoder.Decode(data)
 
@@ -82,21 +81,21 @@ func (a *Api) SelectBuilder() sq.SelectBuilder {
 }
 
 func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uint64) error {
-	list := a.Manager.FindBy(query, (page - 1) * perPage, perPage + 1)
+	list := a.Manager.FindBy(query, (page-1)*perPage, perPage+1)
 
 	pager := &ApiPager{
-		Page: page,
+		Page:    page,
 		PerPage: perPage,
 	}
 
-	if (uint64(list.Len()) == perPage + 1) {
+	if uint64(list.Len()) == perPage+1 {
 		pager.Next = page + 1
 		pager.Elements = make([]*Node, perPage)
 	} else {
 		pager.Elements = make([]*Node, list.Len())
 	}
 
-	if (page > 1) {
+	if page > 1 {
 		pager.Previous = page - 1
 	}
 
@@ -104,7 +103,7 @@ func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uin
 
 	if list.Len() > 0 {
 		element := list.Front()
-		for pos, _ := range pager.Elements {
+		for pos := range pager.Elements {
 			pager.Elements[pos] = element.Value.(*Node)
 
 			element = element.Next()
@@ -133,7 +132,7 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 		panic(err)
 	}
 
-	if (read == 0) {
+	if read == 0 {
 		panic("no data read from the request")
 	}
 

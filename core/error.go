@@ -1,10 +1,10 @@
 package core
 
-
 var (
 	ValidationError = &validationError{"Unable to validate date"}
 	RevisionError   = &revisionError{"Wrong revision while saving"}
 )
+
 type validationError struct {
 	message string
 }

@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	nm "github.com/rande/gonode/test/mock"
 	nc "github.com/rande/gonode/core"
+	nm "github.com/rande/gonode/test/mock"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

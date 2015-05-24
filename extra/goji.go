@@ -1,21 +1,21 @@
 package extra
 
 import (
-	"fmt"
 	"bufio"
-	"net/http"
-	"github.com/zenazn/goji/web"
-	nc "github.com/rande/gonode/core"
-	sq "github.com/lann/squirrel"
+	"container/list"
+	"encoding/json"
+	"fmt"
 	"github.com/gorilla/schema"
 	"github.com/gorilla/websocket"
+	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
-	"time"
-	"container/list"
-	"github.com/zenazn/goji/graceful"
 	. "github.com/rande/goapp"
+	nc "github.com/rande/gonode/core"
+	"github.com/zenazn/goji/graceful"
+	"github.com/zenazn/goji/web"
 	"log"
-	"encoding/json"
+	"net/http"
+	"time"
 )
 
 var upgrader = websocket.Upgrader{
@@ -33,17 +33,17 @@ func readLoop(c *websocket.Conn) {
 
 func ConfigureGoji(app *App) {
 
-	mux     := app.Get("goji.mux").(*web.Mux)
-	logger  := app.Get("logger").(*log.Logger)
+	mux := app.Get("goji.mux").(*web.Mux)
+	logger := app.Get("logger").(*log.Logger)
 	manager := app.Get("gonode.manager").(*nc.PgNodeManager)
-	api     := app.Get("gonode.api").(*nc.Api)
-	prefix  := ""
-	sub     := app.Get("gonode.postgres.subscriber").(*nc.Subscriber)
+	api := app.Get("gonode.api").(*nc.Api)
+	prefix := ""
+	sub := app.Get("gonode.postgres.subscriber").(*nc.Subscriber)
 
 	var webSocketList = list.New()
 
 	sub.ListenMessage("manager_action", func(notification *pq.Notification) (int, error) {
-		logger.Printf("WebSocket: Sending message \n");
+		logger.Printf("WebSocket: Sending message \n")
 
 		for e := webSocketList.Front(); e != nil; e = e.Next() {
 			if err := e.Value.(*websocket.Conn).WriteMessage(websocket.TextMessage, []byte(notification.Extra)); err != nil {
@@ -55,16 +55,16 @@ func ConfigureGoji(app *App) {
 	})
 
 	graceful.PreHook(func() {
-		logger.Printf("Closing PostgreSQL subcriber \n");
+		logger.Printf("Closing PostgreSQL subcriber \n")
 		sub.Stop()
 
-		logger.Printf("Closing websocket connections \n");
+		logger.Printf("Closing websocket connections \n")
 		for e := webSocketList.Front(); e != nil; e = e.Next() {
 			e.Value.(*websocket.Conn).Close()
 		}
 	})
 
-	mux.Get(prefix + "/nodes/stream", func(res http.ResponseWriter, req *http.Request) {
+	mux.Get(prefix+"/nodes/stream", func(res http.ResponseWriter, req *http.Request) {
 		ws, err := upgrader.Upgrade(res, req, nil)
 		if err != nil {
 			panic(err)
@@ -84,15 +84,15 @@ func ConfigureGoji(app *App) {
 
 		// ping remote client, avoid keeping open connection
 		for {
-			time.Sleep(2 * time.Second);
+			time.Sleep(2 * time.Second)
 			if err := ws.WriteMessage(websocket.TextMessage, []byte("PING")); err != nil {
 				return
 			}
 		}
 	})
 
-	mux.Get(prefix + "/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
-		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
+	mux.Get(prefix+"/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
+		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
 
 		values := req.URL.Query()
 
@@ -100,7 +100,7 @@ func ConfigureGoji(app *App) {
 			node := manager.Find(nc.GetReferenceFromString(c.URLParams["uuid"]))
 
 			if node == nil {
-				res.WriteHeader(404);
+				res.WriteHeader(404)
 
 				return
 			}
@@ -111,9 +111,9 @@ func ConfigureGoji(app *App) {
 
 			res.Header().Set("Content-Type", data.ContentType)
 
-//			if download {
-//				res.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", data.Filename));
-//			}
+			//			if download {
+			//				res.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", data.Filename));
+			//			}
 
 			data.Stream(node, res)
 		} else {
@@ -123,9 +123,9 @@ func ConfigureGoji(app *App) {
 		}
 	})
 
-	mux.Post(prefix + "/nodes", func(res http.ResponseWriter, req *http.Request) {
+	mux.Post(prefix+"/nodes", func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
-		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
+		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
 
 		w := bufio.NewWriter(res)
 
@@ -142,9 +142,9 @@ func ConfigureGoji(app *App) {
 		w.Flush()
 	})
 
-	mux.Put(prefix + "/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
+	mux.Put(prefix+"/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
-		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
+		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
 
 		w := bufio.NewWriter(res)
 
@@ -161,18 +161,18 @@ func ConfigureGoji(app *App) {
 		w.Flush()
 	})
 
-	mux.Delete(prefix + "/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
+	mux.Delete(prefix+"/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 		api.RemoveOne(c.URLParams["uuid"], res)
 	})
 
-	mux.Put(prefix + "/install", func(res http.ResponseWriter, req *http.Request) {
+	mux.Put(prefix+"/install", func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
-		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
+		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
 
 		tx, _ := manager.Db.Begin()
 
 		// Create my table
-		tx.Exec(`CREATE SEQUENCE "public"."nodes_id_seq" INCREMENT 1 MINVALUE 0 MAXVALUE 2147483647 START 0 CACHE 1`);
+		tx.Exec(`CREATE SEQUENCE "public"."nodes_id_seq" INCREMENT 1 MINVALUE 0 MAXVALUE 2147483647 START 0 CACHE 1`)
 		tx.Exec(`CREATE TABLE "public"."nodes" (
 			"id" INTEGER DEFAULT nextval('nodes_id_seq'::regclass) NOT NULL UNIQUE,
 			"uuid" UUid NOT NULL,
@@ -231,7 +231,7 @@ func ConfigureGoji(app *App) {
 		err := tx.Commit()
 
 		results := map[string]string{
-			"status": "OK",
+			"status":  "OK",
 			"message": "Successfully create tables!",
 		}
 
@@ -249,9 +249,9 @@ func ConfigureGoji(app *App) {
 		res.Write(data)
 	})
 
-	mux.Get(prefix + "/nodes", func(res http.ResponseWriter, req *http.Request) {
+	mux.Get(prefix+"/nodes", func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
-		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
+		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
 
 		query := api.SelectBuilder()
 
@@ -338,7 +338,7 @@ func ConfigureGoji(app *App) {
 			//-- SELECT uuid, "data" #> '{tags,1}' as tags FROM nodes WHERE  "data" @> '{"tags": ["sport"]}'
 			//-- SELECT uuid, "data" #> '{tags}' AS tags FROM nodes WHERE  "data" -> 'tags' ?| array['sport'];
 			if len(value) > 1 {
-				query = query.Where(sq.ExprSlice(fmt.Sprintf("meta->'%s' ??| array[" + sq.Placeholders(len(value))+ "]", name), len(value), value),)
+				query = query.Where(sq.ExprSlice(fmt.Sprintf("meta->'%s' ??| array["+sq.Placeholders(len(value))+"]", name), len(value), value))
 			}
 
 			if len(value) == 1 {
@@ -349,7 +349,7 @@ func ConfigureGoji(app *App) {
 		// Parse Data value
 		for name, value := range searchForm.Data {
 			if len(value) > 1 {
-				query = query.Where(sq.ExprSlice(fmt.Sprintf("data->'%s' ??| array[" + sq.Placeholders(len(value))+ "]", name), len(value), value),)
+				query = query.Where(sq.ExprSlice(fmt.Sprintf("data->'%s' ??| array["+sq.Placeholders(len(value))+"]", name), len(value), value))
 			}
 
 			if len(value) == 1 {
@@ -360,4 +360,3 @@ func ConfigureGoji(app *App) {
 		api.Find(res, query, searchForm.Page, searchForm.PerPage)
 	})
 }
-
