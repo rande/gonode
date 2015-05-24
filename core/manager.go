@@ -62,7 +62,7 @@ func (m *PgNodeManager) SelectBuilder() sq.SelectBuilder {
 func (m *PgNodeManager) Notify(channel string, payload string) {
 	m.Logger.Printf("[PgNode] NOTIFY %s, %s ", channel, payload)
 
-	_, err := m.Db.Query(fmt.Sprintf("NOTIFY %s, '%s'", channel, strings.Replace(payload, "'","''", -1)))
+	_, err := m.Db.Exec(fmt.Sprintf("NOTIFY %s, '%s'", channel, strings.Replace(payload, "'","''", -1)))
 
 	if err != nil {
 		panic(err)

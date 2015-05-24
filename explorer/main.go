@@ -1,25 +1,26 @@
 package main
 
 import (
-	nc "github.com/rande/gonode/core"
-	. "github.com/rande/goapp"
-	nh "github.com/rande/gonode/handlers"
-	"github.com/rande/gonode/extra"
-	"net/http"
-	pq "github.com/lib/pq"
-	"database/sql"
-	"log"
-	sq "github.com/lann/squirrel"
-	"github.com/spf13/afero"
-	"strconv"
-	"os"
-	"github.com/hypebeast/gojistatic"
+  nc "github.com/rande/gonode/core"
+  . "github.com/rande/goapp"
+  nh "github.com/rande/gonode/handlers"
+  "github.com/rande/gonode/extra"
+  "net/http"
+  pq "github.com/lib/pq"
+  "database/sql"
+  "log"
+  sq "github.com/lann/squirrel"
+  "github.com/spf13/afero"
+  "strconv"
+  "os"
+  "github.com/hypebeast/gojistatic"
   "github.com/zenazn/goji/web"
   "github.com/zenazn/goji/web/middleware"
   "github.com/zenazn/goji/bind"
   "github.com/zenazn/goji/graceful"
-//  "time"
+  //  "time"
   "flag"
+  "encoding/json"
 )
 
 func init() {
@@ -27,7 +28,7 @@ func init() {
   if fl := log.Flags(); fl&log.Ltime != 0 {
     log.SetFlags(fl | log.Lmicroseconds)
   }
-//  graceful.DoubleKickWindow(2 * time.Second)
+  //  graceful.DoubleKickWindow(2 * time.Second)
 }
 
 func Serve(mux *web.Mux) {
@@ -58,46 +59,46 @@ func Serve(mux *web.Mux) {
 }
 
 func main() {
-//	LoadFixtures(manager, 256)
-//	Check(manager, manager.Logger)
+  //	LoadFixtures(manager, 256)
+  //	Check(manager, manager.Logger)
 
   app := NewApp()
 
   // TODO: move this code to a dedicated init method in the extra folder
   //       to share common code
   // configure main services
-  app.Set("logger", func(app *App) interface {} {
+  app.Set("logger", func(app *App) interface{} {
       return log.New(os.Stdout, "", log.Lshortfile)
-  })
+    })
 
-  app.Set("gonode.fs", func(app *App) interface {} {
+  app.Set("gonode.fs", func(app *App) interface{} {
       return nc.NewSecureFs(&afero.OsFs{}, "/tmp/gnode")
-  })
+    })
 
-  app.Set("gonode.http_client", func(app *App) interface {} {
+  app.Set("gonode.http_client", func(app *App) interface{} {
       return &http.Client{}
-  })
+    })
 
-  app.Set("gonode.manager", func(app *App) interface {} {
+  app.Set("gonode.manager", func(app *App) interface{} {
       fs := app.Get("gonode.fs").(*nc.SecureFs)
 
       return &nc.PgNodeManager{
-          Logger: app.Get("logger").(*log.Logger),
-          Db: app.Get("gonode.postgres.connection").(*sql.DB),
-          ReadOnly: false,
-          Handlers: map[string]nc.Handler{
-              "default":       &nh.DefaultHandler{},
-              "media.image":   &nh.ImageHandler{
-                  Fs: fs,
-              },
-              "media.youtube": &nh.YoutubeHandler{},
-              "blog.post":     &nh.PostHandler{},
-              "core.user":     &nh.UserHandler{},
-          },
-      }
-  })
+      Logger: app.Get("logger").(*log.Logger),
+      Db: app.Get("gonode.postgres.connection").(*sql.DB),
+      ReadOnly: false,
+      Handlers: map[string]nc.Handler{
+      "default":       &nh.DefaultHandler{},
+      "media.image":   &nh.ImageHandler{
+      Fs: fs,
+  },
+      "media.youtube": &nh.YoutubeHandler{},
+      "blog.post":     &nh.PostHandler{},
+      "core.user":     &nh.UserHandler{},
+  },
+  }
+    })
 
-  app.Set("gonode.postgres.connection", func(app *App) interface {} {
+  app.Set("gonode.postgres.connection", func(app *App) interface{} {
       sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
       db, err := sql.Open("postgres", "postgres://safre:safre@localhost/safre")
       db.SetMaxIdleConns(8)
@@ -113,16 +114,16 @@ func main() {
       }
 
       return db
-  })
+    })
 
-  app.Set("gonode.api", func(app *App) interface {} {
+  app.Set("gonode.api", func(app *App) interface{} {
       return &nc.Api{
-        Manager: app.Get("gonode.manager").(*nc.PgNodeManager),
-        Version: "1.0.0",
-      }
-  })
+      Manager: app.Get("gonode.manager").(*nc.PgNodeManager),
+      Version: "1.0.0",
+  }
+    })
 
-  app.Set("goji.mux", func(app *App) interface {} {
+  app.Set("goji.mux", func(app *App) interface{} {
       mux := web.New()
 
       mux.Use(middleware.RequestID)
@@ -133,32 +134,32 @@ func main() {
       mux.Use(gojistatic.Static("dist", gojistatic.StaticOptions{SkipLogging: true, Prefix: "dist"}))
 
       return mux
-  })
+    })
 
-  app.Set("gonode.postgres.subscriber", func(app *App) interface {} {
+  app.Set("gonode.postgres.subscriber", func(app *App) interface{} {
       return nc.NewSubscriber(
         "postgres://safre:safre@localhost/safre",
         app.Get("logger").(*log.Logger),
       )
-  })
+    })
 
-  app.Set("gonode.listener.youtube", func(app *App) interface {} {
+  app.Set("gonode.listener.youtube", func(app *App) interface{} {
       client := app.Get("gonode.http_client").(*http.Client)
 
       return &nh.YoutubeListener{
-          HttpClient: client,
-      }
-  })
+      HttpClient: client,
+  }
+    })
 
-  app.Set("gonode.listener.file_downloader", func(app *App) interface {} {
+  app.Set("gonode.listener.file_downloader", func(app *App) interface{} {
       client := app.Get("gonode.http_client").(*http.Client)
       fs := app.Get("gonode.fs").(*nc.SecureFs)
 
       return &nh.ImageDownloadListener{
-          Fs: fs,
-          HttpClient: client,
-      }
-  })
+      Fs: fs,
+      HttpClient: client,
+  }
+    })
 
   // need to find a way to trigger the handler registration
   sub := app.Get("gonode.postgres.subscriber").(*nc.Subscriber)
@@ -170,6 +171,7 @@ func main() {
         return listener.Handle(notification, manager)
       }
     }(app))
+
   sub.ListenMessage("media_file_download", func(app *App) nc.SubscriberHander {
       manager := app.Get("gonode.manager").(*nc.PgNodeManager)
       listener := app.Get("gonode.listener.file_downloader").(*nh.ImageDownloadListener)
@@ -180,7 +182,9 @@ func main() {
     }(app))
 
   // load the current application
-	extra.ConfigureGoji(app)
+  extra.ConfigureGoji(app)
+
+  ConfigureGoji(app)
 
   // start http server
   Serve(app.Get("goji.mux").(*web.Mux))
@@ -188,149 +192,201 @@ func main() {
 
 
 func Check(manager *nc.PgNodeManager, logger *log.Logger) {
-	query := manager.SelectBuilder()
-	nodes := manager.FindBy(query, 0, 10)
+  query := manager.SelectBuilder()
+  nodes := manager.FindBy(query, 0, 10)
 
-	if nodes.Len() == 0 {
-		panic("Loading fixture failed ...")
-	}
+  logger.Printf("[PgNode] Found: %d nodes\n", nodes.Len())
 
-	logger.Printf("[PgNode] Found: %d nodes\n", nodes.Len())
+  for e := nodes.Front(); e != nil; e = e.Next() {
+    node := e.Value.(*nc.Node)
+    logger.Printf("[PgNode] %s => %s", node.Uuid, node.Type)
+  }
 
-	for e := nodes.Front(); e != nil; e = e.Next() {
-		node := e.Value.(*nc.Node)
-		logger.Printf("[PgNode] %s => %s", node.Uuid, node.Type)
-	}
+  node := manager.FindOneBy(manager.SelectBuilder().Where("type = ?", "media.image"))
 
-	node := manager.FindOneBy(manager.SelectBuilder().Where("type = ?", "media.image"))
+  logger.Printf("[PgNode] Get first node: %s => %s (id: %d)", node.Uuid, node.Type, node.Id())
 
-	logger.Printf("[PgNode] Get first node: %s => %s (id: %d)", node.Uuid, node.Type, node.Id())
+  node = manager.Find(node.Uuid)
 
-	node = manager.Find(node.Uuid)
+  logger.Printf("[PgNode] Reload node, %s => %s (id: %d)", node.Uuid, node.Type, node.Id())
 
-	logger.Printf("[PgNode] Reload node, %s => %s (id: %d)", node.Uuid, node.Type, node.Id())
+  node.Name = "This is my name"
+  node.Slug = "this-is-my-name"
 
-	node.Name = "This is my name"
-	node.Slug = "this-is-my-name"
+  manager.Save(node)
 
-	manager.Save(node)
+  manager.RemoveOne(node)
 
-	manager.RemoveOne(node)
+  manager.Remove(manager.SelectBuilder().Where("type = ?", "media.image"))
 
-	manager.Remove(manager.SelectBuilder().Where("type = ?", "media.image"))
+  logger.Printf("%s\n", "End code")
+}
 
-	logger.Printf("%s\n", "End code")
+func Send(status string, message string, res http.ResponseWriter) {
+  res.Header().Set("Content-Type", "application/json")
+
+  if status == "KO" {
+    res.WriteHeader(http.StatusInternalServerError)
+  } else {
+    res.WriteHeader(http.StatusOK)
+  }
+
+  data, _ := json.Marshal(map[string]string{
+      "status": status,
+      "message": message,
+  })
+
+  res.Write(data)
+}
+
+func ConfigureGoji(app *App) {
+
+  mux := app.Get("goji.mux").(*web.Mux)
+  manager := app.Get("gonode.manager").(*nc.PgNodeManager)
+  prefix := ""
+
+  mux.Put(prefix+"/data/purge", func(res http.ResponseWriter, req *http.Request) {
+
+      tx, _ := manager.Db.Begin()
+      manager.Db.Exec(`DELETE FROM "public"."nodes"`)
+      manager.Db.Exec(`DELETE FROM "public"."nodes_audit"`)
+
+      err := tx.Commit()
+
+      if err != nil {
+        Send("KO", err.Error(), res)
+      } else {
+        Send("OK", "Data purged!", res)
+      }
+  })
+
+  mux.Put(prefix+"/data/load", func(res http.ResponseWriter, req *http.Request) {
+      nodes := manager.FindBy(manager.SelectBuilder(), 0, 10)
+
+      if nodes.Len() != 0 {
+        Send("KO", "Table contains data, purge the data first!", res)
+
+        return
+      }
+
+      err := LoadFixtures(manager, 100)
+
+      if err != nil {
+        Send("KO", err.Error(), res)
+      } else {
+        Send("OK", "Data loaded!", res)
+      }
+  })
 }
 
 func GetFakeMediaNode(pos int) *nc.Node {
-	node := nc.NewNode()
+  node := nc.NewNode()
 
-	node.Type = "media.image"
-	node.Name = "The image "+strconv.Itoa(pos)
-	node.Slug = "the-image-"+strconv.Itoa(pos)
-	node.Data = &nh.Image{
-		Name: "Go pic",
-		Reference: "0x0",
-	}
-	node.Meta = &nh.ImageMeta{}
+  node.Type = "media.image"
+  node.Name = "The image "+strconv.Itoa(pos)
+  node.Slug = "the-image-"+strconv.Itoa(pos)
+  node.Data = &nh.Image{
+    Name: "Go pic",
+    Reference: "0x0",
+  }
+  node.Meta = &nh.ImageMeta{}
 
-	return node
+  return node
 }
 
 func GetFakePostNode(pos int) *nc.Node {
-	node := nc.NewNode()
+  node := nc.NewNode()
 
-	node.Type = "blog.post"
-	node.Name = "The blog post "+strconv.Itoa(pos)
-	node.Slug = "the-blog-post-"+strconv.Itoa(pos)
-	node.Data = &nh.Post{
-		Title: "Go pic",
-		Content: "The Content of my blog post",
-		Tags: []string{"sport", "tennis", "soccer"},
-	}
-	node.Meta = &nh.PostMeta{
-		Format: "markdown",
-	}
+  node.Type = "blog.post"
+  node.Name = "The blog post "+strconv.Itoa(pos)
+  node.Slug = "the-blog-post-"+strconv.Itoa(pos)
+  node.Data = &nh.Post{
+    Title: "Go pic",
+    Content: "The Content of my blog post",
+    Tags: []string{"sport", "tennis", "soccer"},
+  }
+  node.Meta = &nh.PostMeta{
+    Format: "markdown",
+  }
 
-	return node
+  return node
 }
 
 func GetFakeUserNode(pos int) *nc.Node {
-	node := nc.NewNode()
+  node := nc.NewNode()
 
-	node.Type = "core.user"
-	node.Name = "The user "+strconv.Itoa(pos)
-	node.Slug = "the-user-"+strconv.Itoa(pos)
-	node.Data = &nh.User{
-		Login: "user"+strconv.Itoa(pos),
-		NewPassword: "user"+strconv.Itoa(pos),
-	}
-	node.Meta = &nh.UserMeta{
-    PasswordCost: 10,
+  node.Type = "core.user"
+  node.Name = "The user "+strconv.Itoa(pos)
+  node.Slug = "the-user-"+strconv.Itoa(pos)
+  node.Data = &nh.User{
+    Login: "user"+strconv.Itoa(pos),
+    NewPassword: "user"+strconv.Itoa(pos),
+  }
+  node.Meta = &nh.UserMeta{
+    PasswordCost: 12,
     PasswordAlgo: "bcrypt",
   }
 
-	return node
+  return node
 }
 
-func LoadFixtures(m *nc.PgNodeManager, max int) {
+func LoadFixtures(m *nc.PgNodeManager, max int) error {
 
-	var err error
+  var err error
 
-	m.Db.Query("DELETE FROM nodes")
-	m.Db.Query("DELETE FROM nodes_audit")
+  // create user
+  admin := nc.NewNode()
 
-	// create user
-	admin := nc.NewNode()
-
-	admin.Uuid = nc.GetRootReference()
-	admin.Type = "core.user"
-	admin.Name = "The admin user"
-	admin.Slug = "the-admin-user"
-	admin.Data = &nh.User{
-		Login: "admin",
-		NewPassword: "admin",
-	}
-	admin.Meta = &nh.UserMeta{
-    PasswordCost: 10,
+  admin.Uuid = nc.GetRootReference()
+  admin.Type = "core.user"
+  admin.Name = "The admin user"
+  admin.Slug = "the-admin-user"
+  admin.Data = &nh.User{
+    Login: "admin",
+    NewPassword: "admin",
+  }
+  admin.Meta = &nh.UserMeta{
+    PasswordCost: 12,
     PasswordAlgo: "bcrypt",
   }
 
-	m.Save(admin)
+  m.Save(admin)
 
-	for i := 1; i < max; i++ {
-		node := GetFakeUserNode(i)
-		node.UpdatedBy = admin.Uuid
-		node.CreatedBy = admin.Uuid
+  for i := 1; i < max; i++ {
+    node := GetFakeUserNode(i)
+    node.UpdatedBy = admin.Uuid
+    node.CreatedBy = admin.Uuid
 
-		m.Save(node)
+    m.Save(node)
 
-		if err != nil {
-			panic(err)
-		}
-	}
+    if err != nil {
+      panic(err)
+    }
+  }
 
-	for i := 1; i < max; i++ {
-		node := GetFakeMediaNode(i)
-		node.UpdatedBy = admin.Uuid
-		node.CreatedBy = admin.Uuid
+  for i := 1; i < max; i++ {
+    node := GetFakeMediaNode(i)
+    node.UpdatedBy = admin.Uuid
+    node.CreatedBy = admin.Uuid
 
-		m.Save(node)
+    m.Save(node)
 
-		if err != nil {
-			panic(err)
-		}
-	}
+    if err != nil {
+      panic(err)
+    }
+  }
 
-	for i := 1; i < max; i++ {
-		node := GetFakePostNode(i)
-		node.UpdatedBy = admin.Uuid
-		node.CreatedBy = admin.Uuid
+  for i := 1; i < max; i++ {
+    node := GetFakePostNode(i)
+    node.UpdatedBy = admin.Uuid
+    node.CreatedBy = admin.Uuid
 
-		m.Save(node)
+    m.Save(node)
 
-		if err != nil {
-			panic(err)
-		}
-	}
+    if err != nil {
+      panic(err)
+    }
+  }
+
+  return nil
 }

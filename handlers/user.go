@@ -46,7 +46,7 @@ type UserHandler struct {
 
 func (h *UserHandler) GetStruct() (nc.NodeData, nc.NodeMeta) {
 	return &User{}, &UserMeta{
-		PasswordCost: 10,
+		PasswordCost: 12,
 		PasswordAlgo: "bcrypt",
 	}
 }
