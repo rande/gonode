@@ -2,6 +2,8 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
+	"flag"
 	"github.com/hypebeast/gojistatic"
 	sq "github.com/lann/squirrel"
 	pq "github.com/lib/pq"
@@ -18,9 +20,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	//  "time"
-	"encoding/json"
-	"flag"
+	"time"
 )
 
 func init() {
@@ -94,6 +94,7 @@ func main() {
 				"media.youtube": &nh.YoutubeHandler{},
 				"blog.post":     &nh.PostHandler{},
 				"core.user":     &nh.UserHandler{},
+				"core.sleep":    &nh.CoreSleepHandler{},
 			},
 		}
 	})
@@ -163,6 +164,7 @@ func main() {
 
 	// need to find a way to trigger the handler registration
 	sub := app.Get("gonode.postgres.subscriber").(*nc.Subscriber)
+
 	sub.ListenMessage("media_youtube_update", func(app *App) nc.SubscriberHander {
 		manager := app.Get("gonode.manager").(*nc.PgNodeManager)
 		listener := app.Get("gonode.listener.youtube").(*nh.YoutubeListener)
@@ -178,6 +180,23 @@ func main() {
 
 		return func(notification *pq.Notification) (int, error) {
 			return listener.Handle(notification, manager)
+		}
+	}(app))
+
+	sub.ListenMessage("core_sleep", func(app *App) nc.SubscriberHander {
+		return func(notification *pq.Notification) (int, error) {
+
+			logger := app.Get("logger").(*log.Logger)
+
+			duration, _ := time.ParseDuration(notification.Extra)
+
+			logger.Printf("[core_sleep] sleep ...")
+
+			time.Sleep(duration)
+
+			logger.Printf("[core_sleep] wake up ...")
+
+			return nc.PubSubListenContinue, nil
 		}
 	}(app))
 

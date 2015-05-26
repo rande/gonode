@@ -16,6 +16,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"io/ioutil"
 )
 
 var upgrader = websocket.Upgrader{
@@ -163,6 +164,12 @@ func ConfigureGoji(app *App) {
 
 	mux.Delete(prefix+"/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 		api.RemoveOne(c.URLParams["uuid"], res)
+	})
+
+	mux.Put(prefix+"/notify/:name", func(c web.C, res http.ResponseWriter, req *http.Request) {
+		body, _ := ioutil.ReadAll(req.Body)
+
+		manager.Notify(c.URLParams["name"], string(body[:]))
 	})
 
 	mux.Put(prefix+"/install", func(res http.ResponseWriter, req *http.Request) {

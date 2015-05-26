@@ -78,34 +78,34 @@ func (s *Subscriber) register() {
 }
 
 func (s *Subscriber) waitAndDispatch() {
-
 	// iterate over received notifications, for now, we start only one consumer with no concurrence
 	for {
 		select {
 		case notification := <-s.listener.Notify:
 
 			if notification == nil {
-				s.logger.Printf("Subscriber: received a nil notification, the underlying driver reconnect\n", notification.Channel)
+				s.logger.Printf("pubsub:handler:%s - rreceived a nil notification, the underlying driver reconnect", notification.Channel)
+
 				continue
 			}
 
-			s.logger.Printf("Subscriber: received notification on channel = %s\n", notification.Channel)
+			s.logger.Printf("pubsub:handler:%s - received notification on channel", notification.Channel)
 
 			if _, ok := s.handlers[notification.Channel]; ok {
 				// go some handlers register
 				for e := s.handlers[notification.Channel].Front(); e != nil; e = e.Next() {
+					go func(f SubscriberHander) {
+						s.logger.Printf("pubsub:handler:%s - payload:%s", notification.Channel, notification.Extra)
 
-					// TODO: add a goroutine to run the handler in background
-					// do something with e.Value
-					if state, _ := e.Value.(SubscriberHander)(notification); state != PubSubListenContinue {
-						// close listener
-						s.handlers[notification.Channel].Remove(e)
-
-						s.logger.Printf("Subscriber: removing on handler for channel = `%s` - state != PubSubListenContinue\n", notification.Channel)
-					}
+						if state, _ := f(notification); state != PubSubListenContinue {
+							// close listener
+							s.handlers[notification.Channel].Remove(e)
+							s.logger.Printf("pubsub:handler:%s - removing on handler for channel - state != PubSubListenContinue:%s", notification.Channel)
+						}
+					}(e.Value.(SubscriberHander))
 				}
 			} else {
-				s.logger.Printf("Subscriber: skipping, no handler for channel = `%s`\n", notification.Channel)
+				s.logger.Printf("pubsub:handler:%s - skipping, no handler for channel", notification.Channel)
 			}
 
 		case <-time.After(20 * time.Second):
@@ -115,12 +115,11 @@ func (s *Subscriber) waitAndDispatch() {
 			// Check if there's more work available, just in case it takes
 			// a while for the Listener to notice connection loss and
 			// reconnect.
-			s.logger.Print("Subscriber: received no work for 20 seconds, checking for new work\n")
+			s.logger.Printf("pubsub - received no work for 20 seconds, checking for new work")
 
 		case <-s.exit:
 			return
 		}
-
 	}
 }
 
