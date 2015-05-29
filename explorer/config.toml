@@ -1,0 +1,10 @@
+name= "GoNode - poc"
+
+[databases.master]
+type    = "master"
+dsn     = "postgres://safre:safre@localhost/safre"
+enabled = true
+
+
+[filesystem]
+path = "/tmp/gnode"

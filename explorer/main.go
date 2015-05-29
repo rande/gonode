@@ -1,17 +1,13 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"flag"
 	"github.com/hypebeast/gojistatic"
-	sq "github.com/lann/squirrel"
-	pq "github.com/lib/pq"
 	. "github.com/rande/goapp"
 	nc "github.com/rande/gonode/core"
 	"github.com/rande/gonode/extra"
 	nh "github.com/rande/gonode/handlers"
-	"github.com/spf13/afero"
 	"github.com/zenazn/goji/bind"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
@@ -20,7 +16,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"time"
 )
 
 func init() {
@@ -59,69 +54,15 @@ func Serve(mux *web.Mux) {
 }
 
 func main() {
-	//	LoadFixtures(manager, 256)
-	//	Check(manager, manager.Logger)
-
 	app := NewApp()
 
-	// TODO: move this code to a dedicated init method in the extra folder
-	//       to share common code
+	app.Set("gonode.configuration", func(app *App) interface{} {
+		return extra.GetConfiguration("./config.toml")
+	})
+
 	// configure main services
 	app.Set("logger", func(app *App) interface{} {
 		return log.New(os.Stdout, "", log.Lshortfile)
-	})
-
-	app.Set("gonode.fs", func(app *App) interface{} {
-		return nc.NewSecureFs(&afero.OsFs{}, "/tmp/gnode")
-	})
-
-	app.Set("gonode.http_client", func(app *App) interface{} {
-		return &http.Client{}
-	})
-
-	app.Set("gonode.manager", func(app *App) interface{} {
-		fs := app.Get("gonode.fs").(*nc.SecureFs)
-
-		return &nc.PgNodeManager{
-			Logger:   app.Get("logger").(*log.Logger),
-			Db:       app.Get("gonode.postgres.connection").(*sql.DB),
-			ReadOnly: false,
-			Handlers: map[string]nc.Handler{
-				"default": &nh.DefaultHandler{},
-				"media.image": &nh.ImageHandler{
-					Fs: fs,
-				},
-				"media.youtube": &nh.YoutubeHandler{},
-				"blog.post":     &nh.PostHandler{},
-				"core.user":     &nh.UserHandler{},
-				"core.sleep":    &nh.CoreSleepHandler{},
-			},
-		}
-	})
-
-	app.Set("gonode.postgres.connection", func(app *App) interface{} {
-		sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-		db, err := sql.Open("postgres", "postgres://safre:safre@localhost/safre")
-		db.SetMaxIdleConns(8)
-		db.SetMaxOpenConns(64)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = db.Ping()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		return db
-	})
-
-	app.Set("gonode.api", func(app *App) interface{} {
-		return &nc.Api{
-			Manager: app.Get("gonode.manager").(*nc.PgNodeManager),
-			Version: "1.0.0",
-		}
 	})
 
 	app.Set("goji.mux", func(app *App) interface{} {
@@ -131,76 +72,13 @@ func main() {
 		mux.Use(middleware.Logger)
 		mux.Use(middleware.Recoverer)
 		mux.Use(middleware.AutomaticOptions)
-
 		mux.Use(gojistatic.Static("dist", gojistatic.StaticOptions{SkipLogging: true, Prefix: "dist"}))
 
 		return mux
 	})
 
-	app.Set("gonode.postgres.subscriber", func(app *App) interface{} {
-		return nc.NewSubscriber(
-			"postgres://safre:safre@localhost/safre",
-			app.Get("logger").(*log.Logger),
-		)
-	})
-
-	app.Set("gonode.listener.youtube", func(app *App) interface{} {
-		client := app.Get("gonode.http_client").(*http.Client)
-
-		return &nh.YoutubeListener{
-			HttpClient: client,
-		}
-	})
-
-	app.Set("gonode.listener.file_downloader", func(app *App) interface{} {
-		client := app.Get("gonode.http_client").(*http.Client)
-		fs := app.Get("gonode.fs").(*nc.SecureFs)
-
-		return &nh.ImageDownloadListener{
-			Fs:         fs,
-			HttpClient: client,
-		}
-	})
-
-	// need to find a way to trigger the handler registration
-	sub := app.Get("gonode.postgres.subscriber").(*nc.Subscriber)
-
-	sub.ListenMessage("media_youtube_update", func(app *App) nc.SubscriberHander {
-		manager := app.Get("gonode.manager").(*nc.PgNodeManager)
-		listener := app.Get("gonode.listener.youtube").(*nh.YoutubeListener)
-
-		return func(notification *pq.Notification) (int, error) {
-			return listener.Handle(notification, manager)
-		}
-	}(app))
-
-	sub.ListenMessage("media_file_download", func(app *App) nc.SubscriberHander {
-		manager := app.Get("gonode.manager").(*nc.PgNodeManager)
-		listener := app.Get("gonode.listener.file_downloader").(*nh.ImageDownloadListener)
-
-		return func(notification *pq.Notification) (int, error) {
-			return listener.Handle(notification, manager)
-		}
-	}(app))
-
-	sub.ListenMessage("core_sleep", func(app *App) nc.SubscriberHander {
-		return func(notification *pq.Notification) (int, error) {
-
-			logger := app.Get("logger").(*log.Logger)
-
-			duration, _ := time.ParseDuration(notification.Extra)
-
-			logger.Printf("[core_sleep] sleep ...")
-
-			time.Sleep(duration)
-
-			logger.Printf("[core_sleep] wake up ...")
-
-			return nc.PubSubListenContinue, nil
-		}
-	}(app))
-
 	// load the current application
+	extra.ConfigureApp(app)
 	extra.ConfigureGoji(app)
 
 	ConfigureGoji(app)
