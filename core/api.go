@@ -2,7 +2,6 @@ package core
 
 import (
 	"bytes"
-	"encoding/json"
 	sq "github.com/lann/squirrel"
 	"io"
 )
@@ -50,30 +49,10 @@ type ApiPager struct {
 }
 
 type Api struct {
-	Version string
-	Manager *PgNodeManager
-	BaseUrl string
-}
-
-func (a *Api) serialize(w io.Writer, data interface{}) {
-	encoder := json.NewEncoder(w)
-	err := encoder.Encode(data)
-
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (a *Api) deserialize(r io.Reader, data interface{}) {
-	decoder := json.NewDecoder(r)
-	err := decoder.Decode(data)
-
-	a.Manager.Logger.Printf("deserialize=%s", r)
-	a.Manager.Logger.Printf("deserialize=%+v)", data)
-
-	if err != nil {
-		panic(err)
-	}
+	Version    string
+	Manager    *PgNodeManager
+	BaseUrl    string
+	Serializer *Serializer
 }
 
 func (a *Api) SelectBuilder() sq.SelectBuilder {
@@ -114,7 +93,7 @@ func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uin
 		}
 	}
 
-	a.serialize(w, pager)
+	Serialize(w, pager)
 
 	return nil
 }
@@ -136,14 +115,14 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 		panic("no data read from the request")
 	}
 
-	a.deserialize(reader, node)
+	Deserialize(reader, node)
 
 	a.Manager.Logger.Printf("trying to save node.uuid=%s", node.Uuid)
 
 	reader.Seek(0, 0)
 
 	node.Data, node.Meta = a.Manager.GetHandler(node).GetStruct()
-	a.deserialize(reader, node)
+	a.Serializer.Deserialize(reader, node)
 
 	saved := a.Manager.Find(node.Uuid)
 
@@ -170,20 +149,20 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 	a.Manager.Logger.Printf("saving node.id=%s, node.uuid=%s", node.id, node.Uuid)
 
 	if ok, errors := a.Manager.Validate(node); !ok {
-		a.serialize(w, errors)
+		Serialize(w, errors)
 
 		return ValidationError
 	}
 
 	a.Manager.Save(node)
 
-	a.serialize(w, node)
+	a.Serializer.Serialize(w, node)
 
 	return nil
 }
 
 func (a *Api) FindOne(uuid string, w io.Writer) error {
-	a.serialize(w, a.Manager.Find(GetReferenceFromString(uuid)))
+	a.Serializer.Serialize(w, a.Manager.Find(GetReferenceFromString(uuid)))
 
 	return nil
 }
@@ -195,7 +174,7 @@ func (a *Api) RemoveOne(uuid string, w io.Writer) error {
 
 	node, _ = a.Manager.RemoveOne(node)
 
-	a.serialize(w, node)
+	a.Serializer.Serialize(w, node)
 
 	return nil
 }
