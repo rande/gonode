@@ -13,10 +13,10 @@ import (
 	nc "github.com/rande/gonode/core"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
-	"io/ioutil"
 )
 
 var upgrader = websocket.Upgrader{

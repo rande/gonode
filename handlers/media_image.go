@@ -36,8 +36,8 @@ type ImageHandler struct {
 
 func (h *ImageHandler) GetStruct() (nc.NodeData, nc.NodeMeta) {
 	return &Image{}, &ImageMeta{
-			SourceStatus: nc.ProcessStatusInit,
-		}
+		SourceStatus: nc.ProcessStatusInit,
+	}
 }
 
 func (h *ImageHandler) PreInsert(node *nc.Node, m nc.NodeManager) error {

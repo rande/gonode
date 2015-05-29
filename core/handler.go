@@ -18,7 +18,6 @@ type DownloadData struct {
 
 type Handler interface {
 	GetStruct() (NodeData, NodeMeta) // Data, Meta
-
 	PreUpdate(node *Node, m NodeManager) error
 	PostUpdate(node *Node, m NodeManager) error
 	PreInsert(node *Node, m NodeManager) error

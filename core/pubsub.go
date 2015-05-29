@@ -65,14 +65,12 @@ func (s *Subscriber) register() {
 
 	s.init = true
 
-	reportProblem := func(ev pq.ListenerEventType, err error) {
+	// listen to the specific channel
+	s.listener = pq.NewListener(s.conninfo, 10*time.Second, time.Minute, func(ev pq.ListenerEventType, err error) {
 		if err != nil {
 			s.logger.Println(err.Error())
 		}
-	}
-
-	// listen to the specific channel
-	s.listener = pq.NewListener(s.conninfo, 10*time.Second, time.Minute, reportProblem)
+	})
 
 	go s.waitAndDispatch()
 }

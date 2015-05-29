@@ -13,6 +13,9 @@ update:
 run:
 	cd explorer && go run main.go -bind :9090
 
+format:
+	gofmt -l -w -s .
+
 test:
 	go test -v ./core ./handlers
 	cd explorer && npm test

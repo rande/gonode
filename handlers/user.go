@@ -34,10 +34,9 @@ type User struct {
 	Gender      string   `json:"gender"`
 	Locale      string   `json:"locale"`
 	Timezone    string   `json:"timezone"`
-
-	Login       string `json:"login"`
-	Password    string `json:"password"`
-	NewPassword string `json:"newpassword,omitempty"`
+	Login       string   `json:"login"`
+	Password    string   `json:"password"`
+	NewPassword string   `json:"newpassword,omitempty"`
 }
 
 type UserHandler struct {
