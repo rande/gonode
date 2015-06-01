@@ -1,7 +1,6 @@
 package core
 
 import (
-	"bytes"
 	sq "github.com/lann/squirrel"
 	"io"
 )
@@ -101,28 +100,9 @@ func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uin
 func (a *Api) Save(r io.Reader, w io.Writer) error {
 	node := NewNode()
 
-	// we need to deserialize twice to load the correct Meta/Data structure
-	var data bytes.Buffer
-	read, err := data.ReadFrom(r)
-
-	reader := bytes.NewReader(data.Bytes())
-
-	if err != nil {
-		panic(err)
-	}
-
-	if read == 0 {
-		panic("no data read from the request")
-	}
-
-	Deserialize(reader, node)
+	a.Serializer.Deserialize(r, node)
 
 	a.Manager.Logger.Printf("trying to save node.uuid=%s", node.Uuid)
-
-	reader.Seek(0, 0)
-
-	node.Data, node.Meta = a.Manager.GetHandler(node).GetStruct()
-	a.Serializer.Deserialize(reader, node)
 
 	saved := a.Manager.Find(node.Uuid)
 

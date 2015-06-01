@@ -24,22 +24,24 @@ func ConfigureApp(app *App) {
 		return &http.Client{}
 	})
 
-	app.Set("gonode.manager", func(app *App) interface{} {
-		fs := app.Get("gonode.fs").(*nc.SecureFs)
+	app.Set("gonode.handler_collection", func(app *App) interface{} {
+		return nc.HandlerCollection{
+			"default": &nh.DefaultHandler{},
+			"media.image": &nh.ImageHandler{
+				Fs: app.Get("gonode.fs").(*nc.SecureFs),
+			},
+			"media.youtube": &nh.YoutubeHandler{},
+			"blog.post":     &nh.PostHandler{},
+			"core.user":     &nh.UserHandler{},
+		}
+	})
 
+	app.Set("gonode.manager", func(app *App) interface{} {
 		return &nc.PgNodeManager{
 			Logger:   app.Get("logger").(*log.Logger),
 			Db:       app.Get("gonode.postgres.connection").(*sql.DB),
 			ReadOnly: false,
-			Handlers: map[string]nc.Handler{
-				"default": &nh.DefaultHandler{},
-				"media.image": &nh.ImageHandler{
-					Fs: fs,
-				},
-				"media.youtube": &nh.YoutubeHandler{},
-				"blog.post":     &nh.PostHandler{},
-				"core.user":     &nh.UserHandler{},
-			},
+			Handlers: app.Get("gonode.handler_collection").(nc.Handlers),
 		}
 	})
 
@@ -75,6 +77,7 @@ func ConfigureApp(app *App) {
 
 	app.Set("gonode.node.serializer", func(app *App) interface{} {
 		s := nc.NewSerializer()
+		s.Handlers = app.Get("gonode.handler_collection").(nc.Handlers)
 
 		return s
 	})

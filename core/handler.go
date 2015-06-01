@@ -7,6 +7,29 @@ import (
 type NodeData interface{}
 type NodeMeta interface{}
 
+type Handlers interface {
+	NewNode(t string) *Node
+	Get(node *Node) Handler
+}
+
+type HandlerCollection map[string]Handler
+
+func (c HandlerCollection) NewNode(t string) *Node {
+	node := NewNode()
+	node.Type = t
+	node.Data, node.Meta = c.Get(node).GetStruct()
+
+	return node
+}
+
+func (c HandlerCollection) Get(node *Node) Handler {
+	if handler, ok := c[node.Type]; ok {
+		return handler.(Handler)
+	}
+
+	return c["default"].(Handler)
+}
+
 type DownloadData struct {
 	ContentType  string
 	Filename     string

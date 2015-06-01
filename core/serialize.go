@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 )
@@ -18,6 +19,7 @@ func NewSerializer() *Serializer {
 type Serializer struct {
 	serializers   map[string]NodeSerializer
 	deserializers map[string]NodeDeserializer
+	Handlers      Handlers
 }
 
 func (s *Serializer) AddSerializer(name string, f NodeSerializer) {
@@ -37,6 +39,29 @@ func (s *Serializer) Serialize(w io.Writer, node *Node) error {
 }
 
 func (s *Serializer) Deserialize(r io.Reader, node *Node) error {
+
+	if node.Type == "" {
+		// we need to deserialize twice to load the correct Meta/Data structure
+		var data bytes.Buffer
+		read, err := data.ReadFrom(r)
+
+		reader := bytes.NewReader(data.Bytes())
+
+		if err != nil {
+			panic(err)
+		}
+
+		if read == 0 {
+			panic("no data read from the request")
+		}
+
+		Deserialize(reader, node)
+
+		reader.Seek(0, 0)
+
+		node.Data, node.Meta = s.Handlers.Get(node).GetStruct()
+	}
+
 	if _, ok := s.deserializers[node.Type]; ok {
 		return s.deserializers[node.Type](r, node)
 	}

@@ -55,12 +55,6 @@ func (m *MockedManager) Notify(channel string, payload string) {
 	m.Mock.Called(channel, payload)
 }
 
-func (m *MockedManager) GetHandler(node *nc.Node) nc.Handler {
-	args := m.Mock.Called(node)
-
-	return args.Get(0).(nc.Handler)
-}
-
 func (m *MockedManager) NewNode(t string) *nc.Node {
 	args := m.Mock.Called(t)
 

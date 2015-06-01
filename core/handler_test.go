@@ -8,13 +8,15 @@ import (
 )
 
 func Test_Manager_Validate(t *testing.T) {
-	m := &PgNodeManager{
-		Handlers: map[string]Handler{
-			"core.user": &UserHandler{},
-		},
+	c := HandlerCollection{
+		"core.user": &UserHandler{},
 	}
 
-	n := m.NewNode("core.user")
+	m := &PgNodeManager{
+       Handlers: c,
+    }
+
+	n := c.NewNode("core.user")
 
 	ok, errors := m.Validate(n)
 

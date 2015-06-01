@@ -40,6 +40,7 @@ func ConfigureGoji(app *App) {
 	api := app.Get("gonode.api").(*nc.Api)
 	prefix := ""
 	sub := app.Get("gonode.postgres.subscriber").(*nc.Subscriber)
+	handlers := app.Get("gonode.handler_collection").(nc.Handlers)
 
 	var webSocketList = list.New()
 
@@ -106,7 +107,7 @@ func ConfigureGoji(app *App) {
 				return
 			}
 
-			handler := manager.GetHandler(node)
+			handler := handlers.Get(node)
 
 			data := handler.GetDownloadData(node)
 
