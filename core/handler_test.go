@@ -13,8 +13,8 @@ func Test_Manager_Validate(t *testing.T) {
 	}
 
 	m := &PgNodeManager{
-       Handlers: c,
-    }
+		Handlers: c,
+	}
 
 	n := c.NewNode("core.user")
 

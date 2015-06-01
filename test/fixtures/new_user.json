@@ -1,0 +1,15 @@
+{
+    "type": "core.user",
+    "name": "The user 12",
+    "slug": "the-user-12",
+    "data": {
+        "firstname": "User",
+        "lastname": "12",
+        "login": "user12",
+        "newpassword": "user12",
+        "email": "user-12@exemple.org"
+    },
+    "meta": {
+        "password_cost": 12
+    }
+}

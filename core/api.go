@@ -100,9 +100,13 @@ func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uin
 func (a *Api) Save(r io.Reader, w io.Writer) error {
 	node := NewNode()
 
-	a.Serializer.Deserialize(r, node)
+	err := a.Serializer.Deserialize(r, node)
 
-	a.Manager.Logger.Printf("trying to save node.uuid=%s", node.Uuid)
+	if err != nil {
+		panic(err)
+	}
+
+	a.Manager.Logger.Printf("trying to save node.uuid=%s, node.type=%s", node.Uuid, node.Type)
 
 	saved := a.Manager.Find(node.Uuid)
 
@@ -123,7 +127,7 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 
 		node.id = saved.id
 	} else {
-		a.Manager.Logger.Printf("cannot find uuid: %s", node.Uuid)
+		a.Manager.Logger.Printf("cannot find uuid: %s, create a new one", node.Uuid)
 	}
 
 	a.Manager.Logger.Printf("saving node.id=%s, node.uuid=%s", node.id, node.Uuid)

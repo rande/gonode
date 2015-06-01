@@ -3,8 +3,8 @@ package core
 import (
 	"container/list"
 	"encoding/json"
-	"github.com/twinj/uuid"
 	sq "github.com/lann/squirrel"
+	"github.com/twinj/uuid"
 )
 
 var (

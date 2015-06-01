@@ -66,6 +66,10 @@ func ConfigureGoji(app *App) {
 		}
 	})
 
+	mux.Get(prefix+"/hello", func(c web.C, res http.ResponseWriter, req *http.Request) {
+		res.Write([]byte("Hello!"))
+	})
+
 	mux.Get(prefix+"/nodes/stream", func(res http.ResponseWriter, req *http.Request) {
 		ws, err := upgrader.Upgrade(res, req, nil)
 		if err != nil {

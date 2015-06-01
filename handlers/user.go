@@ -70,7 +70,6 @@ func (h *UserHandler) PostUpdate(node *nc.Node, m nc.NodeManager) error {
 }
 
 func (h *UserHandler) Validate(node *nc.Node, m nc.NodeManager, errors nc.Errors) {
-
 	data := node.Data.(*User)
 
 	if data.Login == "" {
