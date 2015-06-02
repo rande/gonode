@@ -2,13 +2,13 @@ package extra
 
 import (
 	. "github.com/rande/goapp"
+	"github.com/zenazn/goji/web"
+	"github.com/zenazn/goji/web/middleware"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"github.com/zenazn/goji/web"
-	"github.com/zenazn/goji/web/middleware"
 	"os"
 )
 
@@ -28,10 +28,10 @@ func GetApp(file string) *App {
 	app.Set("goji.mux", func(app *App) interface{} {
 		mux := web.New()
 
-//		mux.Use(middleware.RequestID)
+		//		mux.Use(middleware.RequestID)
 		mux.Use(middleware.Logger)
 		mux.Use(middleware.Recoverer)
-//		mux.Use(middleware.AutomaticOptions)
+		//		mux.Use(middleware.AutomaticOptions)
 
 		return mux
 	})

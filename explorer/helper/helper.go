@@ -2,6 +2,7 @@ package helper
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/hypebeast/gojistatic"
 	. "github.com/rande/goapp"
 	nc "github.com/rande/gonode/core"
@@ -98,14 +99,16 @@ func ConfigureGoji(app *App) {
 
 	mux := app.Get("goji.mux").(*web.Mux)
 	manager := app.Get("gonode.manager").(*nc.PgNodeManager)
+	configuration := app.Get("gonode.configuration").(*extra.Config)
 	prefix := ""
 
 	mux.Put(prefix+"/data/purge", func(res http.ResponseWriter, req *http.Request) {
 
-		tx, _ := manager.Db.Begin()
-		manager.Db.Exec(`DELETE FROM "public"."nodes"`)
-		manager.Db.Exec(`DELETE FROM "public"."nodes_audit"`)
+		prefix := configuration.Databases["master"].Prefix
 
+		tx, _ := manager.Db.Begin()
+		manager.Db.Exec(fmt.Sprintf(`DELETE FROM "%s_nodes"`, prefix))
+		manager.Db.Exec(fmt.Sprintf(`DELETE FROM "%s_nodes_audit"`, prefix))
 		err := tx.Commit()
 
 		if err != nil {

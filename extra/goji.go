@@ -41,10 +41,11 @@ func ConfigureGoji(app *App) {
 	prefix := ""
 	sub := app.Get("gonode.postgres.subscriber").(*nc.Subscriber)
 	handlers := app.Get("gonode.handler_collection").(nc.Handlers)
+	configuration := app.Get("gonode.configuration").(*Config)
 
 	var webSocketList = list.New()
 
-	sub.ListenMessage("manager_action", func(notification *pq.Notification) (int, error) {
+	sub.ListenMessage(configuration.Databases["master"].Prefix+"_manager_action", func(notification *pq.Notification) (int, error) {
 		logger.Printf("WebSocket: Sending message \n")
 
 		for e := webSocketList.Front(); e != nil; e = e.Next() {
@@ -177,16 +178,42 @@ func ConfigureGoji(app *App) {
 		manager.Notify(c.URLParams["name"], string(body[:]))
 	})
 
+	mux.Put(prefix+"/uninstall", func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Set("Content-Type", "application/json")
+		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
+
+		prefix := configuration.Databases["master"].Prefix
+
+		manager.Db.Exec(fmt.Sprintf(`DROP TABLE IF EXISTS "%s_nodes"`, prefix))
+		manager.Db.Exec(fmt.Sprintf(`DROP TABLE IF EXISTS "%s_nodes_audit"`, prefix))
+		manager.Db.Exec(fmt.Sprintf(`DROP INDEX IF EXISTS "%s_uuid_idx"`, prefix))
+		manager.Db.Exec(fmt.Sprintf(`DROP INDEX IF EXISTS "%s_uuid_current_idx"`, prefix))
+		manager.Db.Exec(fmt.Sprintf(`DROP SEQUENCE IF EXISTS "%s_nodes_id_seq" CASCADE`, prefix))
+		manager.Db.Exec(fmt.Sprintf(`DROP SEQUENCE IF EXISTS "%s_nodes_audit_id_seq" CASCADE`, prefix))
+
+		results := map[string]string{
+			"status":  "OK",
+			"message": "Successfully delete tables!",
+		}
+
+		res.WriteHeader(http.StatusOK)
+
+		data, _ := json.Marshal(results)
+
+		res.Write(data)
+	})
+
 	mux.Put(prefix+"/install", func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
 		res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
 
+		prefix := configuration.Databases["master"].Prefix
 		tx, _ := manager.Db.Begin()
 
 		// Create my table
-		tx.Exec(`CREATE SEQUENCE "public"."nodes_id_seq" INCREMENT 1 MINVALUE 0 MAXVALUE 2147483647 START 0 CACHE 1`)
-		tx.Exec(`CREATE TABLE "public"."nodes" (
-			"id" INTEGER DEFAULT nextval('nodes_id_seq'::regclass) NOT NULL UNIQUE,
+		tx.Exec(fmt.Sprintf(`CREATE SEQUENCE "%s_nodes_id_seq" INCREMENT 1 MINVALUE 0 MAXVALUE 2147483647 START 0 CACHE 1`, prefix))
+		tx.Exec(fmt.Sprintf(`CREATE TABLE "%s_nodes" (
+			"id" INTEGER DEFAULT nextval('%s_nodes_id_seq'::regclass) NOT NULL UNIQUE,
 			"uuid" UUid NOT NULL,
 			"type" CHARACTER VARYING( 64 ) COLLATE "pg_catalog"."default" NOT NULL,
 			"name" CHARACTER VARYING( 2044 ) COLLATE "pg_catalog"."default" DEFAULT ''::CHARACTER VARYING NOT NULL,
@@ -197,7 +224,7 @@ func ConfigureGoji(app *App) {
 			"deleted" BOOLEAN DEFAULT 'false' NOT NULL,
 			"data" jsonb DEFAULT '{}'::jsonb NOT NULL,
 			"meta" jsonb DEFAULT '{}'::jsonb NOT NULL,
-			"slug" CHARACTER VARYING( 256 ) COLLATE "pg_catalog"."default" NOT NULL,
+			"slug" CHARACTER VARYING( 256 ) COLLATE "default" NOT NULL,
 			"source" UUid,
 			"set_uuid" UUid,
 			"parent_uuid" UUid,
@@ -207,17 +234,17 @@ func ConfigureGoji(app *App) {
 			"updated_by" UUid NOT NULL,
 			"weight" INTEGER DEFAULT '0' NOT NULL,
 			PRIMARY KEY ( "id" ),
-			CONSTRAINT "slug" UNIQUE( "parent_uuid","slug","revision" ),
-			CONSTRAINT "uuid" UNIQUE( "revision","uuid" )
-		)`)
+			CONSTRAINT "%s_slug" UNIQUE( "parent_uuid","slug","revision" ),
+			CONSTRAINT "%s_uuid" UNIQUE( "revision","uuid" )
+		)`, prefix, prefix, prefix, prefix))
 
-		tx.Exec(`CREATE INDEX "uuid_idx" ON "public"."nodes" USING btree( "uuid" ASC NULLS LAST )`)
-		tx.Exec(`CREATE INDEX "uuid_current_idx" ON "public"."nodes" USING btree( "uuid" ASC NULLS LAST, "current" ASC NULLS LAST )`)
+		tx.Exec(fmt.Sprintf(`CREATE INDEX "%s_uuid_idx" ON "%s_nodes" USING btree( "uuid" ASC NULLS LAST )`, prefix, prefix))
+		tx.Exec(fmt.Sprintf(`CREATE INDEX "%s_uuid_current_idx" ON "%s_nodes" USING btree( "uuid" ASC NULLS LAST, "current" ASC NULLS LAST )`, prefix, prefix))
 
 		// Create Index
-		tx.Exec(`CREATE SEQUENCE "public"."nodes_audit_id_seq" INCREMENT 1 MINVALUE 0 MAXVALUE 2147483647 START 0 CACHE 1`)
-		tx.Exec(`CREATE TABLE "public"."nodes_audit" (
-			"id" INTEGER DEFAULT nextval('nodes_id_seq'::regclass) NOT NULL UNIQUE,
+		tx.Exec(fmt.Sprintf(`CREATE SEQUENCE "%s_nodes_audit_id_seq" INCREMENT 1 MINVALUE 0 MAXVALUE 2147483647 START 0 CACHE 1`, prefix))
+		tx.Exec(fmt.Sprintf(`CREATE TABLE "%s_nodes_audit" (
+			"id" INTEGER DEFAULT nextval('%s_nodes_id_seq'::regclass) NOT NULL UNIQUE,
 			"uuid" UUid NOT NULL,
 			"type" CHARACTER VARYING( 64 ) COLLATE "pg_catalog"."default" NOT NULL,
 			"name" CHARACTER VARYING( 2044 ) COLLATE "pg_catalog"."default" DEFAULT ''::CHARACTER VARYING NOT NULL,
@@ -228,7 +255,7 @@ func ConfigureGoji(app *App) {
 			"deleted" BOOLEAN DEFAULT 'false' NOT NULL,
 			"data" jsonb DEFAULT '{}'::jsonb NOT NULL,
 			"meta" jsonb DEFAULT '{}'::jsonb NOT NULL,
-			"slug" CHARACTER VARYING( 256 ) COLLATE "pg_catalog"."default" NOT NULL,
+			"slug" CHARACTER VARYING( 256 ) COLLATE "default" NOT NULL,
 			"source" UUid,
 			"set_uuid" UUid,
 			"parent_uuid" UUid,
@@ -238,7 +265,7 @@ func ConfigureGoji(app *App) {
 			"updated_by" UUid NOT NULL,
 			"weight" INTEGER DEFAULT '0' NOT NULL,
 			PRIMARY KEY ( "id" )
-		)`)
+		)`, prefix, prefix))
 
 		err := tx.Commit()
 

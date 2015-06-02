@@ -4,7 +4,7 @@ name= "GoNode - poc"
 type    = "master"
 dsn     = "postgres://safre:safre@localhost/safre"
 enabled = true
-
+prefix  = "prod"
 
 [filesystem]
 path = "/tmp/gnode"

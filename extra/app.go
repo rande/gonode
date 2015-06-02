@@ -37,11 +37,14 @@ func ConfigureApp(app *App) {
 	})
 
 	app.Set("gonode.manager", func(app *App) interface{} {
+		configuration := app.Get("gonode.configuration").(*Config)
+
 		return &nc.PgNodeManager{
 			Logger:   app.Get("logger").(*log.Logger),
 			Db:       app.Get("gonode.postgres.connection").(*sql.DB),
 			ReadOnly: false,
 			Handlers: app.Get("gonode.handler_collection").(nc.Handlers),
+			Prefix:   configuration.Databases["master"].Prefix,
 		}
 	})
 

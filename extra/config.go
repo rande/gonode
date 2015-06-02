@@ -8,6 +8,7 @@ type Database struct {
 	Name    string
 	DSN     string
 	Type    string
+	Prefix  string
 	Enabled bool
 }
 

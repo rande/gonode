@@ -18,12 +18,13 @@ type PgNodeManager struct {
 	Handlers Handlers
 	Db       *sql.DB
 	ReadOnly bool
+	Prefix   string
 }
 
 func (m *PgNodeManager) SelectBuilder() sq.SelectBuilder {
 	return sq.
 		Select("id, uuid, type, name, revision, created_at, updated_at, set_uuid, parent_uuid, slug, created_by, updated_by, data, meta, deleted, enabled, source, status, weight").
-		From("nodes").
+		From(m.Prefix + "_nodes").
 		PlaceholderFormat(sq.Dollar)
 }
 
@@ -165,7 +166,7 @@ func (m *PgNodeManager) Remove(query sq.SelectBuilder) error {
 
 			m.Save(node)
 
-			m.sendNotification("manager_action", &ModelEvent{
+			m.sendNotification(m.Prefix+"_manager_action", &ModelEvent{
 				Type:     node.Type,
 				Name:     node.Name,
 				Action:   "SoftDelete",
@@ -187,7 +188,7 @@ func (m *PgNodeManager) RemoveOne(node *Node) (*Node, error) {
 
 	m.Logger.Printf("[PgNode] Soft Delete: Uuid:%+v - type: %s", node.Uuid, node.Type)
 
-	m.sendNotification("manager_action", &ModelEvent{
+	m.sendNotification(m.Prefix+"_manager_action", &ModelEvent{
 		Type:     node.Type,
 		Action:   "SoftDelete",
 		Subject:  uuid.Formatter(node.Uuid, uuid.CleanHyphen),
@@ -273,7 +274,7 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 	var err error
 
-	query := sq.Update("nodes").RunWith(m.Db).PlaceholderFormat(sq.Dollar).
+	query := sq.Update(m.Prefix+"_nodes").RunWith(m.Db).PlaceholderFormat(sq.Dollar).
 		Set("uuid", uuid.Formatter(node.Uuid, uuid.CleanHyphen)).
 		Set("type", node.Type).
 		Set("revision", node.Revision).
@@ -319,14 +320,14 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 	if node.id == 0 {
 		handler.PreInsert(node, m)
 
-		node, err = m.insertNode(node, "nodes")
-		node, err = m.insertNode(node, "nodes_audit")
+		node, err = m.insertNode(node, m.Prefix+"_nodes")
+		node, err = m.insertNode(node, m.Prefix+"_nodes_audit")
 
 		if m.Logger != nil {
 			m.Logger.Printf("[PgNode] Creating node uuid: %s, id: %d, type: %s", node.Uuid, node.id, node.Type)
 		}
 
-		m.sendNotification("manager_action", &ModelEvent{
+		m.sendNotification(m.Prefix+"_manager_action", &ModelEvent{
 			Type:    node.Type,
 			Action:  "Create",
 			Subject: uuid.Formatter(node.Uuid, uuid.CleanHyphen),
@@ -354,7 +355,7 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 
 	// 2. Flag the current node as deprecated
 	saved.UpdatedAt = time.Now()
-	saved, err = m.insertNode(saved, "nodes_audit")
+	saved, err = m.insertNode(saved, m.Prefix+"_nodes_audit")
 
 	if err != nil {
 		panic(err)
@@ -365,7 +366,7 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 	node.CreatedAt = saved.CreatedAt
 	node.UpdatedAt = saved.UpdatedAt
 
-	node, err = m.updateNode(node, "nodes")
+	node, err = m.updateNode(node, m.Prefix+"_nodes")
 
 	handler.PostUpdate(node, m)
 
@@ -373,7 +374,7 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 		panic(err)
 	}
 
-	m.sendNotification("manager_action", &ModelEvent{
+	m.sendNotification(m.Prefix+"_manager_action", &ModelEvent{
 		Type:     node.Type,
 		Action:   "Update",
 		Subject:  uuid.Formatter(node.Uuid, uuid.CleanHyphen),
