@@ -9,13 +9,9 @@ import (
 )
 
 func Test_Hello(t *testing.T) {
-	var res *extra.Response
-	var app *App
+	extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
+		res, _ := extra.RunRequest("GET", ts.URL+"/hello", nil)
 
-	app = extra.GetApp("../config_test.toml")
-	ts := app.Get("testserver").(*httptest.Server)
-
-	res, _ = extra.RunRequest("GET", ts.URL+"/hello", nil)
-
-	assert.Equal(t, res.GetBody(), []byte("Hello!"))
+		assert.Equal(t, res.GetBody(), []byte("Hello!"))
+	})
 }

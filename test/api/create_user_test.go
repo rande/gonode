@@ -12,25 +12,20 @@ import (
 )
 
 func Test_Create_User(t *testing.T) {
-	var res *extra.Response
-	var app *App
+	extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
+		file, _ := os.Open("../fixtures/new_user.json")
 
-	app = extra.GetApp("../config_test.toml")
+		res, _ := extra.RunRequest("POST", ts.URL+"/nodes", file)
 
-	ts := app.Get("testserver").(*httptest.Server)
+		node := nc.NewNode()
+		serializer := app.Get("gonode.node.serializer").(*nc.Serializer)
+		serializer.Deserialize(res.Body, node)
 
-	file, _ := os.Open("../fixtures/new_user.json")
+		assert.Equal(t, node.Type, "core.user")
 
-	res, _ = extra.RunRequest("POST", ts.URL+"/nodes", file)
+		user := node.Data.(*nh.User)
 
-	node := nc.NewNode()
-	serializer := app.Get("gonode.node.serializer").(*nc.Serializer)
-	serializer.Deserialize(res.Body, node)
-
-	assert.Equal(t, node.Type, "core.user")
-
-	user := node.Data.(*nh.User)
-
-	assert.Equal(t, user.FirstName, "User")
-	assert.Equal(t, user.LastName, "12")
+		assert.Equal(t, user.FirstName, "User")
+		assert.Equal(t, user.LastName, "12")
+	})
 }

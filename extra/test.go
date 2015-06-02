@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"testing"
 )
 
 func GetApp(file string) *App {
@@ -34,12 +35,6 @@ func GetApp(file string) *App {
 		//		mux.Use(middleware.AutomaticOptions)
 
 		return mux
-	})
-
-	app.Set("testserver", func(app *App) interface{} {
-		mux := app.Get("goji.mux").(*web.Mux)
-
-		return httptest.NewServer(mux)
 	})
 
 	ConfigureApp(app)
@@ -82,4 +77,21 @@ func RunRequest(method string, url string, body io.Reader) (*Response, error) {
 	resp, err := client.Do(req)
 
 	return &Response{Response: resp}, err
+}
+
+func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *App)) {
+	app := GetApp("../config_test.toml")
+	mux := app.Get("goji.mux").(*web.Mux)
+
+	ts := httptest.NewServer(mux)
+
+	defer func() {
+		RunRequest("PUT", ts.URL+"/uninstall", nil)
+		ts.Close()
+	}()
+
+	RunRequest("PUT", ts.URL+"/uninstall", nil)
+	RunRequest("PUT", ts.URL+"/install", nil)
+
+	f(t, ts, app)
 }
