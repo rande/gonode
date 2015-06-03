@@ -1,0 +1,11 @@
+name= "GoNode - poc"
+
+[databases.master]
+type    = "master"
+dsn     = "postgres://postgres@localhost/travis_ci_test"
+enabled = true
+prefix  = "test"
+
+
+[filesystem]
+path = "/tmp/gnode"

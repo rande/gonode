@@ -3,8 +3,10 @@
 default: clean test build
 
 install:
-	go get all
-	cd explorer && npm install && npm install react-admin
+	go list -f '{{range .Imports}}{{.}} {{end}}' ./... | xargs go get -v
+	go list -f '{{range .TestImports}}{{.}} {{end}}' ./... | xargs go get -v
+	go build -v ./...
+	#cd explorer && npm install && npm install react-admin
 
 update:
 	go get -u all
@@ -17,7 +19,7 @@ format:
 	gofmt -l -w -s .
 
 test:
-	go test -v ./core ./handlers ./test/api
+	go test -v ./...
 	#cd explorer && npm test
 
 clean:
