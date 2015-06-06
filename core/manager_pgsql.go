@@ -191,36 +191,7 @@ func (m *PgNodeManager) RemoveOne(node *Node) (*Node, error) {
 	return m.Save(node)
 }
 
-func (m *PgNodeManager) DumpNode(node *Node) {
-	if node == nil {
-		panic("Cannot dump, node is nil")
-	}
-
-	m.Logger.Printf("[PgNode] ---- Node: %+v", node.id)
-	m.Logger.Printf("[PgNode]  > Uuid:       %s", node.Uuid)
-	m.Logger.Printf("[PgNode]  > Type:       %s", node.Type)
-	m.Logger.Printf("[PgNode]  > Name:       %s", node.Name)
-	m.Logger.Printf("[PgNode]  > Status:     %s", node.Status)
-	m.Logger.Printf("[PgNode]  > Weight:     %s", node.Weight)
-	m.Logger.Printf("[PgNode]  > Deleted:    %s", node.Deleted)
-	m.Logger.Printf("[PgNode]  > Enabled:    %s", node.Enabled)
-	m.Logger.Printf("[PgNode]  > Revision:   %d", node.Revision)
-	m.Logger.Printf("[PgNode]  > CreatedAt:  %+v", node.CreatedAt)
-	m.Logger.Printf("[PgNode]  > UpdatedAt:  %+v", node.UpdatedAt)
-	m.Logger.Printf("[PgNode]  > Slug:       %s", node.Slug)
-	m.Logger.Printf("[PgNode]  > Data:       %T => %+v", node.Data, node.Data)
-	m.Logger.Printf("[PgNode]  > Meta:       %T => %+v", node.Meta, node.Meta)
-	m.Logger.Printf("[PgNode]  > CreatedBy:  %s", node.CreatedBy)
-	m.Logger.Printf("[PgNode]  > UpdatedBy:  %s", node.UpdatedBy)
-	m.Logger.Printf("[PgNode]  > ParentUuid: %s", node.ParentUuid)
-	m.Logger.Printf("[PgNode]  > SetUuid:    %s", node.SetUuid)
-	m.Logger.Printf("[PgNode]  > Source:     %s", node.Source)
-	m.Logger.Printf("[PgNode] ---- End Node")
-}
-
 func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
-	var err error
-
 	if node.Uuid == GetEmptyReference() {
 		node.Uuid = GetReference(uuid.NewV4())
 	}
@@ -304,7 +275,7 @@ func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 
 func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 
-	PanicIf(m.ReadOnly,"The manager is readonly, cannot alter the datastore")
+	PanicIf(m.ReadOnly, "The manager is readonly, cannot alter the datastore")
 
 	var err error
 

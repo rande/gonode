@@ -1,9 +1,9 @@
 package core
 
 import (
+	"encoding/json"
 	"io"
 	"log"
-	"encoding/json"
 )
 
 type NodeData interface{}

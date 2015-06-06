@@ -2,9 +2,9 @@ package core
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/twinj/uuid"
 	"time"
-	"fmt"
 )
 
 var (
@@ -102,7 +102,6 @@ func NewNode() *Node {
 		Status:     StatusNew,
 	}
 }
-
 
 func DumpNode(node *Node) {
 	PanicIf(node == nil, "Cannot dump, node is nil")

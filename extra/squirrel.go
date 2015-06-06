@@ -13,13 +13,13 @@ func ExprSlice(sql string, size int, args ...interface{}) sq.Expression {
 
 	switch t := args[0].(type) {
 	case []string:
-	for i := range t {
-		b[i] = t[i]
-	}
+		for i := range t {
+			b[i] = t[i]
+		}
 	case []int:
-	for i := range t {
-		b[i] = t[i]
-	}
+		for i := range t {
+			b[i] = t[i]
+		}
 	}
 
 	return sq.Expr(sql, b)

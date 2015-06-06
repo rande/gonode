@@ -86,7 +86,6 @@ func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *Ap
 	ts := httptest.NewServer(mux)
 
 	defer func() {
-		RunRequest("PUT", ts.URL+"/uninstall", nil)
 		ts.Close()
 	}()
 
