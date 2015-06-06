@@ -89,6 +89,10 @@ func (h *UserHandler) GetDownloadData(node *nc.Node) *nc.DownloadData {
 	return nc.GetDownloadData()
 }
 
+func (h *UserHandler) Load(data []byte, meta []byte, node *nc.Node) error {
+	return nc.HandlerLoad(h, data, meta, node)
+}
+
 func updatePassword(node *nc.Node) error {
 	data := node.Data.(*User)
 	meta := node.Meta.(*UserMeta)

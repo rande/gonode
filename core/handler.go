@@ -2,6 +2,8 @@ package core
 
 import (
 	"io"
+	"log"
+	"encoding/json"
 )
 
 type NodeData interface{}
@@ -46,6 +48,7 @@ type Handler interface {
 	PreInsert(node *Node, m NodeManager) error
 	PostInsert(node *Node, m NodeManager) error
 	Validate(node *Node, m NodeManager, e Errors)
+	Load(data []byte, meta []byte, node *Node) error
 	GetDownloadData(node *Node) *DownloadData
 }
 
@@ -58,4 +61,22 @@ func GetDownloadData() *DownloadData {
 			io.WriteString(w, "No content defined to be download for this node")
 		},
 	}
+}
+
+func HandlerLoad(handler Handler, data []byte, meta []byte, node *Node) error {
+	var err error
+
+	node.Data, node.Meta = handler.GetStruct()
+
+	err = json.Unmarshal(data, node.Data)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = json.Unmarshal(meta, node.Meta)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return nil
 }

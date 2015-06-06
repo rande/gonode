@@ -78,6 +78,10 @@ func (h *YoutubeHandler) GetDownloadData(node *nc.Node) *nc.DownloadData {
 	return nc.GetDownloadData()
 }
 
+func (h *YoutubeHandler) Load(data []byte, meta []byte, node *nc.Node) error {
+	return nc.HandlerLoad(h, data, meta, node)
+}
+
 type YoutubeListener struct {
 	HttpClient nc.HttpClient
 }

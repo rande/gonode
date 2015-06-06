@@ -76,3 +76,7 @@ func (h *UserHandler) Validate(node *Node, m NodeManager, errors Errors) {
 func (h *UserHandler) GetDownloadData(node *Node) *DownloadData {
 	return GetDownloadData()
 }
+
+func (h *UserHandler) Load(data []byte, meta []byte, node *Node) error {
+	return HandlerLoad(h, data, meta, node)
+}

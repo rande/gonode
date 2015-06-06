@@ -133,17 +133,7 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 	tmpUuid, _ = uuid.ParseUUID(Source)
 	node.Source = GetReference(tmpUuid)
 
-	node.Data, node.Meta = m.Handlers.Get(node).GetStruct()
-
-	err = json.Unmarshal(data, node.Data)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = json.Unmarshal(meta, node.Meta)
-	if err != nil {
-		log.Fatal(err)
-	}
+	m.Handlers.Get(node).Load(data, meta, node)
 
 	return node
 }
@@ -268,7 +258,7 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 		RunWith(m.Db).
 		PlaceholderFormat(sq.Dollar)
 
-	query.QueryRow().Scan(&node.id)
+	err := query.QueryRow().Scan(&node.id)
 
 	return node, err
 }

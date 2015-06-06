@@ -105,6 +105,10 @@ func (h *ImageHandler) GetDownloadData(node *nc.Node) *nc.DownloadData {
 	return data
 }
 
+func (h *ImageHandler) Load(data []byte, meta []byte, node *nc.Node) error {
+	return nc.HandlerLoad(h, data, meta, node)
+}
+
 type ImageDownloadListener struct {
 	Fs         afero.Fs
 	HttpClient nc.HttpClient

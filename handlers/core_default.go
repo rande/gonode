@@ -35,3 +35,7 @@ func (h *DefaultHandler) Validate(node *nc.Node, m nc.NodeManager, errors nc.Err
 func (h *DefaultHandler) GetDownloadData(node *nc.Node) *nc.DownloadData {
 	return nc.GetDownloadData()
 }
+
+func (h *DefaultHandler) Load(data []byte, meta []byte, node *nc.Node) error {
+	return nc.HandlerLoad(h, data, meta, node)
+}
