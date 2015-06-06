@@ -154,7 +154,7 @@ func (a *Api) FindOne(uuid string, w io.Writer) error {
 func (a *Api) RemoveOne(uuid string, w io.Writer) error {
 	node := a.Manager.Find(GetReferenceFromString(uuid))
 
-	a.Manager.DumpNode(node)
+	DumpNode(node)
 
 	node, _ = a.Manager.RemoveOne(node)
 

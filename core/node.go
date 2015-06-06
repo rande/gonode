@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/twinj/uuid"
 	"time"
+	"fmt"
 )
 
 var (
@@ -98,8 +99,38 @@ func NewNode() *Node {
 		UpdatedAt:  time.Now(),
 		Weight:     1,
 		Revision:   1,
+		Version:    1,
 		Deleted:    false,
 		Enabled:    true,
 		Status:     StatusNew,
 	}
+}
+
+
+func DumpNode(node *Node) {
+	if node == nil {
+		panic("Cannot dump, node is nil")
+	}
+
+	fmt.Printf(" >>> Node: %+v\n", node.id)
+	fmt.Printf(" Uuid:       %s\n", node.Uuid)
+	fmt.Printf(" Type:       %s\n", node.Type)
+	fmt.Printf(" Name:       %s\n", node.Name)
+	fmt.Printf(" Status:     %s\n", node.Status)
+	fmt.Printf(" Weight:     %s\n", node.Weight)
+	fmt.Printf(" Deleted:    %s\n", node.Deleted)
+	fmt.Printf(" Enabled:    %s\n", node.Enabled)
+	fmt.Printf(" Revision:   %d\n", node.Revision)
+	fmt.Printf(" Version:    %d\n", node.Version)
+	fmt.Printf(" CreatedAt:  %+v\n", node.CreatedAt)
+	fmt.Printf(" UpdatedAt:  %+v\n", node.UpdatedAt)
+	fmt.Printf(" Slug:       %s\n", node.Slug)
+	fmt.Printf(" Data:       %T => %+v\n", node.Data, node.Data)
+	fmt.Printf(" Meta:       %T => %+v\n", node.Meta, node.Meta)
+	fmt.Printf(" CreatedBy:  %s\n", node.CreatedBy)
+	fmt.Printf(" UpdatedBy:  %s\n", node.UpdatedBy)
+	fmt.Printf(" ParentUuid: %s\n", node.ParentUuid)
+	fmt.Printf(" SetUuid:    %s\n", node.SetUuid)
+	fmt.Printf(" Source:     %s\n", node.Source)
+	fmt.Printf(" <<< End Node\n")
 }
