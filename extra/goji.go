@@ -377,7 +377,7 @@ func ConfigureGoji(app *App) {
 			//-- SELECT uuid, "data" #> '{tags,1}' as tags FROM nodes WHERE  "data" @> '{"tags": ["sport"]}'
 			//-- SELECT uuid, "data" #> '{tags}' AS tags FROM nodes WHERE  "data" -> 'tags' ?| array['sport'];
 			if len(value) > 1 {
-				query = query.Where(sq.ExprSlice(fmt.Sprintf("meta->'%s' ??| array["+sq.Placeholders(len(value))+"]", name), len(value), value))
+				query = query.Where(ExprSlice(fmt.Sprintf("meta->'%s' ??| array["+sq.Placeholders(len(value))+"]", name), len(value), value))
 			}
 
 			if len(value) == 1 {
@@ -388,7 +388,7 @@ func ConfigureGoji(app *App) {
 		// Parse Data value
 		for name, value := range searchForm.Data {
 			if len(value) > 1 {
-				query = query.Where(sq.ExprSlice(fmt.Sprintf("data->'%s' ??| array["+sq.Placeholders(len(value))+"]", name), len(value), value))
+				query = query.Where(ExprSlice(fmt.Sprintf("data->'%s' ??| array["+sq.Placeholders(len(value))+"]", name), len(value), value))
 			}
 
 			if len(value) == 1 {
