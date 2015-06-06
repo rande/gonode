@@ -23,7 +23,7 @@ type PgNodeManager struct {
 
 func (m *PgNodeManager) SelectBuilder() sq.SelectBuilder {
 	return sq.
-		Select("id, uuid, type, name, revision, created_at, updated_at, set_uuid, parent_uuid, slug, created_by, updated_by, data, meta, deleted, enabled, source, status, weight").
+		Select("id, uuid, type, name, revision, version, created_at, updated_at, set_uuid, parent_uuid, slug, created_by, updated_by, data, meta, deleted, enabled, source, status, weight").
 		From(m.Prefix + "_nodes").
 		PlaceholderFormat(sq.Dollar)
 }
@@ -98,6 +98,7 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 		&node.Type,
 		&node.Name,
 		&node.Revision,
+		&node.Version,
 		&node.CreatedAt,
 		&node.UpdatedAt,
 		&SetUuid,
@@ -240,13 +241,14 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 
 	query := sq.Insert(table).
 		Columns(
-		"uuid", "type", "revision", "name", "created_at", "updated_at", "set_uuid",
+		"uuid", "type", "revision", "version", "name", "created_at", "updated_at", "set_uuid",
 		"parent_uuid", "slug", "created_by", "updated_by", "data", "meta", "deleted",
 		"enabled", "source", "status", "weight").
 		Values(
 		uuid.Formatter(node.Uuid, uuid.CleanHyphen),
 		node.Type,
 		node.Revision,
+		node.Version,
 		node.Name,
 		node.CreatedAt,
 		node.UpdatedAt,
@@ -278,6 +280,7 @@ func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 		Set("uuid", uuid.Formatter(node.Uuid, uuid.CleanHyphen)).
 		Set("type", node.Type).
 		Set("revision", node.Revision).
+		Set("version", node.Version).
 		Set("name", node.Name).
 		Set("created_at", node.CreatedAt).
 		Set("updated_at", node.UpdatedAt).

@@ -67,6 +67,7 @@ type Node struct {
 	Status     int         `json:"status"`
 	Weight     int         `json:"weight"`
 	Revision   int         `json:"revision"`
+	Version    int         `json:"version"`
 	CreatedAt  time.Time   `json:"created_at"`
 	UpdatedAt  time.Time   `json:"updated_at"`
 	Enabled    bool        `json:"enabled"`
