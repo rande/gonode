@@ -33,9 +33,7 @@ func (m *PgNodeManager) Notify(channel string, payload string) {
 
 	_, err := m.Db.Exec(fmt.Sprintf("NOTIFY %s, '%s'", channel, strings.Replace(payload, "'", "''", -1)))
 
-	if err != nil {
-		panic(err)
-	}
+	PanicOnError(err)
 }
 
 func (m *PgNodeManager) NewNode(t string) *Node {
@@ -115,6 +113,8 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 		&node.Status,
 		&node.Weight,
 	)
+
+	PanicOnError(err)
 
 	var tmpUuid uuid.UUID
 
@@ -310,18 +310,20 @@ func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 }
 
 func (m *PgNodeManager) Save(node *Node) (*Node, error) {
-	if m.ReadOnly {
-		panic("The manager is readonly, cannot alter the datastore")
-	}
+
+	PanicIf(m.ReadOnly,"The manager is readonly, cannot alter the datastore")
 
 	var err error
+
 	handler := m.Handlers.Get(node)
 
 	if node.id == 0 {
 		handler.PreInsert(node, m)
 
 		node, err = m.insertNode(node, m.Prefix+"_nodes")
+		PanicOnError(err)
 		node, err = m.insertNode(node, m.Prefix+"_nodes_audit")
+		PanicOnError(err)
 
 		if m.Logger != nil {
 			m.Logger.Printf("[PgNode] Creating node uuid: %s, id: %d, type: %s", node.Uuid, node.id, node.Type)
@@ -357,9 +359,7 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 	saved.UpdatedAt = time.Now()
 	saved, err = m.insertNode(saved, m.Prefix+"_nodes_audit")
 
-	if err != nil {
-		panic(err)
-	}
+	PanicOnError(err)
 
 	// 3. Update the revision number
 	node.Revision++
@@ -370,9 +370,7 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 
 	handler.PostUpdate(node, m)
 
-	if err != nil {
-		panic(err)
-	}
+	PanicOnError(err)
 
 	m.sendNotification(m.Prefix+"_manager_action", &ModelEvent{
 		Type:     node.Type,

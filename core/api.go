@@ -102,9 +102,7 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 
 	err := a.Serializer.Deserialize(r, node)
 
-	if err != nil {
-		panic(err)
-	}
+	PanicOnError(err)
 
 	a.Manager.Logger.Printf("trying to save node.uuid=%s, node.type=%s", node.Uuid, node.Type)
 
@@ -113,13 +111,8 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 	if saved != nil {
 		a.Manager.Logger.Printf("find uuid: %s", node.Uuid)
 
-		if node.Type != saved.Type {
-			panic("Type mismatch")
-		}
-
-		if saved.Deleted {
-			panic("Cannot save a deleted node, restore it first ...")
-		}
+		PanicUnless(node.Type == saved.Type, "Type mismatch")
+		PanicIf(saved.Deleted, "Cannot save a deleted node, restore it first ...")
 
 		if node.Revision != saved.Revision {
 			return RevisionError

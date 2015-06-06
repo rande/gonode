@@ -44,13 +44,9 @@ func (s *Serializer) Deserialize(r io.Reader, node *Node) error {
 
 	reader := bytes.NewReader(data.Bytes())
 
-	if err != nil {
-		panic(err)
-	}
+	PanicOnError(err)
 
-	if read == 0 {
-		panic("no data read from the request")
-	}
+	PanicIf(read == 0, "no data read from the request")
 
 	if node.Type == "" {
 		// we need to deserialize twice to load the correct Meta/Data structure
@@ -67,9 +63,7 @@ func (s *Serializer) Deserialize(r io.Reader, node *Node) error {
 
 	err = Deserialize(reader, node)
 
-	if err != nil {
-		panic(err)
-	}
+	PanicOnError(err)
 
 	return err
 }

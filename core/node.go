@@ -31,9 +31,7 @@ func (m *Reference) MarshalJSON() ([]byte, error) {
 
 func (m *Reference) UnmarshalJSON(data []byte) error {
 
-	if len(data) < 32 {
-		panic("invalid uuid size")
-	}
+	PanicIf(len(data) < 32, "invalid uuid size")
 
 	tmpUuid, err := uuid.ParseUUID(string(data[1 : len(data)-1]))
 
@@ -49,9 +47,7 @@ func (m *Reference) UnmarshalJSON(data []byte) error {
 func GetReferenceFromString(reference string) Reference {
 	v, err := uuid.ParseUUID(reference)
 
-	if err != nil {
-		panic(err)
-	}
+	PanicOnError(err)
 
 	return GetReference(v)
 }
@@ -108,9 +104,7 @@ func NewNode() *Node {
 
 
 func DumpNode(node *Node) {
-	if node == nil {
-		panic("Cannot dump, node is nil")
-	}
+	PanicIf(node == nil, "Cannot dump, node is nil")
 
 	fmt.Printf(" >>> Node: %+v\n", node.id)
 	fmt.Printf(" Uuid:       %s\n", node.Uuid)

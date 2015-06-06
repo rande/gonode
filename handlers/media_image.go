@@ -97,9 +97,7 @@ func (h *ImageHandler) GetDownloadData(node *nc.Node) *nc.DownloadData {
 	data.Stream = func(node *nc.Node, w io.Writer) {
 		file, err := h.Fs.Open(nc.GetFileLocation(node))
 
-		if err != nil {
-			panic(err)
-		}
+		nc.PanicOnError(err)
 
 		io.Copy(w, file)
 	}

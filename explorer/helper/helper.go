@@ -215,11 +215,9 @@ func LoadFixtures(m *nc.PgNodeManager, max int) error {
 		node.UpdatedBy = admin.Uuid
 		node.CreatedBy = admin.Uuid
 
-		m.Save(node)
+		_, err = m.Save(node)
 
-		if err != nil {
-			panic(err)
-		}
+		nc.PanicOnError(err)
 	}
 
 	for i := 1; i < max; i++ {
@@ -227,11 +225,9 @@ func LoadFixtures(m *nc.PgNodeManager, max int) error {
 		node.UpdatedBy = admin.Uuid
 		node.CreatedBy = admin.Uuid
 
-		m.Save(node)
+		_, err = m.Save(node)
 
-		if err != nil {
-			panic(err)
-		}
+		nc.PanicOnError(err)
 	}
 
 	for i := 1; i < max; i++ {
@@ -239,11 +235,9 @@ func LoadFixtures(m *nc.PgNodeManager, max int) error {
 		node.UpdatedBy = admin.Uuid
 		node.CreatedBy = admin.Uuid
 
-		m.Save(node)
+		_, err = m.Save(node)
 
-		if err != nil {
-			panic(err)
-		}
+		nc.PanicOnError(err)
 	}
 
 	return nil

@@ -73,10 +73,8 @@ func ConfigureGoji(app *App) {
 
 	mux.Get(prefix+"/nodes/stream", func(res http.ResponseWriter, req *http.Request) {
 		ws, err := upgrader.Upgrade(res, req, nil)
-		if err != nil {
-			panic(err)
-			return
-		}
+
+		nc.PanicOnError(err)
 
 		element := webSocketList.PushBack(ws)
 

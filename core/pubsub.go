@@ -129,9 +129,7 @@ func (s *Subscriber) ListenMessage(name string, handler SubscriberHander) {
 
 		err := s.listener.Listen(name)
 
-		if err != nil {
-			panic(err)
-		}
+		PanicOnError(err)
 	}
 
 	s.handlers[name].PushBack(handler)
