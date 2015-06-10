@@ -4,6 +4,7 @@ import (
 	. "github.com/rande/goapp"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
+	nc "github.com/rande/gonode/core"
 	"io"
 	"io/ioutil"
 	"log"
@@ -11,6 +12,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"fmt"
 )
 
 func GetApp(file string) *App {
@@ -70,9 +72,7 @@ func RunRequest(method string, url string, body io.Reader) (*Response, error) {
 
 	req, err := http.NewRequest(method, url, body)
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	nc.PanicOnError(err)
 
 	resp, err := client.Do(req)
 
@@ -80,6 +80,9 @@ func RunRequest(method string, url string, body io.Reader) (*Response, error) {
 }
 
 func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *App)) {
+	var err error
+	var res *Response
+
 	app := GetApp("../config_test.toml")
 	mux := app.Get("goji.mux").(*web.Mux)
 
@@ -89,8 +92,13 @@ func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *Ap
 		ts.Close()
 	}()
 
-	RunRequest("PUT", ts.URL+"/uninstall", nil)
-	RunRequest("PUT", ts.URL+"/install", nil)
+	res, err = RunRequest("PUT", ts.URL+"/uninstall", nil)
+	nc.PanicIf(res.StatusCode != http.StatusOK, fmt.Sprintf("Expected code 200, get %d\n%s", res.StatusCode, string(res.GetBody()[:])))
+	nc.PanicOnError(err)
+
+	res, err = RunRequest("PUT", ts.URL+"/install", nil)
+	nc.PanicIf(res.StatusCode != http.StatusOK, fmt.Sprintf("Expected code 200, get %d\n%s", res.StatusCode, string(res.GetBody()[:])))
+	nc.PanicOnError(err)
 
 	f(t, ts, app)
 }
