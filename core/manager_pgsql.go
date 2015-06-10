@@ -59,7 +59,9 @@ func (m *PgNodeManager) FindBy(query sq.SelectBuilder, offset uint64, limit uint
 	list := list.New()
 
 	for rows.Next() {
-		list.PushBack(m.hydrate(rows))
+		node := m.hydrate(rows)
+
+		list.PushBack(node)
 	}
 
 	return list
@@ -293,6 +295,8 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 			m.Logger.Printf("[PgNode] Creating node uuid: %s, id: %d, type: %s", node.Uuid, node.id, node.Type)
 		}
 
+		handler.PostInsert(node, m)
+
 		m.sendNotification(m.Prefix+"_manager_action", &ModelEvent{
 			Type:    node.Type,
 			Action:  "Create",
@@ -300,8 +304,6 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 			Date:    node.CreatedAt,
 			Name:    node.Name,
 		})
-
-		handler.PostInsert(node, m)
 
 		return node, err
 	}

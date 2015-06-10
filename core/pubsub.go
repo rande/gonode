@@ -2,6 +2,7 @@ package core
 
 import (
 	"container/list"
+	"encoding/json"
 	pq "github.com/lib/pq"
 	"log"
 	"time"
@@ -11,10 +12,11 @@ const (
 	PubSubListenContinue = 1
 	PubSubListenStop     = 0
 
-	ProcessStatusInit   = 0
-	ProcessStatusUpdate = 1
-	ProcessStatusDone   = 2
-	ProcessStatusError  = 3
+	ProcessStatusInit   = 0  // default value, nothing to do
+	ProcessStatusReady  = 1  // process is ready to be handled
+	ProcessStatusUpdate = 2  // update in progress
+	ProcessStatusDone   = 3  // done, can also be set to init. Done also mean the related task cannot be restarted
+	ProcessStatusError  = -1 // an error occurs
 )
 
 type Listener interface {
@@ -40,6 +42,14 @@ func NewSubscriber(conninfo string, logger *log.Logger) *Subscriber {
 		exit:     make(chan int),
 		logger:   logger,
 	}
+}
+
+func CreateModelEvent(notification *pq.Notification) *ModelEvent {
+	m := &ModelEvent{}
+
+	json.Unmarshal([]byte(notification.Extra), m)
+
+	return m
 }
 
 type Subscriber struct {

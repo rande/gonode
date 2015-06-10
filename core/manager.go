@@ -13,7 +13,9 @@ var (
 )
 
 func InterfaceToJsonMessage(ntype string, data interface{}) json.RawMessage {
-	v, _ := json.Marshal(data)
+	v, err := json.Marshal(data)
+
+	PanicOnError(err)
 
 	return v
 }
