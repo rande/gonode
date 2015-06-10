@@ -1,0 +1,11 @@
+name= "GoNode - Codeship"
+
+[databases.master]
+type    = "master"
+dsn     = "postgres://{{ env "PG_USER" }}:{{ env "PG_PASSWORD" }}@localhost/test"
+enabled = true
+prefix  = "test"
+
+
+[filesystem]
+path = "/tmp/gnode"

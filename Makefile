@@ -19,7 +19,7 @@ format:
 	gofmt -l -w -s .
 
 test:
-	go test -v ./handlers ./test/api ./core
+	go test -v ./handlers ./test/api ./core ./extra
 	#cd explorer && npm test
 
 clean:
