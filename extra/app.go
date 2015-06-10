@@ -2,11 +2,11 @@ package extra
 
 import (
 	"database/sql"
-	sq "github.com/lann/squirrel"
 	pq "github.com/lib/pq"
 	. "github.com/rande/goapp"
 	nc "github.com/rande/gonode/core"
 	nh "github.com/rande/gonode/handlers"
+	sq "github.com/rande/squirrel"
 	"github.com/spf13/afero"
 	"log"
 	"net/http"

@@ -3,7 +3,7 @@ package core
 import (
 	"container/list"
 	"encoding/json"
-	sq "github.com/lann/squirrel"
+	sq "github.com/rande/squirrel"
 	"github.com/twinj/uuid"
 )
 
@@ -27,6 +27,7 @@ func GetRootReference() Reference {
 }
 
 type NodeManager interface {
+	SelectBuilder() sq.SelectBuilder
 	FindBy(query sq.SelectBuilder, offset uint64, limit uint64) *list.List
 	FindOneBy(query sq.SelectBuilder) *Node
 	Find(uuid Reference) *Node

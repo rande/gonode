@@ -2,8 +2,8 @@ package mock
 
 import (
 	"container/list"
-	sq "github.com/lann/squirrel"
 	nc "github.com/rande/gonode/core"
+	sq "github.com/rande/squirrel"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -60,3 +60,11 @@ func (m *MockedManager) NewNode(t string) *nc.Node {
 
 	return args.Get(0).(*nc.Node)
 }
+
+func (m *MockedManager) SelectBuilder() sq.SelectBuilder {
+	args := m.Mock.Called()
+
+	return args.Get(0).(sq.SelectBuilder)
+}
+
+

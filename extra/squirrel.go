@@ -1,7 +1,7 @@
 package extra
 
 import (
-	sq "github.com/lann/squirrel"
+	sq "github.com/rande/squirrel"
 )
 
 func ExprSlice(sql string, size int, args ...interface{}) sq.Expression {
