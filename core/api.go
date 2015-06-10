@@ -77,7 +77,7 @@ func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uin
 		pager.Previous = page - 1
 	}
 
-	a.Manager.Logger.Printf("Result len: %s", list.Len())
+	a.Manager.Logger.Printf("Result len: %d", list.Len())
 
 	if list.Len() > 0 {
 		element := list.Front()
@@ -123,7 +123,7 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 		a.Manager.Logger.Printf("cannot find uuid: %s, create a new one", node.Uuid)
 	}
 
-	a.Manager.Logger.Printf("saving node.id=%s, node.uuid=%s", node.id, node.Uuid)
+	a.Manager.Logger.Printf("saving node.id=%d, node.uuid=%s", node.id, node.Uuid)
 
 	if ok, errors := a.Manager.Validate(node); !ok {
 		Serialize(w, errors)

@@ -108,7 +108,7 @@ func (s *Subscriber) waitAndDispatch() {
 						if state, _ := f(notification); state != PubSubListenContinue {
 							// close listener
 							s.handlers[notification.Channel].Remove(e)
-							s.logger.Printf("pubsub:handler:%s - removing on handler for channel - state != PubSubListenContinue:%s", notification.Channel)
+							s.logger.Printf("pubsub:handler:%s - removing on handler for channel - state != PubSubListenContinue", notification.Channel)
 						}
 					}(e.Value.(SubscriberHander))
 				}

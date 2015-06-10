@@ -171,8 +171,6 @@ func (m *PgNodeManager) Remove(query sq.SelectBuilder) error {
 			m.Logger.Printf("[PgNode] Soft Delete: Uuid:%+v - type: %s", node.Uuid, node.Type)
 		}
 	}
-
-	return nil
 }
 
 func (m *PgNodeManager) RemoveOne(node *Node) (*Node, error) {

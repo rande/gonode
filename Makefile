@@ -17,9 +17,11 @@ run:
 
 format:
 	gofmt -l -w -s .
+	go fix ./...
 
 test:
 	go test -v ./handlers ./test/api ./core ./extra
+	go vet ./...
 	#cd explorer && npm test
 
 clean:

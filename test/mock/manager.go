@@ -66,5 +66,3 @@ func (m *MockedManager) SelectBuilder() sq.SelectBuilder {
 
 	return args.Get(0).(sq.SelectBuilder)
 }
-
-

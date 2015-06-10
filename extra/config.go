@@ -1,12 +1,12 @@
 package extra
 
 import (
-	nc "github.com/rande/gonode/core"
-	"github.com/BurntSushi/toml"
-	"text/template"
-	"os"
-	"io/ioutil"
 	"bytes"
+	"github.com/BurntSushi/toml"
+	nc "github.com/rande/gonode/core"
+	"io/ioutil"
+	"os"
+	"text/template"
 )
 
 type Database struct {
@@ -49,7 +49,6 @@ func GetConfiguration(path string) *Config {
 	return config
 }
 
-
 func LoadConfigurationFromFile(path string) (string, error) {
 
 	data, err := ioutil.ReadFile(path)
@@ -57,7 +56,7 @@ func LoadConfigurationFromFile(path string) (string, error) {
 	nc.PanicOnError(err)
 
 	t := template.New("config")
-	t.Funcs(map[string]interface {}{
+	t.Funcs(map[string]interface{}{
 		"env": os.Getenv,
 	})
 	_, err = t.Parse(string(data[:]))
