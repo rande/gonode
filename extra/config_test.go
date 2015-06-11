@@ -22,7 +22,7 @@ func Test_LoadConfigurationFromFile_WithEnv(t *testing.T) {
 
 [databases.master]
 type    = "master"
-dsn     = "postgres://foo:bar@localhost/test"
+dsn     = "postgres://foo:bar@localhost:5434/test"
 enabled = true
 prefix  = "test"
 
@@ -42,7 +42,7 @@ func Test_LoadConfigurationFromFile_WithoutEnv(t *testing.T) {
 
 [databases.master]
 type    = "master"
-dsn     = "postgres://:@localhost/test"
+dsn     = "postgres://:@localhost:5434/test"
 enabled = true
 prefix  = "test"
 
@@ -67,7 +67,7 @@ func Test_GetConfiguration(t *testing.T) {
 
 	assert.Equal(t, config.Name, "GoNode - Codeship")
 	assert.Equal(t, config.Databases["master"].Type, "master")
-	assert.Equal(t, config.Databases["master"].DSN, "postgres://foo:bar@localhost/test")
+	assert.Equal(t, config.Databases["master"].DSN, "postgres://foo:bar@localhost:5434/test")
 	assert.Equal(t, config.Databases["master"].Enabled, true)
 	assert.Equal(t, config.Databases["master"].Prefix, "test")
 	assert.Equal(t, config.Filesystem.Type, "") // not used for now

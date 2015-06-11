@@ -2,7 +2,7 @@ name= "GoNode - Codeship"
 
 [databases.master]
 type    = "master"
-dsn     = "postgres://{{ env "PG_USER" }}:{{ env "PG_PASSWORD" }}@localhost/test"
+dsn     = "postgres://{{ env "PG_USER" }}:{{ env "PG_PASSWORD" }}@localhost:5434/test"
 enabled = true
 prefix  = "test"
 
