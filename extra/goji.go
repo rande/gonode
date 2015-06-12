@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/schema"
 	"github.com/gorilla/websocket"
 	"github.com/lib/pq"
-	. "github.com/rande/goapp"
+	"github.com/rande/goapp"
 	nc "github.com/rande/gonode/core"
 	sq "github.com/rande/squirrel"
 	"github.com/zenazn/goji/graceful"
@@ -32,7 +32,7 @@ func readLoop(c *websocket.Conn) {
 	}
 }
 
-func ConfigureGoji(app *App) {
+func ConfigureGoji(app *goapp.App) {
 
 	mux := app.Get("goji.mux").(*web.Mux)
 	logger := app.Get("logger").(*log.Logger)

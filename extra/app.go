@@ -3,7 +3,7 @@ package extra
 import (
 	"database/sql"
 	pq "github.com/lib/pq"
-	. "github.com/rande/goapp"
+	"github.com/rande/goapp"
 	nc "github.com/rande/gonode/core"
 	nh "github.com/rande/gonode/handlers"
 	sq "github.com/rande/squirrel"
@@ -13,18 +13,18 @@ import (
 	"time"
 )
 
-func ConfigureApp(app *App) {
-	app.Set("gonode.fs", func(app *App) interface{} {
+func ConfigureApp(app *goapp.App) {
+	app.Set("gonode.fs", func(app *goapp.App) interface{} {
 		configuration := app.Get("gonode.configuration").(*Config)
 
 		return nc.NewSecureFs(&afero.OsFs{}, configuration.Filesystem.Path)
 	})
 
-	app.Set("gonode.http_client", func(app *App) interface{} {
+	app.Set("gonode.http_client", func(app *goapp.App) interface{} {
 		return &http.Client{}
 	})
 
-	app.Set("gonode.handler_collection", func(app *App) interface{} {
+	app.Set("gonode.handler_collection", func(app *goapp.App) interface{} {
 		return nc.HandlerCollection{
 			"default": &nh.DefaultHandler{},
 			"media.image": &nh.ImageHandler{
@@ -36,7 +36,7 @@ func ConfigureApp(app *App) {
 		}
 	})
 
-	app.Set("gonode.manager", func(app *App) interface{} {
+	app.Set("gonode.manager", func(app *goapp.App) interface{} {
 		configuration := app.Get("gonode.configuration").(*Config)
 
 		return &nc.PgNodeManager{
@@ -48,7 +48,7 @@ func ConfigureApp(app *App) {
 		}
 	})
 
-	app.Set("gonode.postgres.connection", func(app *App) interface{} {
+	app.Set("gonode.postgres.connection", func(app *goapp.App) interface{} {
 
 		configuration := app.Get("gonode.configuration").(*Config)
 
@@ -70,7 +70,7 @@ func ConfigureApp(app *App) {
 		return db
 	})
 
-	app.Set("gonode.api", func(app *App) interface{} {
+	app.Set("gonode.api", func(app *goapp.App) interface{} {
 		return &nc.Api{
 			Manager:    app.Get("gonode.manager").(*nc.PgNodeManager),
 			Version:    "1.0.0",
@@ -78,14 +78,14 @@ func ConfigureApp(app *App) {
 		}
 	})
 
-	app.Set("gonode.node.serializer", func(app *App) interface{} {
+	app.Set("gonode.node.serializer", func(app *goapp.App) interface{} {
 		s := nc.NewSerializer()
 		s.Handlers = app.Get("gonode.handler_collection").(nc.Handlers)
 
 		return s
 	})
 
-	app.Set("gonode.postgres.subscriber", func(app *App) interface{} {
+	app.Set("gonode.postgres.subscriber", func(app *goapp.App) interface{} {
 		configuration := app.Get("gonode.configuration").(*Config)
 
 		return nc.NewSubscriber(
@@ -94,7 +94,7 @@ func ConfigureApp(app *App) {
 		)
 	})
 
-	app.Set("gonode.listener.youtube", func(app *App) interface{} {
+	app.Set("gonode.listener.youtube", func(app *goapp.App) interface{} {
 		client := app.Get("gonode.http_client").(*http.Client)
 
 		return &nh.YoutubeListener{
@@ -102,7 +102,7 @@ func ConfigureApp(app *App) {
 		}
 	})
 
-	app.Set("gonode.listener.file_downloader", func(app *App) interface{} {
+	app.Set("gonode.listener.file_downloader", func(app *goapp.App) interface{} {
 		client := app.Get("gonode.http_client").(*http.Client)
 		fs := app.Get("gonode.fs").(*nc.SecureFs)
 
@@ -115,7 +115,7 @@ func ConfigureApp(app *App) {
 	// need to find a way to trigger the handler registration
 	sub := app.Get("gonode.postgres.subscriber").(*nc.Subscriber)
 
-	sub.ListenMessage("media_youtube_update", func(app *App) nc.SubscriberHander {
+	sub.ListenMessage("media_youtube_update", func(app *goapp.App) nc.SubscriberHander {
 		manager := app.Get("gonode.manager").(*nc.PgNodeManager)
 		listener := app.Get("gonode.listener.youtube").(*nh.YoutubeListener)
 
@@ -124,7 +124,7 @@ func ConfigureApp(app *App) {
 		}
 	}(app))
 
-	sub.ListenMessage("media_file_download", func(app *App) nc.SubscriberHander {
+	sub.ListenMessage("media_file_download", func(app *goapp.App) nc.SubscriberHander {
 		manager := app.Get("gonode.manager").(*nc.PgNodeManager)
 		listener := app.Get("gonode.listener.file_downloader").(*nh.ImageDownloadListener)
 
@@ -133,7 +133,7 @@ func ConfigureApp(app *App) {
 		}
 	}(app))
 
-	sub.ListenMessage("core_sleep", func(app *App) nc.SubscriberHander {
+	sub.ListenMessage("core_sleep", func(app *goapp.App) nc.SubscriberHander {
 		return func(notification *pq.Notification) (int, error) {
 
 			logger := app.Get("logger").(*log.Logger)

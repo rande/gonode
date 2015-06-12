@@ -1,10 +1,11 @@
 package extra
 
 import (
-	. "github.com/rande/goapp"
+	"fmt"
+	"github.com/rande/goapp"
+	nc "github.com/rande/gonode/core"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
-	nc "github.com/rande/gonode/core"
 	"io"
 	"io/ioutil"
 	"log"
@@ -12,23 +13,22 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-	"fmt"
 )
 
-func GetApp(file string) *App {
+func GetApp(file string) *goapp.App {
 
-	app := NewApp()
+	app := goapp.NewApp()
 
-	app.Set("gonode.configuration", func(app *App) interface{} {
+	app.Set("gonode.configuration", func(app *goapp.App) interface{} {
 		return GetConfiguration(file)
 	})
 
 	// configure main services
-	app.Set("logger", func(app *App) interface{} {
+	app.Set("logger", func(app *goapp.App) interface{} {
 		return log.New(os.Stdout, "", log.Lshortfile)
 	})
 
-	app.Set("goji.mux", func(app *App) interface{} {
+	app.Set("goji.mux", func(app *goapp.App) interface{} {
 		mux := web.New()
 
 		//		mux.Use(middleware.RequestID)
@@ -79,7 +79,7 @@ func RunRequest(method string, url string, body io.Reader) (*Response, error) {
 	return &Response{Response: resp}, err
 }
 
-func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *App)) {
+func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *goapp.App)) {
 	var err error
 	var res *Response
 
