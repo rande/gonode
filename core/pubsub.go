@@ -41,6 +41,7 @@ func NewSubscriber(conninfo string, logger *log.Logger) *Subscriber {
 		handlers: make(map[string]*list.List, 1024),
 		exit:     make(chan int),
 		logger:   logger,
+		channels: make([]string, 0),
 	}
 }
 
@@ -59,6 +60,7 @@ type Subscriber struct {
 	exit     chan int
 	init     bool
 	logger   *log.Logger
+	channels []string
 }
 
 func (s *Subscriber) Stop() {
@@ -68,7 +70,7 @@ func (s *Subscriber) Stop() {
 	s.listener.Close()
 }
 
-func (s *Subscriber) register() {
+func (s *Subscriber) Register() {
 	if s.init {
 		return
 	}
@@ -81,6 +83,11 @@ func (s *Subscriber) register() {
 			s.logger.Println(err.Error())
 		}
 	})
+
+	for _, name := range s.channels {
+		err := s.listener.Listen(name)
+		PanicOnError(err)
+	}
 
 	go s.waitAndDispatch()
 }
@@ -132,14 +139,15 @@ func (s *Subscriber) waitAndDispatch() {
 }
 
 func (s *Subscriber) ListenMessage(name string, handler SubscriberHander) {
-	s.register()
-
 	if _, ok := s.handlers[name]; !ok {
 		s.handlers[name] = list.New()
 
-		err := s.listener.Listen(name)
-
-		PanicOnError(err)
+		if s.init {
+			err := s.listener.Listen(name)
+			PanicOnError(err)
+		} else {
+			s.channels = append(s.channels, name)
+		}
 	}
 
 	s.handlers[name].PushBack(handler)

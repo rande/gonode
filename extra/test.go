@@ -15,34 +15,42 @@ import (
 	"testing"
 )
 
-func GetApp(file string) *goapp.App {
+func GetLifecycle(file string) *goapp.Lifecycle {
 
-	app := goapp.NewApp()
+	l := goapp.NewLifecycle()
 
-	app.Set("gonode.configuration", func(app *goapp.App) interface{} {
-		return GetConfiguration(file)
+	l.Config(func(app *goapp.App) error {
+		app.Set("gonode.configuration", func(app *goapp.App) interface{} {
+				return GetConfiguration(file)
+			})
+
+		return nil
 	})
 
-	// configure main services
-	app.Set("logger", func(app *goapp.App) interface{} {
-		return log.New(os.Stdout, "", log.Lshortfile)
+	l.Register(func(app *goapp.App) error {
+		// configure main services
+		app.Set("logger", func(app *goapp.App) interface{} {
+				return log.New(os.Stdout, "", log.Lshortfile)
+			})
+
+		app.Set("goji.mux", func(app *goapp.App) interface{} {
+				mux := web.New()
+
+				//		mux.Use(middleware.RequestID)
+				mux.Use(middleware.Logger)
+				mux.Use(middleware.Recoverer)
+				//		mux.Use(middleware.AutomaticOptions)
+
+				return mux
+			})
+
+		return nil
 	})
 
-	app.Set("goji.mux", func(app *goapp.App) interface{} {
-		mux := web.New()
+	ConfigureApp(l)
+	ConfigureGoji(l)
 
-		//		mux.Use(middleware.RequestID)
-		mux.Use(middleware.Logger)
-		mux.Use(middleware.Recoverer)
-		//		mux.Use(middleware.AutomaticOptions)
-
-		return mux
-	})
-
-	ConfigureApp(app)
-	ConfigureGoji(app)
-
-	return app
+	return l
 }
 
 type Response struct {
@@ -80,25 +88,33 @@ func RunRequest(method string, url string, body io.Reader) (*Response, error) {
 }
 
 func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *goapp.App)) {
-	var err error
-	var res *Response
 
-	app := GetApp("../config_test.toml")
-	mux := app.Get("goji.mux").(*web.Mux)
+	l := GetLifecycle("../config_test.toml")
 
-	ts := httptest.NewServer(mux)
+	l.Run(func(app *goapp.App) error {
+		var err error
+		var res *Response
 
-	defer func() {
-		ts.Close()
-	}()
+		mux := app.Get("goji.mux").(*web.Mux)
 
-	res, err = RunRequest("PUT", ts.URL+"/uninstall", nil)
-	nc.PanicIf(res.StatusCode != http.StatusOK, fmt.Sprintf("Expected code 200, get %d\n%s", res.StatusCode, string(res.GetBody()[:])))
-	nc.PanicOnError(err)
+		ts := httptest.NewServer(mux)
 
-	res, err = RunRequest("PUT", ts.URL+"/install", nil)
-	nc.PanicIf(res.StatusCode != http.StatusOK, fmt.Sprintf("Expected code 200, get %d\n%s", res.StatusCode, string(res.GetBody()[:])))
-	nc.PanicOnError(err)
+		defer func() {
+			ts.Close()
+		}()
 
-	f(t, ts, app)
+		res, err = RunRequest("PUT", ts.URL+"/uninstall", nil)
+		nc.PanicIf(res.StatusCode != http.StatusOK, fmt.Sprintf("Expected code 200, get %d\n%s", res.StatusCode, string(res.GetBody()[:])))
+		nc.PanicOnError(err)
+
+		res, err = RunRequest("PUT", ts.URL+"/install", nil)
+		nc.PanicIf(res.StatusCode != http.StatusOK, fmt.Sprintf("Expected code 200, get %d\n%s", res.StatusCode, string(res.GetBody()[:])))
+		nc.PanicOnError(err)
+
+		f(t, ts, app)
+
+		return nil
+	})
+
+	l.Go(goapp.NewApp())
 }

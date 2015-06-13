@@ -2,13 +2,19 @@ package main
 
 import (
 	"flag"
-	. "github.com/rande/goapp"
+	"github.com/rande/goapp"
 	"github.com/rande/gonode/explorer/helper"
+	"github.com/rande/gonode/extra"
+	nc "github.com/rande/gonode/core"
 	"github.com/zenazn/goji/bind"
 	"github.com/zenazn/goji/graceful"
+	"github.com/hypebeast/gojistatic"
 	"github.com/zenazn/goji/web"
+	"github.com/zenazn/goji/web/middleware"
 	"log"
 	"net/http"
+	"os"
+	"fmt"
 )
 
 func init() {
@@ -20,36 +26,121 @@ func init() {
 }
 
 func main() {
-	app := NewApp()
+	app := goapp.NewApp()
 
-	helper.BuildApp(app, "./config.toml")
+	l := goapp.NewLifecycle()
 
-	mux := app.Get("goji.mux").(*web.Mux)
+	l.Config(func(app *goapp.App) error {
+		app.Set("gonode.configuration", func(app *goapp.App) interface{} {
+			return extra.GetConfiguration("./config.toml")
+		})
 
-	if !flag.Parsed() {
-		flag.Parse()
-	}
+		return nil
+	})
 
-	mux.Compile()
+	l.Register(func(app *goapp.App) error {
+		// configure main services
+		app.Set("logger", func(app *goapp.App) interface{} {
+			return log.New(os.Stdout, "", log.Lshortfile)
+		})
 
-	// Install our handler at the root of the standard net/http default mux.
-	// This allows packages like expvar to continue working as expected.
-	http.Handle("/", mux)
+		app.Set("goji.mux", func(app *goapp.App) interface{} {
+			mux := web.New()
 
-	listener := bind.Default()
-	log.Println("Starting Goji on", listener.Addr())
+			mux.Use(middleware.RequestID)
+			mux.Use(middleware.Logger)
+			mux.Use(middleware.Recoverer)
+			mux.Use(middleware.AutomaticOptions)
+			mux.Use(gojistatic.Static("dist", gojistatic.StaticOptions{SkipLogging: true, Prefix: "dist"}))
 
-	graceful.HandleSignals()
-	bind.Ready()
+			return mux
+		})
 
-	graceful.PreHook(func() { log.Printf("Goji received signal, gracefully stopping") })
-	graceful.PostHook(func() { log.Printf("Goji stopped") })
+		return nil
+	})
 
-	err := graceful.Serve(listener, http.DefaultServeMux)
+	l.Prepare(func(app *goapp.App) error {
+		mux := app.Get("goji.mux").(*web.Mux)
 
-	if err != nil {
-		log.Fatal(err)
-	}
+		prefix := ""
 
-	graceful.Wait()
+		mux.Put(prefix+"/data/purge", func(res http.ResponseWriter, req *http.Request) {
+
+			manager := app.Get("gonode.manager").(*nc.PgNodeManager)
+			configuration := app.Get("gonode.configuration").(*extra.Config)
+
+			prefix := configuration.Databases["master"].Prefix
+
+			tx, _ := manager.Db.Begin()
+			manager.Db.Exec(fmt.Sprintf(`DELETE FROM "%s_nodes"`, prefix))
+			manager.Db.Exec(fmt.Sprintf(`DELETE FROM "%s_nodes_audit"`, prefix))
+			err := tx.Commit()
+
+			if err != nil {
+				helper.Send("KO", err.Error(), res)
+			} else {
+				helper.Send("OK", "Data purged!", res)
+			}
+		})
+
+		mux.Put(prefix+"/data/load", func(res http.ResponseWriter, req *http.Request) {
+				manager := app.Get("gonode.manager").(*nc.PgNodeManager)
+			nodes := manager.FindBy(manager.SelectBuilder(), 0, 10)
+
+			if nodes.Len() != 0 {
+				helper.Send("KO", "Table contains data, purge the data first!", res)
+
+				return
+			}
+
+			err := helper.LoadFixtures(manager, 100)
+
+			if err != nil {
+				helper.Send("KO", err.Error(), res)
+			} else {
+				helper.Send("OK", "Data loaded!", res)
+			}
+		})
+
+		return nil
+	})
+
+	extra.ConfigureApp(l)
+	extra.ConfigureGoji(l)
+
+	l.Run(func(app *goapp.App) error {
+		mux := app.Get("goji.mux").(*web.Mux)
+
+		if !flag.Parsed() {
+			flag.Parse()
+		}
+
+		mux.Compile()
+
+		// Install our handler at the root of the standard net/http default mux.
+		// This allows packages like expvar to continue working as expected.
+		http.Handle("/", mux)
+
+		listener := bind.Default()
+		log.Println("Starting Goji on", listener.Addr())
+
+		graceful.HandleSignals()
+		bind.Ready()
+
+		graceful.PreHook(func() { log.Printf("Goji received signal, gracefully stopping") })
+		graceful.PostHook(func() { log.Printf("Goji stopped") })
+
+		err := graceful.Serve(listener, http.DefaultServeMux)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		graceful.Wait()
+
+		return nil
+	})
+
+	os.Exit(l.Go(app))
+
 }

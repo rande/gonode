@@ -2,50 +2,12 @@ package helper
 
 import (
 	"encoding/json"
-	"fmt"
-	"github.com/hypebeast/gojistatic"
-	. "github.com/rande/goapp"
 	nc "github.com/rande/gonode/core"
-	"github.com/rande/gonode/extra"
 	nh "github.com/rande/gonode/handlers"
-	"github.com/zenazn/goji/web"
-	"github.com/zenazn/goji/web/middleware"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 )
-
-func BuildApp(app *App, config string) *App {
-	app.Set("gonode.configuration", func(app *App) interface{} {
-		return extra.GetConfiguration(config)
-	})
-
-	// configure main services
-	app.Set("logger", func(app *App) interface{} {
-		return log.New(os.Stdout, "", log.Lshortfile)
-	})
-
-	app.Set("goji.mux", func(app *App) interface{} {
-		mux := web.New()
-
-		mux.Use(middleware.RequestID)
-		mux.Use(middleware.Logger)
-		mux.Use(middleware.Recoverer)
-		mux.Use(middleware.AutomaticOptions)
-		mux.Use(gojistatic.Static("dist", gojistatic.StaticOptions{SkipLogging: true, Prefix: "dist"}))
-
-		return mux
-	})
-
-	// load the current application
-	extra.ConfigureApp(app)
-	extra.ConfigureGoji(app)
-
-	ConfigureGoji(app)
-
-	return app
-}
 
 func Check(manager *nc.PgNodeManager, logger *log.Logger) {
 	query := manager.SelectBuilder()
@@ -93,48 +55,6 @@ func Send(status string, message string, res http.ResponseWriter) {
 	})
 
 	res.Write(data)
-}
-
-func ConfigureGoji(app *App) {
-
-	mux := app.Get("goji.mux").(*web.Mux)
-	manager := app.Get("gonode.manager").(*nc.PgNodeManager)
-	configuration := app.Get("gonode.configuration").(*extra.Config)
-	prefix := ""
-
-	mux.Put(prefix+"/data/purge", func(res http.ResponseWriter, req *http.Request) {
-
-		prefix := configuration.Databases["master"].Prefix
-
-		tx, _ := manager.Db.Begin()
-		manager.Db.Exec(fmt.Sprintf(`DELETE FROM "%s_nodes"`, prefix))
-		manager.Db.Exec(fmt.Sprintf(`DELETE FROM "%s_nodes_audit"`, prefix))
-		err := tx.Commit()
-
-		if err != nil {
-			Send("KO", err.Error(), res)
-		} else {
-			Send("OK", "Data purged!", res)
-		}
-	})
-
-	mux.Put(prefix+"/data/load", func(res http.ResponseWriter, req *http.Request) {
-		nodes := manager.FindBy(manager.SelectBuilder(), 0, 10)
-
-		if nodes.Len() != 0 {
-			Send("KO", "Table contains data, purge the data first!", res)
-
-			return
-		}
-
-		err := LoadFixtures(manager, 100)
-
-		if err != nil {
-			Send("KO", err.Error(), res)
-		} else {
-			Send("OK", "Data loaded!", res)
-		}
-	})
 }
 
 func GetFakeMediaNode(pos int) *nc.Node {
