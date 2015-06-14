@@ -21,8 +21,8 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 
 	l.Config(func(app *goapp.App) error {
 		app.Set("gonode.configuration", func(app *goapp.App) interface{} {
-				return GetConfiguration(file)
-			})
+			return GetConfiguration(file)
+		})
 
 		return nil
 	})
@@ -30,19 +30,19 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 	l.Register(func(app *goapp.App) error {
 		// configure main services
 		app.Set("logger", func(app *goapp.App) interface{} {
-				return log.New(os.Stdout, "", log.Lshortfile)
-			})
+			return log.New(os.Stdout, "", log.Lshortfile)
+		})
 
 		app.Set("goji.mux", func(app *goapp.App) interface{} {
-				mux := web.New()
+			mux := web.New()
 
-				//		mux.Use(middleware.RequestID)
-				mux.Use(middleware.Logger)
-				mux.Use(middleware.Recoverer)
-				//		mux.Use(middleware.AutomaticOptions)
+			//		mux.Use(middleware.RequestID)
+			mux.Use(middleware.Logger)
+			mux.Use(middleware.Recoverer)
+			//		mux.Use(middleware.AutomaticOptions)
 
-				return mux
-			})
+			return mux
+		})
 
 		return nil
 	})

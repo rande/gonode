@@ -2,19 +2,19 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"github.com/hypebeast/gojistatic"
 	"github.com/rande/goapp"
+	nc "github.com/rande/gonode/core"
 	"github.com/rande/gonode/explorer/helper"
 	"github.com/rande/gonode/extra"
-	nc "github.com/rande/gonode/core"
 	"github.com/zenazn/goji/bind"
 	"github.com/zenazn/goji/graceful"
-	"github.com/hypebeast/gojistatic"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
 	"log"
 	"net/http"
 	"os"
-	"fmt"
 )
 
 func init() {
@@ -84,7 +84,7 @@ func main() {
 		})
 
 		mux.Put(prefix+"/data/load", func(res http.ResponseWriter, req *http.Request) {
-				manager := app.Get("gonode.manager").(*nc.PgNodeManager)
+			manager := app.Get("gonode.manager").(*nc.PgNodeManager)
 			nodes := manager.FindBy(manager.SelectBuilder(), 0, 10)
 
 			if nodes.Len() != 0 {
