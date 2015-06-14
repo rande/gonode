@@ -62,9 +62,6 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 			logger := app.Get("logger").(*log.Logger)
 			webSocketList := app.Get("gonode.websocket.clients").(*list.List)
 
-			logger.Printf("Closing PostgreSQL subcriber \n")
-			sub.Stop()
-
 			logger.Printf("Closing websocket connections \n")
 			for e := webSocketList.Front(); e != nil; e = e.Next() {
 				e.Value.(*websocket.Conn).Close()
@@ -75,13 +72,18 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 	})
 
 	l.Run(func(app *goapp.App) error {
+		logger := app.Get("logger").(*log.Logger)
+		logger.Printf("Starting PostgreSQL subcriber \n")
 		app.Get("gonode.postgres.subscriber").(*nc.Subscriber).Register()
 
 		return nil
 	})
 
 	l.Exit(func(app *goapp.App) error {
+		logger := app.Get("logger").(*log.Logger)
+		logger.Printf("Closing PostgreSQL subcriber \n")
 		app.Get("gonode.postgres.subscriber").(*nc.Subscriber).Stop()
+		logger.Printf("End closing PostgreSQL subcriber \n")
 
 		return nil
 	})
