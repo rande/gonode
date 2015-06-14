@@ -1,7 +1,7 @@
 package core
 
 import (
-	sq "github.com/rande/squirrel"
+	sq "github.com/lann/squirrel"
 	"io"
 )
 

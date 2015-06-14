@@ -6,7 +6,7 @@ import (
 	"github.com/rande/goapp"
 	nc "github.com/rande/gonode/core"
 	nh "github.com/rande/gonode/handlers"
-	sq "github.com/rande/squirrel"
+	sq "github.com/lann/squirrel"
 	"github.com/spf13/afero"
 	"log"
 	"net/http"

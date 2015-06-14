@@ -3,7 +3,7 @@ package mock
 import (
 	"container/list"
 	nc "github.com/rande/gonode/core"
-	sq "github.com/rande/squirrel"
+	sq "github.com/lann/squirrel"
 	"github.com/stretchr/testify/mock"
 )
 

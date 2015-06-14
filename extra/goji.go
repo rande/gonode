@@ -10,7 +10,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/rande/goapp"
 	nc "github.com/rande/gonode/core"
-	sq "github.com/rande/squirrel"
+	sq "github.com/lann/squirrel"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
 	"io/ioutil"
@@ -341,10 +341,10 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 
 			// analyse Data
 			for name, value := range req.Form {
-				values := rexMeta.FindStringSubmatch(name)
+				values := rexData.FindStringSubmatch(name)
 
 				if len(values) == 2 {
-					searchForm.Meta[values[1]] = value
+					searchForm.Data[values[1]] = value
 				}
 			}
 
@@ -407,22 +407,22 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 				//-- SELECT uuid, "data" #> '{tags,1}' as tags FROM nodes WHERE  "data" @> '{"tags": ["sport"]}'
 				//-- SELECT uuid, "data" #> '{tags}' AS tags FROM nodes WHERE  "data" -> 'tags' ?| array['sport'];
 				if len(value) > 1 {
-					query = query.Where(ExprSlice(fmt.Sprintf("meta->'%s' ??| array["+sq.Placeholders(len(value))+"]", name), len(value), value))
+					query = query.Where(nc.NewExprSlice(fmt.Sprintf("meta->'%s' ??| array["+sq.Placeholders(len(value))+"]", name), value))
 				}
 
 				if len(value) == 1 {
-					query = query.Where(sq.Expr(fmt.Sprintf("meta->>'%s' = ?", name), value))
+					query = query.Where(sq.Expr(fmt.Sprintf("meta->>'%s' = ?", name), value[0]))
 				}
 			}
-
+				
 			// Parse Data value
 			for name, value := range searchForm.Data {
 				if len(value) > 1 {
-					query = query.Where(ExprSlice(fmt.Sprintf("data->'%s' ??| array["+sq.Placeholders(len(value))+"]", name), len(value), value))
+					query = query.Where(nc.NewExprSlice(fmt.Sprintf("data->'%s' ??| array["+sq.Placeholders(len(value))+"]", name), value))
 				}
 
 				if len(value) == 1 {
-					query = query.Where(sq.Expr(fmt.Sprintf("data->>'%s' = ?", name), value))
+					query = query.Where(sq.Expr(fmt.Sprintf("data->>'%s' = ?", name), value[0]))
 				}
 			}
 

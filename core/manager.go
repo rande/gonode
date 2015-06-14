@@ -3,7 +3,7 @@ package core
 import (
 	"container/list"
 	"encoding/json"
-	sq "github.com/rande/squirrel"
+	sq "github.com/lann/squirrel"
 	"github.com/twinj/uuid"
 )
 

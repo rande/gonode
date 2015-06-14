@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	_ "github.com/lib/pq"
-	sq "github.com/rande/squirrel"
+	sq "github.com/lann/squirrel"
 	"github.com/twinj/uuid"
 	"log"
 	"strings"
