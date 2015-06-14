@@ -7,53 +7,6 @@ import (
 	"os"
 )
 
-func Test_LoadConfigurationFromFile_WithEnv(t *testing.T) {
-	os.Setenv("PG_USER", "foo")
-	os.Setenv("PG_PASSWORD", "bar")
-
-	defer func() {
-		os.Unsetenv("PG_USER")
-		os.Unsetenv("PG_PASSWORD")
-	}()
-
-	data, err := LoadConfigurationFromFile("../test/config_codeship.toml")
-
-	expected := `name= "GoNode - Codeship"
-
-[databases.master]
-type    = "master"
-dsn     = "postgres://foo:bar@localhost:5434/test"
-enabled = true
-prefix  = "test"
-
-
-[filesystem]
-path = "/tmp/gnode"
-`
-
-	assert.Nil(t, err)
-	assert.Equal(t, data, expected)
-}
-
-func Test_LoadConfigurationFromFile_WithoutEnv(t *testing.T) {
-	data, err := LoadConfigurationFromFile("../test/config_codeship.toml")
-
-	expected := `name= "GoNode - Codeship"
-
-[databases.master]
-type    = "master"
-dsn     = "postgres://:@localhost:5434/test"
-enabled = true
-prefix  = "test"
-
-
-[filesystem]
-path = "/tmp/gnode"
-`
-	assert.Nil(t, err)
-	assert.Equal(t, data, expected)
-}
-
 func Test_GetConfiguration(t *testing.T) {
 	os.Setenv("PG_USER", "foo")
 	os.Setenv("PG_PASSWORD", "bar")

@@ -1,12 +1,9 @@
 package extra
 
 import (
-	"bytes"
 	"github.com/BurntSushi/toml"
+	"github.com/rande/goapp"
 	nc "github.com/rande/gonode/core"
-	"io/ioutil"
-	"os"
-	"text/template"
 )
 
 type Database struct {
@@ -38,7 +35,7 @@ func GetConfiguration(path string) *Config {
 		Databases: make(map[string]*Database),
 	}
 
-	data, err := LoadConfigurationFromFile(path)
+	data, err := goapp.LoadConfigurationFromFile(path)
 
 	nc.PanicOnError(err)
 
@@ -47,27 +44,4 @@ func GetConfiguration(path string) *Config {
 	nc.PanicOnError(err)
 
 	return config
-}
-
-func LoadConfigurationFromFile(path string) (string, error) {
-
-	data, err := ioutil.ReadFile(path)
-
-	nc.PanicOnError(err)
-
-	t := template.New("config")
-	t.Funcs(map[string]interface{}{
-		"env": os.Getenv,
-	})
-	_, err = t.Parse(string(data[:]))
-
-	nc.PanicOnError(err)
-
-	b := bytes.NewBuffer([]byte{})
-
-	err = t.Execute(b, nil)
-
-	nc.PanicOnError(err)
-
-	return b.String(), nil
 }
