@@ -16,7 +16,7 @@ func Test_ExprSlice_With_int(t *testing.T) {
 
 	assert.Nil(t, error)
 	assert.Equal(t, "data->'%s' ??| array[?,?,?]", sql)
-	assert.Equal(t, []interface {}{1, 2, 3}, args)
+	assert.Equal(t, []interface{}{1, 2, 3}, args)
 }
 
 func Test_ExprSlice_With_string(t *testing.T) {
@@ -29,5 +29,5 @@ func Test_ExprSlice_With_string(t *testing.T) {
 
 	assert.Nil(t, error)
 	assert.Equal(t, "data->'%s' ??| array[?,?,?]", sql)
-	assert.Equal(t, []interface {}{"1", "2", "3"}, args)
+	assert.Equal(t, []interface{}{"1", "2", "3"}, args)
 }

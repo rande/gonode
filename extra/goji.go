@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"github.com/gorilla/schema"
 	"github.com/gorilla/websocket"
+	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
 	"github.com/rande/goapp"
 	nc "github.com/rande/gonode/core"
-	sq "github.com/lann/squirrel"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
 	"io/ioutil"
@@ -416,7 +416,7 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 					query = query.Where(sq.Expr(fmt.Sprintf("meta->>'%s' = ?", name), value[0]))
 				}
 			}
-				
+
 			// Parse Data value
 			for name, value := range searchForm.Data {
 				if len(value) > 1 {
