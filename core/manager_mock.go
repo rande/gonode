@@ -1,8 +1,7 @@
-package mock
+package core
 
 import (
 	"container/list"
-	nc "github.com/rande/gonode/core"
 	sq "github.com/lann/squirrel"
 	"github.com/stretchr/testify/mock"
 )
@@ -17,20 +16,20 @@ func (m *MockedManager) FindBy(query sq.SelectBuilder, offset uint64, limit uint
 	return args.Get(0).(*list.List)
 }
 
-func (m *MockedManager) FindOneBy(query sq.SelectBuilder) *nc.Node {
+func (m *MockedManager) FindOneBy(query sq.SelectBuilder) *Node {
 	args := m.Mock.Called(query)
 
-	return args.Get(0).(*nc.Node)
+	return args.Get(0).(*Node)
 }
 
-func (m *MockedManager) Find(uuid nc.Reference) *nc.Node {
+func (m *MockedManager) Find(uuid Reference) *Node {
 	args := m.Mock.Called(uuid)
 
 	if args.Get(0) == nil {
 		return nil
 	}
 
-	return args.Get(0).(*nc.Node)
+	return args.Get(0).(*Node)
 }
 
 func (m *MockedManager) Remove(query sq.SelectBuilder) error {
@@ -39,30 +38,36 @@ func (m *MockedManager) Remove(query sq.SelectBuilder) error {
 	return args.Error(0)
 }
 
-func (m *MockedManager) RemoveOne(node *nc.Node) (*nc.Node, error) {
+func (m *MockedManager) RemoveOne(node *Node) (*Node, error) {
 	args := m.Mock.Called(node)
 
-	return args.Get(0).(*nc.Node), args.Error(1)
+	return args.Get(0).(*Node), args.Error(1)
 }
 
-func (m *MockedManager) Save(node *nc.Node) (*nc.Node, error) {
+func (m *MockedManager) Save(node *Node) (*Node, error) {
 	args := m.Mock.Called(node)
 
-	return args.Get(0).(*nc.Node), args.Error(1)
+	return args.Get(0).(*Node), args.Error(1)
 }
 
 func (m *MockedManager) Notify(channel string, payload string) {
 	m.Mock.Called(channel, payload)
 }
 
-func (m *MockedManager) NewNode(t string) *nc.Node {
+func (m *MockedManager) NewNode(t string) *Node {
 	args := m.Mock.Called(t)
 
-	return args.Get(0).(*nc.Node)
+	return args.Get(0).(*Node)
 }
 
 func (m *MockedManager) SelectBuilder() sq.SelectBuilder {
 	args := m.Mock.Called()
 
 	return args.Get(0).(sq.SelectBuilder)
+}
+
+func (m *MockedManager) Validate(node *Node) (bool, Errors) {
+	args := m.Mock.Called(node)
+
+	return args.Get(0).(bool), args.Get(1).(Errors)
 }

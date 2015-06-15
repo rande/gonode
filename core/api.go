@@ -1,8 +1,11 @@
 package core
 
 import (
+	"bytes"
+	"encoding/json"
 	sq "github.com/lann/squirrel"
 	"io"
+	"log"
 )
 
 type SearchForm struct {
@@ -40,18 +43,19 @@ func GetSearchForm() *SearchForm {
 }
 
 type ApiPager struct {
-	Elements []*Node `json:"elements"`
-	Page     uint64  `json:"page"`
-	PerPage  uint64  `json:"per_page"`
-	Next     uint64  `json:"next"`
-	Previous uint64  `json:"previous"`
+	Elements []interface{} `json:"elements"`
+	Page     uint64        `json:"page"`
+	PerPage  uint64        `json:"per_page"`
+	Next     uint64        `json:"next"`
+	Previous uint64        `json:"previous"`
 }
 
 type Api struct {
 	Version    string
-	Manager    *PgNodeManager
+	Manager    NodeManager
 	BaseUrl    string
 	Serializer *Serializer
+	Logger     *log.Logger
 }
 
 func (a *Api) SelectBuilder() sq.SelectBuilder {
@@ -66,30 +70,18 @@ func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uin
 		PerPage: perPage,
 	}
 
-	if uint64(list.Len()) == perPage+1 {
-		pager.Next = page + 1
-		pager.Elements = make([]*Node, perPage)
-	} else {
-		pager.Elements = make([]*Node, list.Len())
-	}
+	pager.Elements = make([]interface{}, 0)
 
 	if page > 1 {
 		pager.Previous = page - 1
 	}
 
-	a.Manager.Logger.Printf("Result len: %d", list.Len())
+	for e := list.Front(); e != nil; e = e.Next() {
+		b := bytes.NewBuffer([]byte{})
+		a.Serializer.Serialize(b, e.Value.(*Node))
 
-	if list.Len() > 0 {
-		element := list.Front()
-		for pos := range pager.Elements {
-			pager.Elements[pos] = element.Value.(*Node)
-
-			element = element.Next()
-
-			if element == nil {
-				break
-			}
-		}
+		message := json.RawMessage(b.Bytes())
+		pager.Elements = append(pager.Elements, &message)
 	}
 
 	Serialize(w, pager)
@@ -104,12 +96,14 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 
 	PanicOnError(err)
 
-	a.Manager.Logger.Printf("trying to save node.uuid=%s, node.type=%s", node.Uuid, node.Type)
+	if a.Logger != nil {
+		a.Logger.Printf("trying to save node.uuid=%s, node.type=%s", node.Uuid, node.Type)
+	}
 
 	saved := a.Manager.Find(node.Uuid)
 
 	if saved != nil {
-		a.Manager.Logger.Printf("find uuid: %s", node.Uuid)
+		a.Logger.Printf("find uuid: %s", node.Uuid)
 
 		PanicUnless(node.Type == saved.Type, "Type mismatch")
 		PanicIf(saved.Deleted, "Cannot save a deleted node, restore it first ...")
@@ -119,11 +113,13 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 		}
 
 		node.id = saved.id
-	} else {
-		a.Manager.Logger.Printf("cannot find uuid: %s, create a new one", node.Uuid)
+	} else if a.Logger != nil {
+		a.Logger.Printf("cannot find uuid: %s, create a new one", node.Uuid)
 	}
 
-	a.Manager.Logger.Printf("saving node.id=%d, node.uuid=%s", node.id, node.Uuid)
+	if a.Logger != nil {
+		a.Logger.Printf("saving node.id=%d, node.uuid=%s", node.id, node.Uuid)
+	}
 
 	if ok, errors := a.Manager.Validate(node); !ok {
 		Serialize(w, errors)

@@ -80,7 +80,7 @@ func Test_YoutubeHandler_PostUpdate(t *testing.T) {
 	node := nc.NewNode()
 
 	handler := &YoutubeHandler{}
-	manager := &mock.MockedManager{}
+	manager := &nc.MockedManager{}
 	manager.On("Notify", "media_youtube_update", node.Uuid.String()).Return()
 
 	node.Data, node.Meta = handler.GetStruct()
@@ -106,7 +106,7 @@ func Test_YoutubeHandler_PostInsert(t *testing.T) {
 	node := nc.NewNode()
 
 	handler := &YoutubeHandler{}
-	manager := &mock.MockedManager{}
+	manager := &nc.MockedManager{}
 	manager.On("Notify", "media_youtube_update", node.Uuid.String()).Return()
 
 	node.Data, node.Meta = handler.GetStruct()
@@ -133,7 +133,7 @@ func Test_YoutubeListener_NodeNotFound(t *testing.T) {
 		HttpClient: client,
 	}
 
-	manager := &mock.MockedManager{}
+	manager := &nc.MockedManager{}
 	manager.On("Find", nc.GetEmptyReference()).Return(nil)
 
 	notification := &pq.Notification{
@@ -185,7 +185,7 @@ func Test_YoutubeListener_Found(t *testing.T) {
 	nodeImage.Data = &Image{}
 	nodeImage.Meta = &ImageMeta{}
 
-	manager := &mock.MockedManager{}
+	manager := &nc.MockedManager{}
 	manager.On("Find", nc.GetEmptyReference()).Return(node)
 	manager.On("Save", node).Return(node, nil)
 	manager.On("Save", nodeImage).Return(nodeImage, nil)

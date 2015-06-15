@@ -2,7 +2,6 @@ package handlers
 
 import (
 	nc "github.com/rande/gonode/core"
-	"github.com/rande/gonode/test/mock"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -27,7 +26,7 @@ func Test_UserHandler_Validate_EmptyData(t *testing.T) {
 	node.Data.(*User).Gender = "v"
 
 	errors := nc.NewErrors()
-	manager := &mock.MockedManager{}
+	manager := &nc.MockedManager{}
 
 	handler.Validate(node, manager, errors)
 
@@ -50,7 +49,7 @@ func GeneratePasswordTest(t *testing.T) {
 
 	node.Data.(*User).NewPassword = "password"
 
-	manager := &mock.MockedManager{}
+	manager := &nc.MockedManager{}
 
 	a.False(len(node.Data.(*User).Password) > 0)
 

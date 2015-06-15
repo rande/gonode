@@ -38,4 +38,5 @@ type NodeManager interface {
 	Save(node *Node) (*Node, error)
 	Notify(channel string, payload string)
 	NewNode(t string) *Node
+	Validate(node *Node) (bool, Errors)
 }

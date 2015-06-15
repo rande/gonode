@@ -2,11 +2,11 @@ package extra
 
 import (
 	"database/sql"
+	sq "github.com/lann/squirrel"
 	pq "github.com/lib/pq"
 	"github.com/rande/goapp"
 	nc "github.com/rande/gonode/core"
 	nh "github.com/rande/gonode/handlers"
-	sq "github.com/lann/squirrel"
 	"github.com/spf13/afero"
 	"log"
 	"net/http"
@@ -77,6 +77,7 @@ func ConfigureApp(l *goapp.Lifecycle) {
 				Manager:    app.Get("gonode.manager").(*nc.PgNodeManager),
 				Version:    "1.0.0",
 				Serializer: app.Get("gonode.node.serializer").(*nc.Serializer),
+				Logger:     app.Get("logger").(*log.Logger),
 			}
 		})
 

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	nc "github.com/rande/gonode/core"
-	nm "github.com/rande/gonode/test/mock"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -77,7 +76,7 @@ func Test_ImageHandler_PostUpdate(t *testing.T) {
 	node := nc.NewNode()
 
 	handler := &ImageHandler{}
-	manager := &nm.MockedManager{}
+	manager := &nc.MockedManager{}
 	manager.On("Notify", "media_file_download", node.Uuid.String()).Return()
 
 	node.Data, node.Meta = handler.GetStruct()
@@ -103,7 +102,7 @@ func Test_ImageHandler_PostInsert(t *testing.T) {
 	node := nc.NewNode()
 
 	handler := &ImageHandler{}
-	manager := &nm.MockedManager{}
+	manager := &nc.MockedManager{}
 	manager.On("Notify", "media_file_download", node.Uuid.String()).Return()
 
 	node.Data, node.Meta = handler.GetStruct()
