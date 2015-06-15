@@ -50,7 +50,31 @@ func Test_ApiPager_Serialization(t *testing.T) {
 
 	json.Indent(&out, b.Bytes(), "", "    ")
 
-	data, err := ioutil.ReadFile("../test/fixtures/pager_results.json")
+	data, _ := ioutil.ReadFile("../test/fixtures/pager_results.json")
 
 	assert.Equal(t, string(data[:]), out.String())
+}
+
+func Test_ApiPager_Deserialization(t *testing.T) {
+	data, _ := ioutil.ReadFile("../test/fixtures/pager_results.json")
+
+	p := &ApiPager{}
+
+	json.Unmarshal(data, p)
+
+	assert.Equal(t, uint64(10), p.PerPage)
+	assert.Equal(t, uint64(1), p.Page)
+	assert.Equal(t, 2, len(p.Elements))
+	assert.Equal(t, uint64(0), p.Next)
+	assert.Equal(t, uint64(0), p.Previous)
+
+	// the Element is a [string]interface so we need to convert it back to []byte
+	// and then unmarshal again with the correct structure
+	raw, _ := json.Marshal(p.Elements[0])
+
+	n := NewNode()
+	json.Unmarshal(raw, n)
+
+	assert.Equal(t, "image", n.Type)
+	assert.False(t, n.Deleted)
 }

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	nc "github.com/rande/gonode/core"
 )
 
@@ -9,7 +8,7 @@ type DefaultHandler struct {
 }
 
 func (h *DefaultHandler) GetStruct() (nc.NodeData, nc.NodeMeta) {
-	return &json.RawMessage{}, &json.RawMessage{}
+	return make(map[string]interface{}), make(map[string]interface{})
 }
 
 func (h *DefaultHandler) PreInsert(node *nc.Node, m nc.NodeManager) error {

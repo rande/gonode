@@ -30,42 +30,42 @@ func (s *Serializer) AddDeserializer(name string, f NodeDeserializer) {
 	s.deserializers[name] = f
 }
 
-func (s *Serializer) Serialize(w io.Writer, node *Node) error {
-	if _, ok := s.serializers[node.Type]; ok {
-		return s.serializers[node.Type](w, node)
+func (s *Serializer) Serialize(w io.Writer, data interface{}) error {
+	switch d := data.(type) {
+	case *Node:
+		if _, ok := s.serializers[d.Type]; ok {
+			return s.serializers[d.Type](w, d)
+		}
 	}
 
-	return Serialize(w, node)
+	return Serialize(w, data)
 }
 
-func (s *Serializer) Deserialize(r io.Reader, node *Node) error {
-	var data bytes.Buffer
-	read, err := data.ReadFrom(r)
+func (s *Serializer) Deserialize(r io.Reader, o interface{}) error {
+	var buffer bytes.Buffer
+	read, err := buffer.ReadFrom(r)
 
-	reader := bytes.NewReader(data.Bytes())
+	reader := bytes.NewReader(buffer.Bytes())
 
 	PanicOnError(err)
-
 	PanicIf(read == 0, "no data read from the request")
 
-	if node.Type == "" {
-		// we need to deserialize twice to load the correct Meta/Data structure
-		Deserialize(reader, node)
+	switch o.(type) {
+	case *Node:
+		node := o.(*Node)
+		if node.Type == "" {
+			// we need to deserialize twice to load the correct Meta/Data structure
+			Deserialize(reader, node)
+			reader.Seek(0, 0)
+			node.Data, node.Meta = s.Handlers.Get(node).GetStruct()
+		}
 
-		reader.Seek(0, 0)
-
-		node.Data, node.Meta = s.Handlers.Get(node).GetStruct()
+		if _, ok := s.deserializers[node.Type]; ok {
+			return s.deserializers[node.Type](reader, node)
+		}
 	}
 
-	if _, ok := s.deserializers[node.Type]; ok {
-		return s.deserializers[node.Type](r, node)
-	}
-
-	err = Deserialize(reader, node)
-
-	PanicOnError(err)
-
-	return err
+	return Deserialize(reader, o)
 }
 
 func Serialize(w io.Writer, data interface{}) error {
