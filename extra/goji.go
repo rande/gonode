@@ -350,15 +350,24 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 				}
 			}
 
-			if searchForm.Page < 1 {
+			if searchForm.Page < 0 || searchForm.PerPage < 0 || searchForm.PerPage > 128 {
+				res.WriteHeader(http.StatusPreconditionFailed)
+
+				data, _ := json.Marshal(map[string]string{
+					"status":  "K0",
+					"message": "Invalid pagination range",
+				})
+
+				res.Write(data)
+
+				return
+			}
+
+			if searchForm.Page == 0 {
 				searchForm.Page = 1
 			}
 
-			if searchForm.PerPage > 128 {
-				searchForm.PerPage = 32
-			}
-
-			if searchForm.PerPage < 1 {
+			if searchForm.PerPage == 0 {
 				searchForm.PerPage = 32
 			}
 
@@ -428,7 +437,7 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 				}
 			}
 
-			api.Find(res, query, searchForm.Page, searchForm.PerPage)
+			api.Find(res, query, uint64(searchForm.Page), uint64(searchForm.PerPage))
 		})
 
 		return nil

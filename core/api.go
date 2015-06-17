@@ -9,8 +9,8 @@ import (
 )
 
 type SearchForm struct {
-	Page     uint64              `schema:"page"`
-	PerPage  uint64              `schema:"per_page"`
+	Page     int64               `schema:"page"`
+	PerPage  int64               `schema:"per_page"`
 	OrderBy  []string            `schema:"order_by"`
 	Uuid     string              `schema:"uuid"`
 	Type     []string            `schema:"type"`
