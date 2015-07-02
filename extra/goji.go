@@ -128,6 +128,8 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 		mux := app.Get("goji.mux").(*web.Mux)
 		manager := app.Get("gonode.manager").(*nc.PgNodeManager)
 		api := app.Get("gonode.api").(*nc.Api)
+		fs := app.Get("gonode.fs").(*nc.SecureFs)
+
 		prefix := ""
 
 		handlers := app.Get("gonode.handler_collection").(nc.Handlers)
@@ -169,18 +171,16 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 
 			values := req.URL.Query()
 
-			if _, raw := values["raw"]; raw {
+			if _, raw := values["raw"]; raw { // ask for binary content
 				node := manager.Find(nc.GetReferenceFromString(c.URLParams["uuid"]))
 
 				if node == nil {
-					res.WriteHeader(404)
+					SendStatusMessage(res, http.StatusNotFound, "Element not found")
 
 					return
 				}
 
-				handler := handlers.Get(node)
-
-				data := handler.GetDownloadData(node)
+				data := handlers.Get(node).GetDownloadData(node)
 
 				res.Header().Set("Content-Type", data.ContentType)
 
@@ -229,19 +229,39 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 			res.Header().Set("Content-Type", "application/json")
 			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
 
-			w := bufio.NewWriter(res)
+			values := req.URL.Query()
 
-			err := api.Save(req.Body, w)
+			if _, raw := values["raw"]; raw { // send binary data
+				node := manager.Find(nc.GetReferenceFromString(c.URLParams["uuid"]))
 
-			if err == nc.RevisionError {
-				res.WriteHeader(http.StatusConflict)
+				if node == nil {
+					SendStatusMessage(res, http.StatusNotFound, "Element not found")
+					return
+				}
+
+				_, _, err := nc.CopyNodeStreamToFile(fs, node, req.Body)
+
+				if err != nil {
+					SendStatusMessage(res, http.StatusInternalServerError, err.Error())
+				} else {
+					SendStatusMessage(res, http.StatusOK, "binary stored")
+				}
+
+			} else {
+				w := bufio.NewWriter(res)
+
+				err := api.Save(req.Body, w)
+
+				if err == nc.RevisionError {
+					res.WriteHeader(http.StatusConflict)
+				}
+
+				if err == nc.ValidationError {
+					res.WriteHeader(http.StatusPreconditionFailed)
+				}
+
+				w.Flush()
 			}
-
-			if err == nc.ValidationError {
-				res.WriteHeader(http.StatusPreconditionFailed)
-			}
-
-			w.Flush()
 		})
 
 		mux.Delete(prefix+"/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {

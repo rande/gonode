@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"github.com/spf13/afero"
+	"io"
 	"os"
 	"time"
 )
@@ -11,6 +12,18 @@ func GetFileLocation(node *Node) string {
 	strUuid := node.Uuid.CleanString()
 
 	return fmt.Sprintf("%s/%s/%s.bin", strUuid[0:2], strUuid[2:4], strUuid[4:])
+}
+
+func CopyNodeStreamToFile(fs afero.Fs, node *Node, s io.Reader) (afero.File, int64, error) {
+	strUuid := node.Uuid.CleanString()
+
+	fs.MkdirAll(fmt.Sprintf("%s/%s", strUuid[0:2], strUuid[2:4]), 0755)
+
+	file, _ := fs.Create(GetFileLocation(node))
+
+	written, err := io.Copy(file, s)
+
+	return file, written, err
 }
 
 func NewSecureFs(fs afero.Fs, path string) *SecureFs {

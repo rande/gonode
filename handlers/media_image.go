@@ -146,13 +146,7 @@ func (l *ImageDownloadListener) Handle(notification *pq.Notification, m nc.NodeM
 
 	defer resp.Body.Close()
 
-	strUuid := node.Uuid.CleanString()
-
-	l.Fs.MkdirAll(fmt.Sprintf("%s/%s", strUuid[0:2], strUuid[2:4]), 0755)
-
-	file, _ := l.Fs.Create(nc.GetFileLocation(node))
-
-	written, err := io.Copy(file, resp.Body)
+	file, written, err := nc.CopyNodeStreamToFile(l.Fs, node, resp.Body)
 
 	raw := make([]byte, 512)
 

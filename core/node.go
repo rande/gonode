@@ -30,7 +30,6 @@ func (m *Reference) MarshalJSON() ([]byte, error) {
 }
 
 func (m *Reference) UnmarshalJSON(data []byte) error {
-
 	PanicIf(len(data) < 32, "invalid uuid size")
 
 	tmpUuid, err := uuid.ParseUUID(string(data[1 : len(data)-1]))
