@@ -135,7 +135,14 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 }
 
 func (a *Api) FindOne(uuid string, w io.Writer) error {
-	a.Serializer.Serialize(w, a.Manager.Find(GetReferenceFromString(uuid)))
+
+	node := a.Manager.Find(GetReferenceFromString(uuid))
+
+	if node == nil {
+		return NotFoundError
+	}
+
+	a.Serializer.Serialize(w, node)
 
 	return nil
 }
@@ -143,7 +150,9 @@ func (a *Api) FindOne(uuid string, w io.Writer) error {
 func (a *Api) RemoveOne(uuid string, w io.Writer) error {
 	node := a.Manager.Find(GetReferenceFromString(uuid))
 
-	DumpNode(node)
+	if node == nil {
+		return NotFoundError
+	}
 
 	node, _ = a.Manager.RemoveOne(node)
 

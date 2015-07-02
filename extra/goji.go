@@ -3,7 +3,6 @@ package extra
 import (
 	"bufio"
 	"container/list"
-	"encoding/json"
 	"fmt"
 	"github.com/gorilla/schema"
 	"github.com/gorilla/websocket"
@@ -193,7 +192,15 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 			} else {
 				// send the json value
 				res.Header().Set("Content-Type", "application/json")
-				api.FindOne(c.URLParams["uuid"], res)
+				err := api.FindOne(c.URLParams["uuid"], res)
+
+				if err == nc.NotFoundError {
+					SendStatusMessage(res, http.StatusNotFound, err.Error())
+				}
+
+				if err != nil {
+					SendStatusMessage(res, http.StatusInternalServerError, err.Error())
+				}
 			}
 		})
 
@@ -236,7 +243,17 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 		})
 
 		mux.Delete(prefix+"/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
-			api.RemoveOne(c.URLParams["uuid"], res)
+			err := api.RemoveOne(c.URLParams["uuid"], res)
+
+			if err == nc.NotFoundError {
+				SendStatusMessage(res, http.StatusNotFound, err.Error())
+
+				return
+			}
+
+			if err != nil {
+				SendStatusMessage(res, http.StatusInternalServerError, err.Error())
+			}
 		})
 
 		mux.Put(prefix+"/notify/:name", func(c web.C, res http.ResponseWriter, req *http.Request) {
@@ -258,16 +275,7 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 			manager.Db.Exec(fmt.Sprintf(`DROP SEQUENCE IF EXISTS "%s_nodes_id_seq" CASCADE`, prefix))
 			manager.Db.Exec(fmt.Sprintf(`DROP SEQUENCE IF EXISTS "%s_nodes_audit_id_seq" CASCADE`, prefix))
 
-			results := map[string]string{
-				"status":  "OK",
-				"message": "Successfully delete tables!",
-			}
-
-			res.WriteHeader(http.StatusOK)
-
-			data, _ := json.Marshal(results)
-
-			res.Write(data)
+			SendStatusMessage(res, http.StatusOK, "Successfully delete tables!")
 		})
 
 		mux.Put(prefix+"/install", func(res http.ResponseWriter, req *http.Request) {
@@ -338,23 +346,11 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 
 			err := tx.Commit()
 
-			results := map[string]string{
-				"status":  "OK",
-				"message": "Successfully create tables!",
-			}
-
 			if err != nil {
-				results["status"] = "KO"
-				results["message"] = err.Error()
-
-				res.WriteHeader(http.StatusInternalServerError)
+				SendStatusMessage(res, http.StatusInternalServerError, err.Error())
 			} else {
-				res.WriteHeader(http.StatusOK)
+				SendStatusMessage(res, http.StatusOK, "Successfully create tables!")
 			}
-
-			data, err := json.Marshal(results)
-
-			res.Write(data)
 		})
 
 		mux.Get(prefix+"/nodes", func(res http.ResponseWriter, req *http.Request) {

@@ -3,6 +3,7 @@ package core
 var (
 	ValidationError = &validationError{"Unable to validate date"}
 	RevisionError   = &revisionError{"Wrong revision while saving"}
+	NotFoundError   = &notFoundError{"Unable to find the node"}
 )
 
 type validationError struct {
@@ -21,10 +22,20 @@ func (e *revisionError) Error() string {
 	return e.s
 }
 
+type notFoundError struct {
+	message string
+}
+
+func (e *notFoundError) Error() string {
+	return e.message
+}
+
 func NewRevisionError(message string) error {
 	return &revisionError{message}
 }
 
+
+// use for model validation
 func NewErrors() Errors {
 	return Errors{}
 }
