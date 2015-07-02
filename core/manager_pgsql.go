@@ -44,19 +44,24 @@ func (m *PgNodeManager) FindBy(query sq.SelectBuilder, offset uint64, limit uint
 	query = query.Limit(limit).Offset(offset)
 
 	if m.Logger != nil {
-		sql, _, _ := query.ToSql()
-		m.Logger.Print("[PgNode] FindBy: ", sql)
+		rawSql, _, _ := query.ToSql()
+		m.Logger.Print("[PgNode] FindBy: ", rawSql)
 	}
 
 	rows, err := query.
 		RunWith(m.Db).
 		Query()
 
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	list := list.New()
+
+	if err != nil {
+		if m.Logger != nil {
+			rawSql, _, _ := query.ToSql()
+			m.Logger.Printf("[PgNode] Error while runing the request %s, %s ", rawSql, err)
+		}
+
+		return list
+	}
 
 	for rows.Next() {
 		node := m.hydrate(rows)
