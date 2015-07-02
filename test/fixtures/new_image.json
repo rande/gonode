@@ -1,0 +1,10 @@
+{
+    "type": "media.image",
+    "name": "The first media",
+    "slug": "the-first-media",
+    "data": {
+        "name": "the_first_media.png"
+    },
+    "meta": {
+    }
+}
