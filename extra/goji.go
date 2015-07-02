@@ -17,6 +17,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -33,6 +34,39 @@ func readLoop(c *websocket.Conn) {
 			return
 		}
 	}
+}
+
+func GetJsonQuery(left string, sep string) string {
+	fields := strings.Split(left, ".")
+
+	c := ""
+	for p, f := range fields {
+		if p == 0 {
+			c += f
+		} else {
+			c += fmt.Sprintf(sep+"'%s'", f)
+		}
+	}
+
+	return c
+}
+
+func GetJsonSearchQuery(query sq.SelectBuilder, data map[string][]string, field string) sq.SelectBuilder {
+	//-- SELECT uuid, "data" #> '{tags,1}' as tags FROM nodes WHERE  "data" @> '{"tags": ["sport"]}'
+	//-- SELECT uuid, "data" #> '{tags}' AS tags FROM nodes WHERE  "data" -> 'tags' ?| array['sport'];
+	for name, value := range data {
+		if len(value) > 1 {
+			name = GetJsonQuery(field+"."+name, "->")
+			query = query.Where(nc.NewExprSlice(fmt.Sprintf("%s ??| array["+sq.Placeholders(len(value))+"]", name), value))
+		}
+
+		if len(value) == 1 {
+			name = GetJsonQuery(field+"."+name, "->>")
+			query = query.Where(sq.Expr(fmt.Sprintf("%s = ?", name), value[0]))
+		}
+	}
+
+	return query
 }
 
 func ConfigureGoji(l *goapp.Lifecycle) {
@@ -408,7 +442,6 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 			}
 
 			for _, order := range searchForm.OrderBy {
-
 				r := rexOrderBy.FindAllStringSubmatch(order, -1)
 
 				if r == nil {
@@ -417,32 +450,11 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 					return
 				}
 
-				query = query.OrderBy(r[0][1] + " " + r[0][2])
+				query = query.OrderBy(GetJsonQuery(r[0][1], "->") + " " + r[0][2])
 			}
 
-			// Parse Meta value
-			for name, value := range searchForm.Meta {
-				//-- SELECT uuid, "data" #> '{tags,1}' as tags FROM nodes WHERE  "data" @> '{"tags": ["sport"]}'
-				//-- SELECT uuid, "data" #> '{tags}' AS tags FROM nodes WHERE  "data" -> 'tags' ?| array['sport'];
-				if len(value) > 1 {
-					query = query.Where(nc.NewExprSlice(fmt.Sprintf("meta->'%s' ??| array["+sq.Placeholders(len(value))+"]", name), value))
-				}
-
-				if len(value) == 1 {
-					query = query.Where(sq.Expr(fmt.Sprintf("meta->>'%s' = ?", name), value[0]))
-				}
-			}
-
-			// Parse Data value
-			for name, value := range searchForm.Data {
-				if len(value) > 1 {
-					query = query.Where(nc.NewExprSlice(fmt.Sprintf("data->'%s' ??| array["+sq.Placeholders(len(value))+"]", name), value))
-				}
-
-				if len(value) == 1 {
-					query = query.Where(sq.Expr(fmt.Sprintf("data->>'%s' = ?", name), value[0]))
-				}
-			}
+			query = GetJsonSearchQuery(query, searchForm.Meta, "meta")
+			query = GetJsonSearchQuery(query, searchForm.Data, "data")
 
 			api.Find(res, query, uint64(searchForm.Page), uint64(searchForm.PerPage))
 		})

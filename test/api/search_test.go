@@ -126,38 +126,43 @@ func Test_Search_Invalid_OrderBy(t *testing.T) {
 	})
 }
 
-func Test_Search_OrderBy(t *testing.T) {
+func InitSearchFixture(app *goapp.App) {
+	manager := app.Get("gonode.manager").(*nc.PgNodeManager)
+	collection := app.Get("gonode.handler_collection").(nc.Handlers)
 
+	// WITH 3 nodes
+	node := collection.NewNode("core.user")
+	node.Name = "User A"
+	node.Weight = 1
+	node.Slug = "user-a"
+	node.Data.(*handlers.User).FirstName = "User"
+	node.Data.(*handlers.User).LastName = "A"
+	node.Data.(*handlers.User).Login = "user-a"
+	manager.Save(node)
+
+	node = collection.NewNode("core.user")
+	node.Name = "User AA"
+	node.Weight = 2
+	node.Slug = "user-aa"
+	node.Data.(*handlers.User).FirstName = "User"
+	node.Data.(*handlers.User).LastName = "AA"
+	node.Data.(*handlers.User).Login = "user-aa"
+	manager.Save(node)
+
+	node = collection.NewNode("core.user")
+	node.Name = "User B"
+	node.Weight = 1
+	node.Slug = "user-b"
+	node.Data.(*handlers.User).FirstName = "User"
+	node.Data.(*handlers.User).LastName = "B"
+	node.Data.(*handlers.User).Login = "user-b"
+	manager.Save(node)
+}
+
+func Test_Search_OrderBy_Name_ASC(t *testing.T) {
 	extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
-		manager := app.Get("gonode.manager").(*nc.PgNodeManager)
-		collection := app.Get("gonode.handler_collection").(nc.Handlers)
+		InitSearchFixture(app)
 
-		// WITH 3 nodes
-		node := collection.NewNode("core.user")
-		node.Name = "User A"
-		node.Weight = 1
-		node.Data.(*handlers.User).FirstName = "User"
-		node.Data.(*handlers.User).LastName = "A"
-		node.Data.(*handlers.User).Login = "user-a"
-		manager.Save(node)
-
-		node = collection.NewNode("core.user")
-		node.Name = "User AA"
-		node.Weight = 2
-		node.Data.(*handlers.User).FirstName = "User"
-		node.Data.(*handlers.User).LastName = "AA"
-		node.Data.(*handlers.User).Login = "user-aa"
-		manager.Save(node)
-
-		node = collection.NewNode("core.user")
-		node.Name = "User B"
-		node.Weight = 1
-		node.Data.(*handlers.User).FirstName = "User"
-		node.Data.(*handlers.User).LastName = "B"
-		node.Data.(*handlers.User).Login = "user-b"
-		manager.Save(node)
-
-		// TESTING ASC ORDERING
 		res, _ := extra.RunRequest("GET", ts.URL+"/nodes?order_by=name,ASC", nil)
 
 		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=name,ASC")
@@ -168,41 +173,100 @@ func Test_Search_OrderBy(t *testing.T) {
 		assert.Equal(t, "User A", p.Elements[0].(*nc.Node).Name)
 		assert.Equal(t, "User AA", p.Elements[1].(*nc.Node).Name)
 		assert.Equal(t, "User B", p.Elements[2].(*nc.Node).Name)
+	})
+}
 
-		// TESTING DESC ORDERING
-		res, _ = extra.RunRequest("GET", ts.URL+"/nodes?order_by=name,DESC", nil)
+func Test_Search_OrderBy_Name_DESC(t *testing.T) {
+	extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
+		InitSearchFixture(app)
+
+		res, _ := extra.RunRequest("GET", ts.URL+"/nodes?order_by=name,DESC", nil)
 
 		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=name,DESC")
 
-		p = GetPager(app, res)
+		p := GetPager(app, res)
 
 		assert.Equal(t, 3, len(p.Elements))
 		assert.Equal(t, "User B", p.Elements[0].(*nc.Node).Name)
 		assert.Equal(t, "User AA", p.Elements[1].(*nc.Node).Name)
 		assert.Equal(t, "User A", p.Elements[2].(*nc.Node).Name)
+	})
+}
 
-		// TESTING DESC ORDERING
-		res, _ = extra.RunRequest("GET", ts.URL+"/nodes?order_by=name,DESC", nil)
-
-		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=name,DESC")
-
-		p = GetPager(app, res)
-
-		assert.Equal(t, 3, len(p.Elements))
-		assert.Equal(t, "User B", p.Elements[0].(*nc.Node).Name)
-		assert.Equal(t, "User AA", p.Elements[1].(*nc.Node).Name)
-		assert.Equal(t, "User A", p.Elements[2].(*nc.Node).Name)
+func Test_Search_OrderBy_Weight_DESC_Name_ASC(t *testing.T) {
+	extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
+		InitSearchFixture(app)
 
 		// TESTING WITH 2 ORDERING OPTION
-		res, _ = extra.RunRequest("GET", ts.URL+"/nodes?order_by=weight,DESC&order_by=name,ASC", nil)
+		res, _ := extra.RunRequest("GET", ts.URL+"/nodes?order_by=weight,DESC&order_by=name,ASC", nil)
 
 		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=weight,DESC&order_by=name,ASC")
 
-		p = GetPager(app, res)
+		p := GetPager(app, res)
 
 		assert.Equal(t, 3, len(p.Elements))
 		assert.Equal(t, "User AA", p.Elements[0].(*nc.Node).Name)
 		assert.Equal(t, "User A", p.Elements[1].(*nc.Node).Name)
 		assert.Equal(t, "User B", p.Elements[2].(*nc.Node).Name)
+	})
+}
+
+func Test_Search_OrderBy_Meta_Login(t *testing.T) {
+	extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
+		InitSearchFixture(app)
+
+		// TESTING WITH 2 ORDERING OPTION
+		res, _ := extra.RunRequest("GET", ts.URL+"/nodes?order_by=meta.login,DESC", nil)
+
+		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=meta.login")
+
+		p := GetPager(app, res)
+
+		assert.Equal(t, 3, len(p.Elements))
+		assert.Equal(t, "User A", p.Elements[0].(*nc.Node).Name)
+		assert.Equal(t, "User AA", p.Elements[1].(*nc.Node).Name)
+		assert.Equal(t, "User B", p.Elements[2].(*nc.Node).Name)
+	})
+}
+
+func Test_Search_OrderBy_Meta_Non_Existant_Meta(t *testing.T) {
+	extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
+		InitSearchFixture(app)
+
+		res, _ := extra.RunRequest("GET", ts.URL+"/nodes?meta.login.fake=foo&order_by=meta.login.fake,DESC", nil)
+
+		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=meta.login.fake")
+
+		p := GetPager(app, res)
+
+		assert.Equal(t, 0, len(p.Elements))
+	})
+}
+
+func Test_Search_Meta(t *testing.T) {
+	extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
+		InitSearchFixture(app)
+
+		res, _ := extra.RunRequest("GET", ts.URL+"/nodes?data.login=user-a", nil)
+
+		assert.Equal(t, 200, res.StatusCode, "url: /nodes?data.login=user-a")
+
+		p := GetPager(app, res)
+
+		assert.Equal(t, 1, len(p.Elements))
+	})
+}
+
+func Test_Search_Slug(t *testing.T) {
+	extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
+		InitSearchFixture(app)
+
+		res, _ := extra.RunRequest("GET", ts.URL+"/nodes?slug=user-a", nil)
+
+		assert.Equal(t, 200, res.StatusCode, "url: /nodes?slug=user-a")
+
+		p := GetPager(app, res)
+
+		assert.Equal(t, 1, len(p.Elements))
 	})
 }
