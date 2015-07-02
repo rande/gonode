@@ -20,7 +20,7 @@ format:
 	go fix ./...
 
 test:
-	go test -v ./handlers ./test/api ./core ./extra
+	go test ./handlers ./test/api ./core ./extra
 	go vet ./...
 	#cd explorer && npm test
 
