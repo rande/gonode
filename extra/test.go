@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/rande/goapp"
 	nc "github.com/rande/gonode/core"
+	"github.com/stretchr/testify/assert"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
 	"io"
@@ -101,6 +102,10 @@ func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *go
 
 		defer func() {
 			ts.Close()
+
+			if r := recover(); r != nil {
+				assert.Equal(t, false, true, fmt.Sprintf("Panic recovered, message=%s\n", r))
+			}
 		}()
 
 		res, err = RunRequest("PUT", ts.URL+"/uninstall", nil)

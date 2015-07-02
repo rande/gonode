@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"container/list"
 	"encoding/json"
+	"github.com/gorilla/schema"
 	sq "github.com/lann/squirrel"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
@@ -12,7 +13,6 @@ import (
 )
 
 func Test_ApiPager_Serialization(t *testing.T) {
-
 	sb := sq.Select("id, name").From("test_nodes").PlaceholderFormat(sq.Dollar)
 
 	list := list.New()
@@ -77,4 +77,21 @@ func Test_ApiPager_Deserialization(t *testing.T) {
 
 	assert.Equal(t, "image", n.Type)
 	assert.False(t, n.Deleted)
+}
+
+func Test_OrderBy_Form(t *testing.T) {
+
+	form := GetSearchForm()
+
+	values := map[string][]string{
+		"order_by": {
+			"updated_at,ASC",
+			"name,DESC",
+		},
+	}
+
+	decoder := schema.NewDecoder()
+	decoder.Decode(form, values)
+
+	assert.Equal(t, form.OrderBy, []string{"updated_at,ASC", "name,DESC"})
 }

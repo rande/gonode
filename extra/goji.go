@@ -16,8 +16,11 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"regexp"
 	"time"
 )
+
+var rexOrderBy = regexp.MustCompile(`(^[a-z,_.A-Z]*),(DESC|ASC|desc|asc)$`)
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -351,14 +354,7 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 			}
 
 			if searchForm.Page < 0 || searchForm.PerPage < 0 || searchForm.PerPage > 128 {
-				res.WriteHeader(http.StatusPreconditionFailed)
-
-				data, _ := json.Marshal(map[string]string{
-					"status":  "K0",
-					"message": "Invalid pagination range",
-				})
-
-				res.Write(data)
+				SendStatusMessage(res, http.StatusPreconditionFailed, "Invalid pagination range")
 
 				return
 			}
@@ -411,7 +407,18 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 				query = query.Where(sq.Eq{"status": searchForm.Status})
 			}
 
-			query = query.OrderBy("updated_at DESC")
+			for _, order := range searchForm.OrderBy {
+
+				r := rexOrderBy.FindAllStringSubmatch(order, -1)
+
+				if r == nil {
+					SendStatusMessage(res, http.StatusPreconditionFailed, "Invalid order_by condition")
+
+					return
+				}
+
+				query = query.OrderBy(r[0][1] + " " + r[0][2])
+			}
 
 			// Parse Meta value
 			for name, value := range searchForm.Meta {
