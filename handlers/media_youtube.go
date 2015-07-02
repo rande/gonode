@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/lib/pq"
 	nc "github.com/rande/gonode/core"
+	"github.com/spf13/afero"
+	"io"
 )
 
 type YoutubeMeta struct {
@@ -80,6 +82,10 @@ func (h *YoutubeHandler) GetDownloadData(node *nc.Node) *nc.DownloadData {
 
 func (h *YoutubeHandler) Load(data []byte, meta []byte, node *nc.Node) error {
 	return nc.HandlerLoad(h, data, meta, node)
+}
+
+func (h *YoutubeHandler) StoreStream(node *nc.Node, r io.Reader) (afero.File, int64, error) {
+	return nc.DefaultHandlerStoreStream(node, r)
 }
 
 type YoutubeListener struct {

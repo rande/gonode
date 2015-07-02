@@ -63,6 +63,8 @@ func Test_Create_Media_With_Binary_Upload(t *testing.T) {
 		node = nc.NewNode()
 		serializer.Deserialize(res.Body, node)
 
+		meta := node.Meta.(*nh.ImageMeta)
 		assert.Equal(t, "media.image", node.Type)
+		assert.Equal(t, "application/octet-stream", meta.ContentType)
 	})
 }

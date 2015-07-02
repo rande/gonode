@@ -2,6 +2,8 @@ package handlers
 
 import (
 	nc "github.com/rande/gonode/core"
+	"github.com/spf13/afero"
+	"io"
 )
 
 type PostMeta struct {
@@ -48,4 +50,8 @@ func (h *PostHandler) GetDownloadData(node *nc.Node) *nc.DownloadData {
 
 func (h *PostHandler) Load(data []byte, meta []byte, node *nc.Node) error {
 	return nc.HandlerLoad(h, data, meta, node)
+}
+
+func (h *PostHandler) StoreStream(node *nc.Node, r io.Reader) (afero.File, int64, error) {
+	return nc.DefaultHandlerStoreStream(node, r)
 }

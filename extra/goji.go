@@ -128,7 +128,6 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 		mux := app.Get("goji.mux").(*web.Mux)
 		manager := app.Get("gonode.manager").(*nc.PgNodeManager)
 		api := app.Get("gonode.api").(*nc.Api)
-		fs := app.Get("gonode.fs").(*nc.SecureFs)
 
 		prefix := ""
 
@@ -239,11 +238,13 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 					return
 				}
 
-				_, _, err := nc.CopyNodeStreamToFile(fs, node, req.Body)
+				_, _, err := handlers.Get(node).StoreStream(node, req.Body)
 
 				if err != nil {
 					SendStatusMessage(res, http.StatusInternalServerError, err.Error())
 				} else {
+					manager.Save(node)
+
 					SendStatusMessage(res, http.StatusOK, "binary stored")
 				}
 

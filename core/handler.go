@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/json"
+	"github.com/spf13/afero"
 	"io"
 )
 
@@ -49,6 +50,7 @@ type Handler interface {
 	Validate(node *Node, m NodeManager, e Errors)
 	Load(data []byte, meta []byte, node *Node) error
 	GetDownloadData(node *Node) *DownloadData
+	StoreStream(node *Node, r io.Reader) (afero.File, int64, error)
 }
 
 func GetDownloadData() *DownloadData {
@@ -74,4 +76,8 @@ func HandlerLoad(handler Handler, data []byte, meta []byte, node *Node) error {
 	PanicOnError(err)
 
 	return nil
+}
+
+func DefaultHandlerStoreStream(node *Node, r io.Reader) (afero.File, int64, error) {
+	return nil, 0, NoStreamHandler
 }

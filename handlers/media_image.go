@@ -11,6 +11,17 @@ import (
 
 type ExifMeta map[string]string
 
+func UpdateMediaImageMetadata(file afero.File, written int64, meta *ImageMeta) {
+	raw := make([]byte, 512)
+
+	file.Seek(0, 0)
+	file.Read(raw)
+	file.Seek(0, 0)
+
+	meta.ContentType = http.DetectContentType(raw)
+	meta.Size = int(written)
+}
+
 type ImageMeta struct {
 	Width        int      `json:"width"`
 	Height       int      `json:"height"`
@@ -108,6 +119,14 @@ func (h *ImageHandler) Load(data []byte, meta []byte, node *nc.Node) error {
 	return nc.HandlerLoad(h, data, meta, node)
 }
 
+func (h *ImageHandler) StoreStream(node *nc.Node, r io.Reader) (afero.File, int64, error) {
+	file, written, err := nc.CopyNodeStreamToFile(h.Fs, node, r)
+
+	UpdateMediaImageMetadata(file, written, node.Meta.(*ImageMeta))
+
+	return file, written, err
+}
+
 type ImageDownloadListener struct {
 	Fs         afero.Fs
 	HttpClient nc.HttpClient
@@ -148,21 +167,13 @@ func (l *ImageDownloadListener) Handle(notification *pq.Notification, m nc.NodeM
 
 	file, written, err := nc.CopyNodeStreamToFile(l.Fs, node, resp.Body)
 
-	raw := make([]byte, 512)
-
-	file.Seek(0, 0)
-	file.Read(raw)
-	file.Seek(0, 0)
-
-	meta.ContentType = http.DetectContentType(raw)
-
 	if err != nil {
 		return nc.PubSubListenContinue, err
 	}
 
-	meta.Size = int(written)
-	meta.SourceStatus = nc.ProcessStatusDone
+	UpdateMediaImageMetadata(file, written, meta)
 
+	meta.SourceStatus = nc.ProcessStatusDone
 	m.Save(node)
 
 	return nc.PubSubListenContinue, nil

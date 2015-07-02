@@ -1,7 +1,9 @@
 package core
 
 import (
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
+	"io"
 	"testing"
 
 	//	"github.com/twinj/uuid"
@@ -79,4 +81,8 @@ func (h *UserHandler) GetDownloadData(node *Node) *DownloadData {
 
 func (h *UserHandler) Load(data []byte, meta []byte, node *Node) error {
 	return HandlerLoad(h, data, meta, node)
+}
+
+func (h *UserHandler) StoreStream(node *Node, r io.Reader) (afero.File, int64, error) {
+	return DefaultHandlerStoreStream(node, r)
 }

@@ -5,6 +5,7 @@ var (
 	RevisionError       = &revisionError{"Wrong revision while saving"}
 	NotFoundError       = &notFoundError{"Unable to find the node"}
 	AlreadyDeletedError = &alreadyDeletedError{"Unable to find the node"}
+	NoStreamHandler     = &noStreamHandlerError{"No stream handler defined"}
 )
 
 type validationError struct {
@@ -20,6 +21,14 @@ type alreadyDeletedError struct {
 }
 
 func (e *alreadyDeletedError) Error() string {
+	return e.message
+}
+
+type noStreamHandlerError struct {
+	message string
+}
+
+func (e *noStreamHandlerError) Error() string {
 	return e.message
 }
 
