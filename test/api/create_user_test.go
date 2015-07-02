@@ -13,14 +13,18 @@ import (
 
 func Test_Create_User(t *testing.T) {
 	extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
+		// WITH
 		file, _ := os.Open("../fixtures/new_user.json")
-
 		res, _ := extra.RunRequest("POST", ts.URL+"/nodes", file)
 
+		assert.Equal(t, 201, res.StatusCode, "Delete non existant node")
+
+		// WHEN
 		node := nc.NewNode()
 		serializer := app.Get("gonode.node.serializer").(*nc.Serializer)
 		serializer.Deserialize(res.Body, node)
 
+		// THEN
 		assert.Equal(t, node.Type, "core.user")
 
 		user := node.Data.(*nh.User)

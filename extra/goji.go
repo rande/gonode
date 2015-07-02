@@ -220,6 +220,8 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 				res.WriteHeader(http.StatusPreconditionFailed)
 			}
 
+			res.WriteHeader(http.StatusCreated)
+
 			w.Flush()
 		})
 
