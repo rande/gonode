@@ -127,17 +127,17 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 	var tmpUuid uuid.UUID
 
 	// transform UUID
-	tmpUuid, _ = uuid.ParseUUID(Uuid)
+	tmpUuid, _ = uuid.Parse(Uuid)
 	node.Uuid = GetReference(tmpUuid)
-	tmpUuid, _ = uuid.ParseUUID(SetUuid)
+	tmpUuid, _ = uuid.Parse(SetUuid)
 	node.SetUuid = GetReference(tmpUuid)
-	tmpUuid, _ = uuid.ParseUUID(ParentUuid)
+	tmpUuid, _ = uuid.Parse(ParentUuid)
 	node.ParentUuid = GetReference(tmpUuid)
-	tmpUuid, _ = uuid.ParseUUID(CreatedBy)
+	tmpUuid, _ = uuid.Parse(CreatedBy)
 	node.CreatedBy = GetReference(tmpUuid)
-	tmpUuid, _ = uuid.ParseUUID(UpdatedBy)
+	tmpUuid, _ = uuid.Parse(UpdatedBy)
 	node.UpdatedBy = GetReference(tmpUuid)
-	tmpUuid, _ = uuid.ParseUUID(Source)
+	tmpUuid, _ = uuid.Parse(Source)
 	node.Source = GetReference(tmpUuid)
 
 	m.Handlers.Get(node).Load(data, meta, node)
