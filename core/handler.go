@@ -3,7 +3,6 @@ package core
 import (
 	"encoding/json"
 	"io"
-	"log"
 )
 
 type NodeData interface{}
@@ -69,14 +68,10 @@ func HandlerLoad(handler Handler, data []byte, meta []byte, node *Node) error {
 	node.Data, node.Meta = handler.GetStruct()
 
 	err = json.Unmarshal(data, node.Data)
-	if err != nil {
-		log.Fatal(err)
-	}
+	PanicOnError(err)
 
 	err = json.Unmarshal(meta, node.Meta)
-	if err != nil {
-		log.Fatal(err)
-	}
+	PanicOnError(err)
 
 	return nil
 }

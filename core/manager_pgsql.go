@@ -266,9 +266,7 @@ func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 
 	_, err = query.Exec()
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	PanicOnError(err)
 
 	if m.Logger != nil {
 		strQuery, _, _ := query.ToSql()
