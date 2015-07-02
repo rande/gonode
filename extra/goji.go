@@ -249,7 +249,11 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 
 			if err == nc.NotFoundError {
 				SendStatusMessage(res, http.StatusNotFound, err.Error())
+				return
+			}
 
+			if err == nc.AlreadyDeletedError {
+				SendStatusMessage(res, http.StatusGone, err.Error())
 				return
 			}
 

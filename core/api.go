@@ -154,6 +154,10 @@ func (a *Api) RemoveOne(uuid string, w io.Writer) error {
 		return NotFoundError
 	}
 
+	if node.Deleted {
+		return AlreadyDeletedError
+	}
+
 	node, _ = a.Manager.RemoveOne(node)
 
 	a.Serializer.Serialize(w, node)
