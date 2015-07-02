@@ -419,8 +419,10 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 				query = query.Where("current = ?", searchForm.Current)
 			}
 
-			if searchForm.Deleted != "" {
+			if searchForm.Deleted != "" { // TODO: only admin token can view deleted node
 				query = query.Where("deleted = ?", searchForm.Deleted)
+			} else {
+				query = query.Where("deleted = ?", "f")
 			}
 
 			if len(searchForm.Uuid) != 0 {

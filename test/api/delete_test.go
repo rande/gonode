@@ -44,3 +44,24 @@ func Test_Delete_Existant_Node(t *testing.T) {
 		assert.Equal(t, 410, res.StatusCode)
 	})
 }
+
+func Test_Delete_Find_Filter(t *testing.T) {
+	extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
+		nodes := InitSearchFixture(app)
+
+		res, _ := extra.RunRequest("GET", ts.URL+"/nodes", nil)
+		p := GetPager(app, res)
+
+		assert.Equal(t, 3, len(p.Elements))
+
+		res, _ = extra.RunRequest("DELETE", ts.URL+"/nodes/"+nodes[0].Uuid.CleanString(), nil)
+		assert.Equal(t, 200, res.StatusCode)
+
+		res, _ = extra.RunRequest("GET", ts.URL+"/nodes", nil)
+		assert.Equal(t, 200, res.StatusCode)
+
+		p = GetPager(app, res)
+
+		assert.Equal(t, 2, len(p.Elements))
+	})
+}
