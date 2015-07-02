@@ -44,6 +44,10 @@ func (m *Reference) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (m *Reference) CleanString() string {
+	return uuid.Formatter(m.UUID, uuid.CleanHyphen)
+}
+
 func GetReferenceFromString(reference string) Reference {
 	v, err := uuid.ParseUUID(reference)
 

@@ -3,13 +3,12 @@ package core
 import (
 	"fmt"
 	"github.com/spf13/afero"
-	"github.com/twinj/uuid"
 	"os"
 	"time"
 )
 
 func GetFileLocation(node *Node) string {
-	strUuid := uuid.Formatter(node.Uuid, uuid.CleanHyphen)
+	strUuid := node.Uuid.CleanString()
 
 	return fmt.Sprintf("%s/%s/%s.bin", strUuid[0:2], strUuid[2:4], strUuid[4:])
 }

@@ -168,7 +168,7 @@ func (m *PgNodeManager) Remove(query sq.SelectBuilder) error {
 				Type:     node.Type,
 				Name:     node.Name,
 				Action:   "SoftDelete",
-				Subject:  uuid.Formatter(node.Uuid, uuid.CleanHyphen),
+				Subject:  node.Uuid.CleanString(),
 				Revision: node.Revision,
 				Date:     node.UpdatedAt,
 			})
@@ -187,7 +187,7 @@ func (m *PgNodeManager) RemoveOne(node *Node) (*Node, error) {
 	m.sendNotification(m.Prefix+"_manager_action", &ModelEvent{
 		Type:     node.Type,
 		Action:   "SoftDelete",
-		Subject:  uuid.Formatter(node.Uuid, uuid.CleanHyphen),
+		Subject:  node.Uuid.CleanString(),
 		Revision: node.Revision,
 		Date:     node.UpdatedAt,
 		Name:     node.Name,
@@ -211,23 +211,23 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 		"parent_uuid", "slug", "created_by", "updated_by", "data", "meta", "deleted",
 		"enabled", "source", "status", "weight").
 		Values(
-		uuid.Formatter(node.Uuid, uuid.CleanHyphen),
+		node.Uuid.CleanString(),
 		node.Type,
 		node.Revision,
 		node.Version,
 		node.Name,
 		node.CreatedAt,
 		node.UpdatedAt,
-		uuid.Formatter(node.SetUuid, uuid.CleanHyphen),
-		uuid.Formatter(node.ParentUuid, uuid.CleanHyphen),
+		node.SetUuid.CleanString(),
+		node.ParentUuid.CleanString(),
 		node.Slug,
-		uuid.Formatter(node.CreatedBy, uuid.CleanHyphen),
-		uuid.Formatter(node.UpdatedBy, uuid.CleanHyphen),
+		node.CreatedBy.CleanString(),
+		node.UpdatedBy.CleanString(),
 		string(InterfaceToJsonMessage(node.Type, node.Data)[:]),
 		string(InterfaceToJsonMessage(node.Type, node.Meta)[:]),
 		node.Deleted,
 		node.Enabled,
-		uuid.Formatter(node.Source, uuid.CleanHyphen),
+		node.Source.CleanString(),
 		node.Status,
 		node.Weight).
 		Suffix("RETURNING \"id\"").
@@ -243,23 +243,23 @@ func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 	var err error
 
 	query := sq.Update(m.Prefix+"_nodes").RunWith(m.Db).PlaceholderFormat(sq.Dollar).
-		Set("uuid", uuid.Formatter(node.Uuid, uuid.CleanHyphen)).
+		Set("uuid", node.Uuid.CleanString()).
 		Set("type", node.Type).
 		Set("revision", node.Revision).
 		Set("version", node.Version).
 		Set("name", node.Name).
 		Set("created_at", node.CreatedAt).
 		Set("updated_at", node.UpdatedAt).
-		Set("set_uuid", uuid.Formatter(node.SetUuid, uuid.CleanHyphen)).
-		Set("parent_uuid", uuid.Formatter(node.ParentUuid, uuid.CleanHyphen)).
+		Set("set_uuid", node.SetUuid.CleanString()).
+		Set("parent_uuid", node.ParentUuid.CleanString()).
 		Set("slug", node.Slug).
-		Set("created_by", uuid.Formatter(node.CreatedBy, uuid.CleanHyphen)).
-		Set("updated_by", uuid.Formatter(node.UpdatedBy, uuid.CleanHyphen)).
+		Set("created_by", node.CreatedBy.CleanString()).
+		Set("updated_by", node.UpdatedBy.CleanString()).
 		Set("deleted", node.Deleted).
 		Set("enabled", node.Enabled).
 		Set("data", string(InterfaceToJsonMessage(node.Type, node.Data)[:])).
 		Set("meta", string(InterfaceToJsonMessage(node.Type, node.Meta)[:])).
-		Set("source", uuid.Formatter(node.Source, uuid.CleanHyphen)).
+		Set("source", node.Source.CleanString()).
 		Set("status", node.Status).
 		Set("weight", node.Weight).
 		Where("id = ?", node.id)
@@ -303,7 +303,7 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 		m.sendNotification(m.Prefix+"_manager_action", &ModelEvent{
 			Type:    node.Type,
 			Action:  "Create",
-			Subject: uuid.Formatter(node.Uuid, uuid.CleanHyphen),
+			Subject: node.Uuid.CleanString(),
 			Date:    node.CreatedAt,
 			Name:    node.Name,
 		})
@@ -344,7 +344,7 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 	m.sendNotification(m.Prefix+"_manager_action", &ModelEvent{
 		Type:     node.Type,
 		Action:   "Update",
-		Subject:  uuid.Formatter(node.Uuid, uuid.CleanHyphen),
+		Subject:  node.Uuid.CleanString(),
 		Revision: node.Revision,
 		Date:     node.UpdatedAt,
 		Name:     node.Name,

@@ -5,7 +5,6 @@ import (
 	"github.com/lib/pq"
 	nc "github.com/rande/gonode/core"
 	"github.com/spf13/afero"
-	"github.com/twinj/uuid"
 	"io"
 	"net/http"
 )
@@ -147,7 +146,7 @@ func (l *ImageDownloadListener) Handle(notification *pq.Notification, m nc.NodeM
 
 	defer resp.Body.Close()
 
-	strUuid := uuid.Formatter(node.Uuid, uuid.CleanHyphen)
+	strUuid := node.Uuid.CleanString()
 
 	l.Fs.MkdirAll(fmt.Sprintf("%s/%s", strUuid[0:2], strUuid[2:4]), 0755)
 
