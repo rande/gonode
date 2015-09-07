@@ -113,7 +113,7 @@ func main() {
 	extra.ConfigureApp(l)
 	extra.ConfigureGoji(l)
 
-	l.Run(func(app *goapp.App) error {
+	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 		mux := app.Get("goji.mux").(*web.Mux)
 
 		if !flag.Parsed() {

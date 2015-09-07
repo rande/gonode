@@ -112,7 +112,7 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 		return nil
 	})
 
-	l.Run(func(app *goapp.App) error {
+	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 		logger := app.Get("logger").(*log.Logger)
 		logger.Printf("Starting PostgreSQL subcriber \n")
 		app.Get("gonode.postgres.subscriber").(*nc.Subscriber).Register()

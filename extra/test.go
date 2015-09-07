@@ -97,7 +97,7 @@ func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *go
 
 	l := GetLifecycle("../config_test.toml")
 
-	l.Run(func(app *goapp.App) error {
+	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 		var err error
 		var res *Response
 
