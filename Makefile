@@ -1,4 +1,4 @@
-.PHONY: test run
+.PHONY: test run explorer
 
 default: clean test build
 
@@ -31,3 +31,7 @@ build:
 	cd explorer && gulp build
 	cd explorer && go build -o dist/explorer
 
+explorer:
+	rm -rf explorer/dist
+	mkdir -p explorer/dist
+	cd explorer && cp src/index.html dist/index.html && webpack
