@@ -9,7 +9,6 @@ var Reflux = require('reflux');
 var _ = require('lodash');
 
 
-
 //var NodesStore = function(url) {
 //  return Reflux.createStore({
 //           init: function() {
