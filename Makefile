@@ -26,7 +26,7 @@ format:
 	go fix ./...
 
 test:
-	go test ./handlers ./test/api ./core
+	go test -v ./handlers ./test/api ./core
 	go vet ./...
 	#cd explorer && npm test
 
