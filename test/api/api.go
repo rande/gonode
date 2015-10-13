@@ -9,11 +9,11 @@ import (
 	"encoding/json"
 	"github.com/rande/goapp"
 	nc "github.com/rande/gonode/core"
-	"github.com/rande/gonode/extra"
 	"github.com/rande/gonode/handlers"
+	"github.com/rande/gonode/test"
 )
 
-func GetPager(app *goapp.App, res *extra.Response) *nc.ApiPager {
+func GetPager(app *goapp.App, res *test.Response) *nc.ApiPager {
 	p := &nc.ApiPager{}
 
 	serializer := app.Get("gonode.node.serializer").(*nc.Serializer)

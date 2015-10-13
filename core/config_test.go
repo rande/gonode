@@ -3,7 +3,7 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package extra
+package core
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -12,7 +12,7 @@ import (
 	"os"
 )
 
-func Test_GetConfiguration(t *testing.T) {
+func Test_Server_LoadConfiguration(t *testing.T) {
 	os.Setenv("PG_USER", "foo")
 	os.Setenv("PG_PASSWORD", "bar")
 
@@ -21,7 +21,11 @@ func Test_GetConfiguration(t *testing.T) {
 		os.Unsetenv("PG_PASSWORD")
 	}()
 
-	config := GetConfiguration("../test/config_codeship.toml")
+	config := &ServerConfig{
+		Databases: make(map[string]*ServerDatabase),
+	}
+
+	LoadConfiguration("../test/config_codeship.toml", config)
 
 	assert.Equal(t, config.Name, "GoNode - Codeship")
 	assert.Equal(t, config.Databases["master"].Type, "master")

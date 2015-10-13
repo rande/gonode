@@ -8,7 +8,6 @@ package handlers
 import (
 	"github.com/lib/pq"
 	nc "github.com/rande/gonode/core"
-	"github.com/rande/gonode/test"
 	"github.com/rande/gonode/test/mock"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -165,7 +164,7 @@ func Test_YoutubeListener_Found(t *testing.T) {
 	client := &mock.MockedHttpClient{}
 	client.
 		On("Get", "https://www.youtube.com/oembed?url=http://www.youtube.com/watch?v=MyVideoId&format=json").
-		Return(&http.Response{Body: test.NewTestCloserReader(`{
+		Return(&http.Response{Body: mock.NewTestCloserReader(`{
 "provider_url": "http://www.youtube.com/",
 "thumbnail_height": 360,
 "thumbnail_url": "http://i.ytimg.com/vi/k72S8XYqi0c/hqdefault.jpg",

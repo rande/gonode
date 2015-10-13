@@ -3,26 +3,115 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package extra
+package commands
 
 import (
+	"github.com/rande/goapp"
+
+	"fmt"
+	nc "github.com/rande/gonode/core"
+	"net/http"
+
 	"database/sql"
 	sq "github.com/lann/squirrel"
 	pq "github.com/lib/pq"
-	"github.com/rande/goapp"
-	nc "github.com/rande/gonode/core"
 	nh "github.com/rande/gonode/handlers"
+
+	"github.com/rande/gonode/test/fixtures"
 	"github.com/spf13/afero"
 	"log"
-	"net/http"
 	"time"
+
+	"github.com/hypebeast/gojistatic"
+	"github.com/zenazn/goji/web"
+	"github.com/zenazn/goji/web/middleware"
+	"os"
 )
 
-func ConfigureApp(l *goapp.Lifecycle) {
+func ConfigureServer(l *goapp.Lifecycle, config *nc.ServerConfig) {
+
+	l.Config(func(app *goapp.App) error {
+		app.Set("gonode.configuration", func(app *goapp.App) interface{} {
+			return config
+		})
+
+		return nil
+	})
+
+	l.Register(func(app *goapp.App) error {
+		// configure main services
+		app.Set("logger", func(app *goapp.App) interface{} {
+			return log.New(os.Stdout, "", log.Lshortfile)
+		})
+
+		app.Set("goji.mux", func(app *goapp.App) interface{} {
+			mux := web.New()
+
+			mux.Use(middleware.RequestID)
+			mux.Use(middleware.Logger)
+			mux.Use(middleware.Recoverer)
+			mux.Use(middleware.AutomaticOptions)
+			mux.Use(gojistatic.Static("dist", gojistatic.StaticOptions{SkipLogging: true, Prefix: "dist"}))
+
+			return mux
+		})
+
+		return nil
+	})
+
+	l.Prepare(func(app *goapp.App) error {
+		if !config.Test {
+			return nil
+		}
+
+		mux := app.Get("goji.mux").(*web.Mux)
+
+		prefix := ""
+
+		mux.Put(prefix+"/data/purge", func(res http.ResponseWriter, req *http.Request) {
+
+			manager := app.Get("gonode.manager").(*nc.PgNodeManager)
+			configuration := app.Get("gonode.configuration").(*nc.ServerConfig)
+
+			prefix := configuration.Databases["master"].Prefix
+
+			tx, _ := manager.Db.Begin()
+			manager.Db.Exec(fmt.Sprintf(`DELETE FROM "%s_nodes"`, prefix))
+			manager.Db.Exec(fmt.Sprintf(`DELETE FROM "%s_nodes_audit"`, prefix))
+			err := tx.Commit()
+
+			if err != nil {
+				nc.SendWithStatus("KO", err.Error(), res)
+			} else {
+				nc.SendWithStatus("OK", "Data purged!", res)
+			}
+		})
+
+		mux.Put(prefix+"/data/load", func(res http.ResponseWriter, req *http.Request) {
+			manager := app.Get("gonode.manager").(*nc.PgNodeManager)
+			nodes := manager.FindBy(manager.SelectBuilder(), 0, 10)
+
+			if nodes.Len() != 0 {
+				nc.SendWithStatus("KO", "Table contains data, purge the data first!", res)
+
+				return
+			}
+
+			err := fixtures.LoadFixtures(manager, 100)
+
+			if err != nil {
+				nc.SendWithStatus("KO", err.Error(), res)
+			} else {
+				nc.SendWithStatus("OK", "Data loaded!", res)
+			}
+		})
+
+		return nil
+	})
 
 	l.Register(func(app *goapp.App) error {
 		app.Set("gonode.fs", func(app *goapp.App) interface{} {
-			configuration := app.Get("gonode.configuration").(*Config)
+			configuration := app.Get("gonode.configuration").(*nc.ServerConfig)
 
 			return nc.NewSecureFs(&afero.OsFs{}, configuration.Filesystem.Path)
 		})
@@ -44,7 +133,7 @@ func ConfigureApp(l *goapp.Lifecycle) {
 		})
 
 		app.Set("gonode.manager", func(app *goapp.App) interface{} {
-			configuration := app.Get("gonode.configuration").(*Config)
+			configuration := app.Get("gonode.configuration").(*nc.ServerConfig)
 
 			return &nc.PgNodeManager{
 				Logger:   app.Get("logger").(*log.Logger),
@@ -57,7 +146,7 @@ func ConfigureApp(l *goapp.Lifecycle) {
 
 		app.Set("gonode.postgres.connection", func(app *goapp.App) interface{} {
 
-			configuration := app.Get("gonode.configuration").(*Config)
+			configuration := app.Get("gonode.configuration").(*nc.ServerConfig)
 
 			sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 			db, err := sql.Open("postgres", configuration.Databases["master"].DSN)
@@ -94,7 +183,7 @@ func ConfigureApp(l *goapp.Lifecycle) {
 		})
 
 		app.Set("gonode.postgres.subscriber", func(app *goapp.App) interface{} {
-			configuration := app.Get("gonode.configuration").(*Config)
+			configuration := app.Get("gonode.configuration").(*nc.ServerConfig)
 
 			return nc.NewSubscriber(
 				configuration.Databases["master"].DSN,

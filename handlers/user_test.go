@@ -17,6 +17,8 @@ func GetUserHandleNode() (nc.Handler, *nc.Node) {
 
 	node.Data, node.Meta = handler.GetStruct()
 
+	node.Meta.(*UserMeta).PasswordCost = 1 // speed up test
+
 	return handler, node
 }
 

@@ -3,7 +3,7 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package extra
+package core
 
 import (
 	"bufio"
@@ -14,7 +14,6 @@ import (
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
 	"github.com/rande/goapp"
-	nc "github.com/rande/gonode/core"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
 	"io/ioutil"
@@ -25,7 +24,11 @@ import (
 	"time"
 )
 
-var rexOrderBy = regexp.MustCompile(`(^[a-z,_.A-Z]*),(DESC|ASC|desc|asc)$`)
+var (
+	rexOrderBy = regexp.MustCompile(`(^[a-z,_.A-Z]*),(DESC|ASC|desc|asc)$`)
+	rexMeta    = regexp.MustCompile(`meta\.([a-zA-Z]*)`)
+	rexData    = regexp.MustCompile(`data\.([a-zA-Z]*)`)
+)
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -61,7 +64,7 @@ func GetJsonSearchQuery(query sq.SelectBuilder, data map[string][]string, field 
 	for name, value := range data {
 		if len(value) > 1 {
 			name = GetJsonQuery(field+"."+name, "->")
-			query = query.Where(nc.NewExprSlice(fmt.Sprintf("%s ??| array["+sq.Placeholders(len(value))+"]", name), value))
+			query = query.Where(NewExprSlice(fmt.Sprintf("%s ??| array["+sq.Placeholders(len(value))+"]", name), value))
 		}
 
 		if len(value) == 1 {
@@ -73,16 +76,16 @@ func GetJsonSearchQuery(query sq.SelectBuilder, data map[string][]string, field 
 	return query
 }
 
-func ConfigureGoji(l *goapp.Lifecycle) {
+func ConfigureHttpApi(l *goapp.Lifecycle) {
 
 	l.Prepare(func(app *goapp.App) error {
 		app.Set("gonode.websocket.clients", func(app *goapp.App) interface{} {
 			return list.New()
 		})
 
-		configuration := app.Get("gonode.configuration").(*Config)
+		configuration := app.Get("gonode.configuration").(*ServerConfig)
 
-		sub := app.Get("gonode.postgres.subscriber").(*nc.Subscriber)
+		sub := app.Get("gonode.postgres.subscriber").(*Subscriber)
 		sub.ListenMessage(configuration.Databases["master"].Prefix+"_manager_action", func(notification *pq.Notification) (int, error) {
 			logger := app.Get("logger").(*log.Logger)
 			logger.Printf("WebSocket: Sending message \n")
@@ -96,7 +99,7 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 
 			logger.Printf("WebSocket: End Sending message \n")
 
-			return nc.PubSubListenContinue, nil
+			return PubSubListenContinue, nil
 		})
 
 		graceful.PreHook(func() {
@@ -115,7 +118,7 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 		logger := app.Get("logger").(*log.Logger)
 		logger.Printf("Starting PostgreSQL subcriber \n")
-		app.Get("gonode.postgres.subscriber").(*nc.Subscriber).Register()
+		app.Get("gonode.postgres.subscriber").(*Subscriber).Register()
 
 		return nil
 	})
@@ -123,7 +126,7 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 	l.Exit(func(app *goapp.App) error {
 		logger := app.Get("logger").(*log.Logger)
 		logger.Printf("Closing PostgreSQL subcriber \n")
-		app.Get("gonode.postgres.subscriber").(*nc.Subscriber).Stop()
+		app.Get("gonode.postgres.subscriber").(*Subscriber).Stop()
 		logger.Printf("End closing PostgreSQL subcriber \n")
 
 		return nil
@@ -131,24 +134,31 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 
 	l.Prepare(func(app *goapp.App) error {
 		mux := app.Get("goji.mux").(*web.Mux)
-		manager := app.Get("gonode.manager").(*nc.PgNodeManager)
-		api := app.Get("gonode.api").(*nc.Api)
+		manager := app.Get("gonode.manager").(*PgNodeManager)
+		api := app.Get("gonode.api").(*Api)
 
 		prefix := ""
 
-		handlers := app.Get("gonode.handler_collection").(nc.Handlers)
-		configuration := app.Get("gonode.configuration").(*Config)
+		handlers := app.Get("gonode.handler_collection").(Handlers)
+		configuration := app.Get("gonode.configuration").(*ServerConfig)
 
 		mux.Get(prefix+"/hello", func(c web.C, res http.ResponseWriter, req *http.Request) {
+			res.Header().Set("Access-Control-Allow-Origin", "*")
+			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
+
 			res.Write([]byte("Hello!"))
 		})
 
 		mux.Get(prefix+"/nodes/stream", func(res http.ResponseWriter, req *http.Request) {
 			webSocketList := app.Get("gonode.websocket.clients").(*list.List)
 
+			upgrader.CheckOrigin = func(r *http.Request) bool {
+				return true
+			}
+
 			ws, err := upgrader.Upgrade(res, req, nil)
 
-			nc.PanicOnError(err)
+			PanicOnError(err)
 
 			element := webSocketList.PushBack(ws)
 
@@ -172,14 +182,15 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 
 		mux.Get(prefix+"/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
+			res.Header().Set("Access-Control-Allow-Origin", "*")
 
 			values := req.URL.Query()
 
 			if _, raw := values["raw"]; raw { // ask for binary content
-				node := manager.Find(nc.GetReferenceFromString(c.URLParams["uuid"]))
+				node := manager.Find(GetReferenceFromString(c.URLParams["uuid"]))
 
 				if node == nil {
-					SendStatusMessage(res, http.StatusNotFound, "Element not found")
+					SendWithHttpCode(res, http.StatusNotFound, "Element not found")
 
 					return
 				}
@@ -198,12 +209,12 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 				res.Header().Set("Content-Type", "application/json")
 				err := api.FindOne(c.URLParams["uuid"], res)
 
-				if err == nc.NotFoundError {
-					SendStatusMessage(res, http.StatusNotFound, err.Error())
+				if err == NotFoundError {
+					SendWithHttpCode(res, http.StatusNotFound, err.Error())
 				}
 
 				if err != nil {
-					SendStatusMessage(res, http.StatusInternalServerError, err.Error())
+					SendWithHttpCode(res, http.StatusInternalServerError, err.Error())
 				}
 			}
 		})
@@ -211,16 +222,17 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 		mux.Post(prefix+"/nodes", func(res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
 			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
+			res.Header().Set("Access-Control-Allow-Origin", "*")
 
 			w := bufio.NewWriter(res)
 
 			err := api.Save(req.Body, w)
 
-			if err == nc.RevisionError {
+			if err == RevisionError {
 				res.WriteHeader(http.StatusConflict)
 			}
 
-			if err == nc.ValidationError {
+			if err == ValidationError {
 				res.WriteHeader(http.StatusPreconditionFailed)
 			}
 
@@ -232,25 +244,26 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 		mux.Put(prefix+"/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
 			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
+			res.Header().Set("Access-Control-Allow-Origin", "*")
 
 			values := req.URL.Query()
 
 			if _, raw := values["raw"]; raw { // send binary data
-				node := manager.Find(nc.GetReferenceFromString(c.URLParams["uuid"]))
+				node := manager.Find(GetReferenceFromString(c.URLParams["uuid"]))
 
 				if node == nil {
-					SendStatusMessage(res, http.StatusNotFound, "Element not found")
+					SendWithHttpCode(res, http.StatusNotFound, "Element not found")
 					return
 				}
 
 				_, _, err := handlers.Get(node).StoreStream(node, req.Body)
 
 				if err != nil {
-					SendStatusMessage(res, http.StatusInternalServerError, err.Error())
+					SendWithHttpCode(res, http.StatusInternalServerError, err.Error())
 				} else {
 					manager.Save(node)
 
-					SendStatusMessage(res, http.StatusOK, "binary stored")
+					SendWithHttpCode(res, http.StatusOK, "binary stored")
 				}
 
 			} else {
@@ -258,11 +271,11 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 
 				err := api.Save(req.Body, w)
 
-				if err == nc.RevisionError {
+				if err == RevisionError {
 					res.WriteHeader(http.StatusConflict)
 				}
 
-				if err == nc.ValidationError {
+				if err == ValidationError {
 					res.WriteHeader(http.StatusPreconditionFailed)
 				}
 
@@ -273,18 +286,18 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 		mux.Delete(prefix+"/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			err := api.RemoveOne(c.URLParams["uuid"], res)
 
-			if err == nc.NotFoundError {
-				SendStatusMessage(res, http.StatusNotFound, err.Error())
+			if err == NotFoundError {
+				SendWithHttpCode(res, http.StatusNotFound, err.Error())
 				return
 			}
 
-			if err == nc.AlreadyDeletedError {
-				SendStatusMessage(res, http.StatusGone, err.Error())
+			if err == AlreadyDeletedError {
+				SendWithHttpCode(res, http.StatusGone, err.Error())
 				return
 			}
 
 			if err != nil {
-				SendStatusMessage(res, http.StatusInternalServerError, err.Error())
+				SendWithHttpCode(res, http.StatusInternalServerError, err.Error())
 			}
 		})
 
@@ -297,6 +310,7 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 		mux.Put(prefix+"/uninstall", func(res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
 			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
+			res.Header().Set("Access-Control-Allow-Origin", "*")
 
 			prefix := configuration.Databases["master"].Prefix
 
@@ -307,12 +321,13 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 			manager.Db.Exec(fmt.Sprintf(`DROP SEQUENCE IF EXISTS "%s_nodes_id_seq" CASCADE`, prefix))
 			manager.Db.Exec(fmt.Sprintf(`DROP SEQUENCE IF EXISTS "%s_nodes_audit_id_seq" CASCADE`, prefix))
 
-			SendStatusMessage(res, http.StatusOK, "Successfully delete tables!")
+			SendWithHttpCode(res, http.StatusOK, "Successfully delete tables!")
 		})
 
 		mux.Put(prefix+"/install", func(res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
 			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
+			res.Header().Set("Access-Control-Allow-Origin", "*")
 
 			prefix := configuration.Databases["master"].Prefix
 			tx, _ := manager.Db.Begin()
@@ -379,21 +394,22 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 			err := tx.Commit()
 
 			if err != nil {
-				SendStatusMessage(res, http.StatusInternalServerError, err.Error())
+				SendWithHttpCode(res, http.StatusInternalServerError, err.Error())
 			} else {
-				SendStatusMessage(res, http.StatusOK, "Successfully create tables!")
+				SendWithHttpCode(res, http.StatusOK, "Successfully create tables!")
 			}
 		})
 
 		mux.Get(prefix+"/nodes", func(res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
 			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
+			res.Header().Set("Access-Control-Allow-Origin", "*")
 
 			query := api.SelectBuilder()
 
 			req.ParseForm()
 
-			searchForm := nc.GetSearchForm()
+			searchForm := GetSearchForm()
 			decoder := schema.NewDecoder()
 			decoder.Decode(searchForm, req.Form)
 
@@ -416,7 +432,7 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 			}
 
 			if searchForm.Page < 0 || searchForm.PerPage < 0 || searchForm.PerPage > 128 {
-				SendStatusMessage(res, http.StatusPreconditionFailed, "Invalid pagination range")
+				SendWithHttpCode(res, http.StatusPreconditionFailed, "Invalid pagination range")
 
 				return
 			}
@@ -475,7 +491,7 @@ func ConfigureGoji(l *goapp.Lifecycle) {
 				r := rexOrderBy.FindAllStringSubmatch(order, -1)
 
 				if r == nil {
-					SendStatusMessage(res, http.StatusPreconditionFailed, "Invalid order_by condition")
+					SendWithHttpCode(res, http.StatusPreconditionFailed, "Invalid order_by condition")
 
 					return
 				}

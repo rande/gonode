@@ -1,66 +1,10 @@
-// Copyright © 2014-2015 Thomas Rabaix <thomas.rabaix@gmail.com>.
-//
-// Use of this source code is governed by an MIT-style
-// license that can be found in the LICENSE file.
-
-package helper
+package fixtures
 
 import (
-	"encoding/json"
 	nc "github.com/rande/gonode/core"
 	nh "github.com/rande/gonode/handlers"
-	"log"
-	"net/http"
 	"strconv"
 )
-
-func Check(manager *nc.PgNodeManager, logger *log.Logger) {
-	query := manager.SelectBuilder()
-	nodes := manager.FindBy(query, 0, 10)
-
-	logger.Printf("[PgNode] Found: %d nodes\n", nodes.Len())
-
-	for e := nodes.Front(); e != nil; e = e.Next() {
-		node := e.Value.(*nc.Node)
-		logger.Printf("[PgNode] %s => %s", node.Uuid, node.Type)
-	}
-
-	node := manager.FindOneBy(manager.SelectBuilder().Where("type = ?", "media.image"))
-
-	logger.Printf("[PgNode] Get first node: %s => %s (id: %d)", node.Uuid, node.Type, node.Id())
-
-	node = manager.Find(node.Uuid)
-
-	logger.Printf("[PgNode] Reload node, %s => %s (id: %d)", node.Uuid, node.Type, node.Id())
-
-	node.Name = "This is my name"
-	node.Slug = "this-is-my-name"
-
-	manager.Save(node)
-
-	manager.RemoveOne(node)
-
-	manager.Remove(manager.SelectBuilder().Where("type = ?", "media.image"))
-
-	logger.Printf("%s\n", "End code")
-}
-
-func Send(status string, message string, res http.ResponseWriter) {
-	res.Header().Set("Content-Type", "application/json")
-
-	if status == "KO" {
-		res.WriteHeader(http.StatusInternalServerError)
-	} else {
-		res.WriteHeader(http.StatusOK)
-	}
-
-	data, _ := json.Marshal(map[string]string{
-		"status":  status,
-		"message": message,
-	})
-
-	res.Write(data)
-}
 
 func GetFakeMediaNode(pos int) *nc.Node {
 	node := nc.NewNode()

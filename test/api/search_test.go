@@ -8,7 +8,7 @@ package api
 import (
 	"github.com/rande/goapp"
 	nc "github.com/rande/gonode/core"
-	"github.com/rande/gonode/extra"
+	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
 	"net/http/httptest"
 	"os"
@@ -33,13 +33,13 @@ func Test_Search_Basic(t *testing.T) {
 	}
 
 	for _, url := range urls {
-		extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
+		test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 			// WITH
 			file, _ := os.Open("../fixtures/new_user.json")
-			extra.RunRequest("POST", ts.URL+"/nodes", file)
+			test.RunRequest("POST", ts.URL+"/nodes", file)
 
 			// WHEN
-			res, _ := extra.RunRequest("GET", ts.URL+url, nil)
+			res, _ := test.RunRequest("GET", ts.URL+url, nil)
 
 			p := GetPager(app, res)
 
@@ -59,13 +59,13 @@ func Test_Search_Basic(t *testing.T) {
 }
 
 func Test_Search_NoResult(t *testing.T) {
-	extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
+	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		// WITH
 		file, _ := os.Open("../fixtures/new_user.json")
-		extra.RunRequest("POST", ts.URL+"/nodes", file)
+		test.RunRequest("POST", ts.URL+"/nodes", file)
 
 		// WHEN
-		res, _ := extra.RunRequest("GET", ts.URL+"/nodes?type=other", nil)
+		res, _ := test.RunRequest("GET", ts.URL+"/nodes?type=other", nil)
 
 		p := GetPager(app, res)
 
@@ -85,12 +85,12 @@ func Test_Search_Invalid_Pagination(t *testing.T) {
 	}
 
 	for _, url := range urls {
-		extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
+		test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 			file, _ := os.Open("../fixtures/new_user.json")
-			extra.RunRequest("POST", ts.URL+"/nodes", file)
+			test.RunRequest("POST", ts.URL+"/nodes", file)
 
 			// WHEN
-			res, _ := extra.RunRequest("GET", ts.URL+url, nil)
+			res, _ := test.RunRequest("GET", ts.URL+url, nil)
 
 			assert.Equal(t, 412, res.StatusCode, "url: "+url)
 		})
@@ -98,22 +98,22 @@ func Test_Search_Invalid_Pagination(t *testing.T) {
 }
 
 func Test_Search_Invalid_OrderBy(t *testing.T) {
-	extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
+	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		// seems goji or golang block this request
-		res, _ := extra.RunRequest("GET", ts.URL+"/nodes?order_by=\"1 = 1\"; DELETE * FROM node,ASC", nil)
+		res, _ := test.RunRequest("GET", ts.URL+"/nodes?order_by=\"1 = 1\"; DELETE * FROM node,ASC", nil)
 		assert.Equal(t, 400, res.StatusCode, "url: /nodes?order_by=\"1 = 1\"; DELETE * FROM node,ASC")
 
 		// seems goji or golang block this request
-		res, _ = extra.RunRequest("GET", ts.URL+"/nodes?order_by=DELETE%20*%20FROM%20node,ASC", nil)
+		res, _ = test.RunRequest("GET", ts.URL+"/nodes?order_by=DELETE%20*%20FROM%20node,ASC", nil)
 		assert.Equal(t, 412, res.StatusCode, "url: /nodes?order_by=DELETE%20*%20FROM%20node,ASC")
 	})
 }
 
 func Test_Search_OrderBy_Name_ASC(t *testing.T) {
-	extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
+	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		InitSearchFixture(app)
 
-		res, _ := extra.RunRequest("GET", ts.URL+"/nodes?order_by=name,ASC", nil)
+		res, _ := test.RunRequest("GET", ts.URL+"/nodes?order_by=name,ASC", nil)
 
 		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=name,ASC")
 
@@ -127,10 +127,10 @@ func Test_Search_OrderBy_Name_ASC(t *testing.T) {
 }
 
 func Test_Search_OrderBy_Name_DESC(t *testing.T) {
-	extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
+	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		InitSearchFixture(app)
 
-		res, _ := extra.RunRequest("GET", ts.URL+"/nodes?order_by=name,DESC", nil)
+		res, _ := test.RunRequest("GET", ts.URL+"/nodes?order_by=name,DESC", nil)
 
 		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=name,DESC")
 
@@ -144,11 +144,11 @@ func Test_Search_OrderBy_Name_DESC(t *testing.T) {
 }
 
 func Test_Search_OrderBy_Weight_DESC_Name_ASC(t *testing.T) {
-	extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
+	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		InitSearchFixture(app)
 
 		// TESTING WITH 2 ORDERING OPTION
-		res, _ := extra.RunRequest("GET", ts.URL+"/nodes?order_by=weight,DESC&order_by=name,ASC", nil)
+		res, _ := test.RunRequest("GET", ts.URL+"/nodes?order_by=weight,DESC&order_by=name,ASC", nil)
 
 		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=weight,DESC&order_by=name,ASC")
 
@@ -162,11 +162,11 @@ func Test_Search_OrderBy_Weight_DESC_Name_ASC(t *testing.T) {
 }
 
 func Test_Search_OrderBy_Meta_Login(t *testing.T) {
-	extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
+	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		InitSearchFixture(app)
 
 		// TESTING WITH 2 ORDERING OPTION
-		res, _ := extra.RunRequest("GET", ts.URL+"/nodes?order_by=meta.login,DESC", nil)
+		res, _ := test.RunRequest("GET", ts.URL+"/nodes?order_by=meta.login,DESC", nil)
 
 		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=meta.login")
 
@@ -180,10 +180,10 @@ func Test_Search_OrderBy_Meta_Login(t *testing.T) {
 }
 
 func Test_Search_OrderBy_Meta_Non_Existant_Meta(t *testing.T) {
-	extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
+	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		InitSearchFixture(app)
 
-		res, _ := extra.RunRequest("GET", ts.URL+"/nodes?meta.login.fake=foo&order_by=meta.login.fake,DESC", nil)
+		res, _ := test.RunRequest("GET", ts.URL+"/nodes?meta.login.fake=foo&order_by=meta.login.fake,DESC", nil)
 
 		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=meta.login.fake")
 
@@ -194,10 +194,10 @@ func Test_Search_OrderBy_Meta_Non_Existant_Meta(t *testing.T) {
 }
 
 func Test_Search_Meta(t *testing.T) {
-	extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
+	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		InitSearchFixture(app)
 
-		res, _ := extra.RunRequest("GET", ts.URL+"/nodes?data.login=user-a", nil)
+		res, _ := test.RunRequest("GET", ts.URL+"/nodes?data.login=user-a", nil)
 
 		assert.Equal(t, 200, res.StatusCode, "url: /nodes?data.login=user-a")
 
@@ -208,10 +208,10 @@ func Test_Search_Meta(t *testing.T) {
 }
 
 func Test_Search_Slug(t *testing.T) {
-	extra.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
+	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		InitSearchFixture(app)
 
-		res, _ := extra.RunRequest("GET", ts.URL+"/nodes?slug=user-a", nil)
+		res, _ := test.RunRequest("GET", ts.URL+"/nodes?slug=user-a", nil)
 
 		assert.Equal(t, 200, res.StatusCode, "url: /nodes?slug=user-a")
 

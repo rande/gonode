@@ -1,6 +1,12 @@
 .PHONY: test run explorer
 
+PID = .pid
+GO_FILES = $(shell find . -type f -name "*.go")
+
 default: clean test build
+
+clean:
+	rm -rf explorer/dist/*
 
 install:
 	go list -f '{{range .Imports}}{{.}} {{end}}' ./... | xargs go get -v
@@ -13,25 +19,33 @@ update:
 	cd explorer && npm update && npm update react-admin
 
 run:
-	cd explorer && go run main.go -bind :9090
+	cd cli && go run main.go server -config=../server.toml.dist
 
 format:
 	gofmt -l -w -s .
 	go fix ./...
 
 test:
-	go test ./handlers ./test/api ./core ./extra
+	go test ./handlers ./test/api ./core
 	go vet ./...
 	#cd explorer && npm test
 
-clean:
-	rm -rf explorer/dist
+kill:
+	kill `cat $(PID)` || true
 
 build:
-	cd explorer && gulp build
+	cd explorer && webpack --progress --color
 	cd explorer && go build -o dist/explorer
 
-explorer:
-	rm -rf explorer/dist
-	mkdir -p explorer/dist
-	cd explorer && cp src/index.html dist/index.html && webpack
+serve: clean
+	make restart
+	cd explorer && node webpack.config.js $$! > $(PID)_wds &
+	fswatch $(GO_FILES) | xargs -n1 -I{} make restart || make kill
+	kill `cat $(PID)_wds` || true
+
+restart:
+	make kill
+	cd explorer && rm -rf dist/explorer
+	cd explorer && go build -o dist/explorer
+	cd explorer && cp config.toml dist/config.toml
+	cd explorer/dist && (./explorer -bind :9090 & echo $$! > ../../$(PID))

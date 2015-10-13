@@ -1,12 +1,11 @@
 name= "GoNode - poc"
-bind= ":2508"
+bind= ":2405"
 
 [databases.master]
 type    = "master"
 dsn     = "postgres://safre:safre@172.16.33.20/safre"
 enabled = true
-prefix  = "test"
-
+prefix  = "prod"
 
 [filesystem]
 path = "/tmp/gnode"

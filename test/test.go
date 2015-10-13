@@ -3,11 +3,12 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package extra
+package test
 
 import (
 	"fmt"
 	"github.com/rande/goapp"
+	"github.com/rande/gonode/commands"
 	nc "github.com/rande/gonode/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/zenazn/goji/web"
@@ -25,9 +26,14 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 
 	l := goapp.NewLifecycle()
 
+	config := nc.NewServerConfig()
+	config.Test = true
+
+	nc.LoadConfiguration(file, config)
+
 	l.Config(func(app *goapp.App) error {
 		app.Set("gonode.configuration", func(app *goapp.App) interface{} {
-			return GetConfiguration(file)
+			return config
 		})
 
 		return nil
@@ -53,8 +59,8 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 		return nil
 	})
 
-	ConfigureApp(l)
-	ConfigureGoji(l)
+	commands.ConfigureServer(l, config)
+	nc.ConfigureHttpApi(l)
 
 	return l
 }
@@ -122,6 +128,8 @@ func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *go
 		nc.PanicOnError(err)
 
 		f(t, ts, app)
+
+		state.Out <- 1
 
 		return nil
 	})

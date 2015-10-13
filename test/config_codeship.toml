@@ -1,4 +1,5 @@
 name= "GoNode - Codeship"
+bind= ":2508"
 
 [databases.master]
 type    = "master"
