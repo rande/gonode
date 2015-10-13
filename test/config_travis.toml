@@ -3,7 +3,7 @@ bind= ":2508"
 
 [databases.master]
 type    = "master"
-dsn     = "postgres://postgres@localhost/travis_ci_test"
+dsn     = "postgres://postgres@localhost/travis_ci_test?sslmode=disable"
 enabled = true
 prefix  = "test"
 
