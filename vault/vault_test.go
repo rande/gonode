@@ -10,7 +10,7 @@ import (
 func RunTestVault(t *testing.T, v Vault) {
 	file := "this-is-a-test"
 
-	meta := NewVaultMetada()
+	meta := NewVaultMetadata()
 	meta["foo"] = "bar"
 
 	reader := bytes.NewBuffer([]byte("Comment ca va ??"))

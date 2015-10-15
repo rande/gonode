@@ -19,11 +19,11 @@ type VaultFs struct {
 	Root      string
 	Encrypter Encrypter
 	Decrypter Decrypter
-	Key       []byte
+	BaseKey   []byte
 }
 
 func (v *VaultFs) Has(name string) bool {
-	path := filepath.Join(v.Root, GetVaultPath(name))
+	path := filepath.Join(v.Root, GetVaultPath(GetVaultKey(name)))
 
 	if _, error := os.Stat(path); error != nil {
 		return false
@@ -34,19 +34,19 @@ func (v *VaultFs) Has(name string) bool {
 
 func (v *VaultFs) Get(name string) (VaultMetadata, error) {
 	// need to get the vaultelement
-	binfile := filepath.Join(v.Root, GetVaultPath(name))
-	vaultfile := binfile + ".vault"
+	vaultname := GetVaultKey(name)
+	binfile := filepath.Join(v.Root, GetVaultPath(vaultname))
 	metafile := binfile + ".meta"
 
 	// load vault element
-	ve, err := v.getVaultElement(vaultfile)
+	ve, err := v.getVaultElement(vaultname)
 
 	if err != nil {
 		return nil, err
 	}
 
 	// load metadata
-	meta := NewVaultMetada()
+	meta := NewVaultMetadata()
 
 	// load binary stream
 	fm, _ := os.Open(metafile)
@@ -56,10 +56,11 @@ func (v *VaultFs) Get(name string) (VaultMetadata, error) {
 }
 
 func (v *VaultFs) GetReader(name string) (io.Reader, error) {
-	binfile := filepath.Join(v.Root, GetVaultPath(name))
-	vaultfile := binfile + ".vault"
+	vaultname := GetVaultKey(name)
 
-	ve, err := v.getVaultElement(vaultfile)
+	binfile := filepath.Join(v.Root, GetVaultPath(vaultname))
+
+	ve, err := v.getVaultElement(vaultname)
 
 	if err != nil {
 		return nil, err
@@ -67,7 +68,6 @@ func (v *VaultFs) GetReader(name string) (io.Reader, error) {
 
 	// load binary stream
 	fb, err := os.Open(binfile)
-
 	if err != nil {
 		return nil, err
 	}
@@ -80,37 +80,16 @@ func (v *VaultFs) Put(name string, meta VaultMetadata, r io.Reader) (int64, erro
 		return 0, VaultFileExistsError
 	}
 
-	binfile := filepath.Join(v.Root, GetVaultPath(name))
+	vaultname := GetVaultKey(name)
 
+	binfile := filepath.Join(v.Root, GetVaultPath(vaultname))
 	vaultfile := binfile + ".vault"
 	metafile := binfile + ".meta"
 
-	// create base folder
-	path := filepath.Dir(binfile)
-	if err := os.MkdirAll(path, 0700); err != nil {
-		return 0, err
-	}
-
-	// store vault element
-	ve := NewVaultElement()
-
-	fv, err := os.Create(vaultfile)
-	if err != nil {
-		return 0, err
-	}
-
-	defer fv.Close()
-
-	if len(v.Key) > 0 {
-		err = json.NewEncoder(v.Encrypter(v.Key, fv)).Encode(ve)
-	} else {
-		err = json.NewEncoder(fv).Encode(ve)
-	}
+	ve, err := v.createVaultElement(vaultname)
 
 	if err != nil {
-		defer RemoveIfExists(vaultfile)
-
-		return 0, err
+		return 0, nil
 	}
 
 	// store metafile
@@ -154,7 +133,7 @@ func (v *VaultFs) Put(name string, meta VaultMetadata, r io.Reader) (int64, erro
 }
 
 func (v *VaultFs) Remove(name string) error {
-	binfile := filepath.Join(v.Root, GetVaultPath(name))
+	binfile := filepath.Join(v.Root, GetVaultPath(GetVaultKey(name)))
 
 	RemoveIfExists(binfile)
 	RemoveIfExists(binfile + ".vault")
@@ -163,13 +142,56 @@ func (v *VaultFs) Remove(name string) error {
 	return nil
 }
 
-func (v *VaultFs) getVaultElement(vaultfile string) (*VaultElement, error) {
+func (v *VaultFs) createVaultElement(namekey []byte) (*VaultElement, error) {
+	vaultfile := filepath.Join(v.Root, GetVaultPath(namekey)) + ".vault"
+
+	// create base folder
+	path := filepath.Dir(vaultfile)
+	if err := os.MkdirAll(path, 0700); err != nil {
+		return nil, err
+	}
+
+	// store vault element
+	ve := NewVaultElement()
+
+	fv, err := os.Create(vaultfile)
+	if err != nil {
+		return nil, err
+	}
+
+	defer fv.Close()
+
+	if len(v.BaseKey) > 0 {
+		key := GetVaultKey(string(append(namekey, v.BaseKey...)[:]))
+
+		err = json.NewEncoder(v.Encrypter(key, fv)).Encode(ve)
+	} else {
+		err = json.NewEncoder(fv).Encode(ve)
+	}
+
+	if err != nil {
+		defer RemoveIfExists(vaultfile)
+
+		return nil, err
+	}
+
+	return ve, nil
+}
+
+func (v *VaultFs) getVaultElement(namekey []byte) (*VaultElement, error) {
 	// load vault element
 	var err error
+
+	// generate the key from the Vault.Base + namekey
+	vaultfile := filepath.Join(v.Root, GetVaultPath(namekey)) + ".vault"
+
 	ve := NewVaultElement()
 	fv, _ := os.Open(vaultfile)
-	if len(v.Key) > 0 {
-		err = json.NewDecoder(v.Decrypter(v.Key, fv)).Decode(ve)
+
+	if len(v.BaseKey) > 0 {
+		key := GetVaultKey(string(append(namekey, v.BaseKey...)[:]))
+
+		err = json.NewDecoder(v.Decrypter(key, fv)).Decode(ve)
 	} else {
 		err = json.NewDecoder(fv).Decode(ve)
 	}

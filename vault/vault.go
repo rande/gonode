@@ -3,7 +3,7 @@ package vault
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/sha1"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"github.com/elgs/gostrgen"
@@ -14,7 +14,7 @@ var VaultFileExistsError = errors.New("Vault file already exists")
 
 type VaultMetadata map[string]interface{}
 
-func NewVaultMetada() VaultMetadata {
+func NewVaultMetadata() VaultMetadata {
 	return make(VaultMetadata)
 }
 
@@ -35,10 +35,14 @@ type VaultElement struct {
 	Hash string `json:"hash"`
 }
 
-func GetVaultPath(name string) string {
-	code := sha1.Sum([]byte(name))
+func GetVaultKey(name string) []byte {
+	sum := sha256.Sum256([]byte(name))
 
-	return fmt.Sprintf("%x/%x/%x.bin", code[0:1], code[1:2], code[2:])
+	return sum[:]
+}
+
+func GetVaultPath(sum []byte) string {
+	return fmt.Sprintf("%x/%x/%x.bin", sum[0:1], sum[1:2], sum[2:])
 }
 
 func generateKey() []byte {
