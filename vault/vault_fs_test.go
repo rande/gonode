@@ -1,77 +1,93 @@
 package vault
 
 import (
-	"bytes"
-	"github.com/stretchr/testify/assert"
-	"os"
-	"testing"
+    "github.com/stretchr/testify/assert"
+    "os"
+    "testing"
 )
 
-func getVaultFs(e Encrypter, d Decrypter, key []byte) Vault {
-	v := &VaultFs{
-		Root:      "/tmp/goapp/test/vault",
-		Encrypter: e,
-		Decrypter: d,
-		BaseKey:   key,
-	}
+func getVaultFs(algo string, key []byte) Vault {
+    v := &VaultFs{
+        Root:    "/tmp/goapp/test/vault",
+        Algo:    algo,
+        BaseKey: key,
+    }
 
-	os.RemoveAll(v.Root)
+    os.RemoveAll(v.Root)
 
-	return v
+    return v
 }
 
 func Test_VaultFS_Test_FileExists(t *testing.T) {
-	v := getVaultFs(NoopEncrypter, NoopDecrypter, []byte(""))
+    v := getVaultFs("no_op", []byte(""))
 
-	assert.False(t, v.Has("salut"))
+    assert.False(t, v.Has("salut"))
 }
 
 func Test_VaultFS_Unsecure_Noop(t *testing.T) {
-	v := getVaultFs(NoopEncrypter, NoopDecrypter, []byte(""))
+    v := getVaultFs("no_op", []byte(""))
 
-	RunTestVault(t, v)
+    RunTestVault(t, v)
 }
 
 func Test_VaultFS_Secure_Noop(t *testing.T) {
-	v := getVaultFs(NoopEncrypter, NoopDecrypter, []byte("de4d3ae8cf578c971b39ab5f21b2435483a3654f63b9f3777925c77e9492a141"))
+    v := getVaultFs("no_op", []byte("de4d3ae8cf578c971b39ab5f21b2435483a3654f63b9f3777925c77e9492a141"))
 
-	RunTestVault(t, v)
+    RunTestVault(t, v)
 }
 
 func Test_VaultFS_Unsecure_Aes_OFB(t *testing.T) {
-	v := getVaultFs(AesOFBEncrypter, AesOFBDecrypter, []byte(""))
+    v := getVaultFs("aes_ofb", []byte(""))
 
-	RunTestVault(t, v)
+    RunTestVault(t, v)
 }
 
 func Test_VaultFS_Secure_Aes_OFB(t *testing.T) {
-	v := getVaultFs(AesOFBEncrypter, AesOFBDecrypter, []byte("de4d3ae8cf578c971b39ab5f21b2435483a3654f63b9f3777925c77e9492a141"))
+    v := getVaultFs("aes_ofb", []byte("de4d3ae8cf578c971b39ab5f21b2435483a3654f63b9f3777925c77e9492a141"))
 
-	RunTestVault(t, v)
+    RunTestVault(t, v)
 }
 
+func Test_VaultFS_Secure_Aes_CTR(t *testing.T) {
+    v := getVaultFs("aes_ctr", []byte("de4d3ae8cf578c971b39ab5f21b2435483a3654f63b9f3777925c77e9492a141"))
+
+    RunTestVault(t, v)
+}
+
+//func Test_Generate_Regression_Files(t *testing.T) {
+//    for _, v := range []string{"aes_ofb", "aes_ctr"} {
+//        v := &VaultFs{
+//            Root:    "../test/vault/" + v,
+//            Algo:    v,
+//            BaseKey: []byte("de4d3ae8cf578c971b39ab5f21b2435483a3654f63b9f3777925c77e9492a141"),
+//        }
+//
+//        file := "The secret file"
+//        data := bytes.NewBufferString("The secret message")
+//        meta := NewVaultMetadata()
+//        meta["foo"] = "bar"
+//
+//        v.Put(file, meta, data)
+//    }
+//}
+
 func Test_VaultFS_Secure_Aes_OFB_NoRegression(t *testing.T) {
-	v := &VaultFs{
-		Root:      "../test/vault/aes/ofb",
-		Encrypter: AesOFBEncrypter,
-		Decrypter: AesOFBDecrypter,
-		BaseKey:   []byte("de4d3ae8cf578c971b39ab5f21b2435483a3654f63b9f3777925c77e9492a141"),
-	}
+    v := &VaultFs{
+        Root:    "../test/vault/aes_ofb",
+        Algo:    "aes_ofb",
+        BaseKey: []byte("de4d3ae8cf578c971b39ab5f21b2435483a3654f63b9f3777925c77e9492a141"),
+    }
 
-	file := "The secret file"
+    RunRegressionTest(t, v)
+}
 
-	assert.True(t, v.Has(file))
-	
-	meta, err := v.Get(file)
-	assert.NoError(t, err)
 
-	assert.Equal(t, meta["foo"].(string), "bar")
+func Test_VaultFS_Secure_Aes_CTR_NoRegression(t *testing.T) {
+    v := &VaultFs{
+        Root:    "../test/vault/aes_ctr",
+        Algo:    "aes_ctr",
+        BaseKey: []byte("de4d3ae8cf578c971b39ab5f21b2435483a3654f63b9f3777925c77e9492a141"),
+    }
 
-	reader, err := v.GetReader(file)
-	assert.NoError(t, err)
-
-	data := bytes.NewBufferString("")
-	data.ReadFrom(reader)
-
-	assert.Equal(t, data.String(), "The secret content")
+    RunRegressionTest(t, v)
 }

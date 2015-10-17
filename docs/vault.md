@@ -53,14 +53,19 @@ Encrypter/Decrypter
 
 A vault also have a set of encrypter/descrypted functions used to encrypt/descript the file on the fly.
 
-There are 2 couples:
+There are 3 options:
 
-  - ``Noop`` : no operation, ie no encryption applied. This can be usefull for debugging or for 
+  - ``no_op`` : no operation, ie no encryption applied. This can be usefull for debugging or for 
   storing non critical information (ie, web site assets)
-  - ``AES_OFB``: apply AES encryption with OFB Mode. This mode is good for only offer confidentiality, 
+  - ``aes_ofb``: apply AES encryption with OFB Mode. This mode is good for only offer confidentiality, 
   there is no authenticity and integrity encryption. With this mode it is still possible to flip a 
   bit and change the decrypted contents. However, it is possible to encrypt a large stream.
+  - ``aes_ctr``: apply AES encryption with CTR Mode. 
   
+Please note: ``aes_ofb`` and ``aes_ctr`` are good for confidentiality however there is no 
+authenticity and integrity encryption. Please read [Block Cipher Mode](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation)
+for mor information.
+
   
 Warning
 -------

@@ -1,8 +1,6 @@
 package vault
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
 	"crypto/sha256"
 	"errors"
 	"fmt"
@@ -53,45 +51,7 @@ func generateKey() []byte {
 
 func NewVaultElement() *VaultElement {
 	return &VaultElement{
-		Algo: "aes",
+		Algo: "aes_ctr",
 		Key:  generateKey(),
 	}
-}
-
-func NoopEncrypter(key interface{}, w io.Writer) io.Writer {
-	return w
-}
-
-func NoopDecrypter(key interface{}, r io.Reader) io.Reader {
-	return r
-}
-
-func AesOFBEncrypter(key interface{}, w io.Writer) io.Writer {
-	block, err := aes.NewCipher(key.([]byte))
-	if err != nil {
-		panic(err)
-	}
-
-	// If the key is unique for each ciphertext, then it's ok to use a zero
-	// IV.
-	var iv [aes.BlockSize]byte
-	stream := cipher.NewOFB(block, iv[:])
-
-	return &cipher.StreamWriter{S: stream, W: w}
-}
-
-func AesOFBDecrypter(key interface{}, r io.Reader) io.Reader {
-	block, err := aes.NewCipher(key.([]byte))
-	if err != nil {
-		panic(err)
-	}
-
-	// If the key is unique for each ciphertext, then it's ok to use a zero
-	// IV.
-	var iv [aes.BlockSize]byte
-	stream := cipher.NewOFB(block, iv[:])
-
-	reader := &cipher.StreamReader{S: stream, R: r}
-
-	return reader
 }

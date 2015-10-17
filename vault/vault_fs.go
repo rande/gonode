@@ -16,10 +16,9 @@ func RemoveIfExists(path string) {
 }
 
 type VaultFs struct {
-	Root      string
-	Encrypter Encrypter
-	Decrypter Decrypter
-	BaseKey   []byte
+	Root    string
+	Algo    string
+	BaseKey []byte
 }
 
 func (v *VaultFs) Has(name string) bool {
@@ -50,7 +49,7 @@ func (v *VaultFs) Get(name string) (VaultMetadata, error) {
 
 	// load binary stream
 	fm, _ := os.Open(metafile)
-	err = json.NewDecoder(v.Decrypter(ve.Key, fm)).Decode(&meta)
+	err = json.NewDecoder(GetDecryptionReader(v.Algo, ve.Key, fm)).Decode(&meta)
 
 	return meta, err
 }
@@ -72,7 +71,7 @@ func (v *VaultFs) GetReader(name string) (io.Reader, error) {
 		return nil, err
 	}
 
-	return v.Decrypter(ve.Key, fb), nil
+	return GetDecryptionReader(v.Algo, ve.Key, fb), nil
 }
 
 func (v *VaultFs) Put(name string, meta VaultMetadata, r io.Reader) (int64, error) {
@@ -101,7 +100,7 @@ func (v *VaultFs) Put(name string, meta VaultMetadata, r io.Reader) (int64, erro
 	}
 	defer fm.Close()
 
-	err = json.NewEncoder(v.Encrypter(ve.Key, fm)).Encode(meta)
+	err = json.NewEncoder(GetEncryptionWriter(v.Algo, ve.Key, fm)).Encode(meta)
 	if err != nil {
 		defer RemoveIfExists(vaultfile)
 		defer RemoveIfExists(metafile)
@@ -121,7 +120,7 @@ func (v *VaultFs) Put(name string, meta VaultMetadata, r io.Reader) (int64, erro
 	}
 
 	// Copy the input stream to the encryted stream.
-	if written, err := io.Copy(v.Encrypter(ve.Key, fb), r); err != nil {
+	if written, err := io.Copy(GetEncryptionWriter(v.Algo, ve.Key, fb), r); err != nil {
 		defer RemoveIfExists(vaultfile)
 		defer RemoveIfExists(metafile)
 		defer RemoveIfExists(binfile)
@@ -153,6 +152,7 @@ func (v *VaultFs) createVaultElement(namekey []byte) (*VaultElement, error) {
 
 	// store vault element
 	ve := NewVaultElement()
+	ve.Algo = v.Algo
 
 	fv, err := os.Create(vaultfile)
 	if err != nil {
@@ -164,7 +164,7 @@ func (v *VaultFs) createVaultElement(namekey []byte) (*VaultElement, error) {
 	if len(v.BaseKey) > 0 {
 		key := GetVaultKey(string(append(namekey, v.BaseKey...)[:]))
 
-		err = json.NewEncoder(v.Encrypter(key, fv)).Encode(ve)
+		err = json.NewEncoder(GetEncryptionWriter(v.Algo, key, fv)).Encode(ve)
 	} else {
 		err = json.NewEncoder(fv).Encode(ve)
 	}
@@ -190,8 +190,7 @@ func (v *VaultFs) getVaultElement(namekey []byte) (*VaultElement, error) {
 
 	if len(v.BaseKey) > 0 {
 		key := GetVaultKey(string(append(namekey, v.BaseKey...)[:]))
-
-		err = json.NewDecoder(v.Decrypter(key, fv)).Decode(ve)
+		err = json.NewDecoder(GetDecryptionReader(v.Algo, key, fv)).Decode(ve)
 	} else {
 		err = json.NewDecoder(fv).Decode(ve)
 	}

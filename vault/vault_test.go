@@ -7,6 +7,7 @@ import (
 	"testing"
 )
 
+// write/encrypted file
 func RunTestVault(t *testing.T, v Vault) {
 	file := "this-is-a-test"
 
@@ -42,10 +43,30 @@ func RunTestVault(t *testing.T, v Vault) {
 	assert.NoError(t, err)
 }
 
+// read stored encrypted files
+func RunRegressionTest(t *testing.T, v Vault) {
+	file := "The secret file"
+
+	assert.True(t, v.Has(file))
+
+	meta, err := v.Get(file)
+	assert.NoError(t, err)
+
+	assert.Equal(t, meta["foo"].(string), "bar")
+
+	reader, err := v.GetReader(file)
+	assert.NoError(t, err)
+
+	data := bytes.NewBufferString("")
+	data.ReadFrom(reader)
+
+	assert.Equal(t, data.String(), "The secret message")
+}
+
 func Test_VaultElement(t *testing.T) {
 	ve := NewVaultElement()
 
-	assert.Equal(t, ve.Algo, "aes") // default value
+	assert.Equal(t, ve.Algo, "aes_ctr") // default value
 	assert.NotEmpty(t, ve.Key)
 }
 
