@@ -57,14 +57,13 @@ There are 3 options:
 
   - ``no_op`` : no operation, ie no encryption applied. This can be usefull for debugging or for 
   storing non critical information (ie, web site assets)
-  - ``aes_ofb``: apply AES encryption with OFB Mode. This mode is good for only offer confidentiality, 
-  there is no authenticity and integrity encryption. With this mode it is still possible to flip a 
-  bit and change the decrypted contents. However, it is possible to encrypt a large stream.
+  - ``aes_ofb``: apply AES encryption with OFB Mode.
   - ``aes_ctr``: apply AES encryption with CTR Mode. 
+  - ``aes_cbc``: apply AES encryption with CBC Mode. 
   
-Please note: ``aes_ofb`` and ``aes_ctr`` are good for confidentiality however there is no 
+Please note: ``aes_ofb``, ``aes_ctr``, ``aes_cbc`` are good for confidentiality however there is no 
 authenticity and integrity encryption. Please read [Block Cipher Mode](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation)
-for mor information.
+for mor information. This can be a solution if you need to encrypt a stream of bytes.
 
   
 Warning
@@ -75,6 +74,7 @@ Warning
  splitting encryption/decryption into fixed chunk size block.
  - Possibly need to adapt code from: https://github.com/tadzik/simpleaes/blob/master/simpleaes.go to
  work with current interface signature.
+
 
 Vault
 -----

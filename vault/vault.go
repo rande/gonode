@@ -18,14 +18,11 @@ func NewVaultMetadata() VaultMetadata {
 
 type Vault interface {
 	Has(key string) bool
-	Get(key string) (VaultMetadata, error)
-	GetReader(key string) (io.Reader, error)
+	GetMeta(key string) (VaultMetadata, error)
+	Get(key string, w io.Writer) (int64, error)
 	Put(key string, meta VaultMetadata, r io.Reader) (int64, error)
 	Remove(key string) error
 }
-
-type Encrypter func(key interface{}, w io.Writer) io.Writer
-type Decrypter func(key interface{}, r io.Reader) io.Reader
 
 type VaultElement struct {
 	Key  []byte `json:"key"`

@@ -3,6 +3,7 @@ package vault
 import (
 	"encoding/json"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -31,52 +32,61 @@ func (v *VaultFs) Has(name string) bool {
 	return true
 }
 
-func (v *VaultFs) Get(name string) (VaultMetadata, error) {
+func (v *VaultFs) GetMeta(name string) (vm VaultMetadata, err error) {
+	var ve *VaultElement
+	var data []byte
+
+	vm = NewVaultMetadata()
+
 	// need to get the vaultelement
 	vaultname := GetVaultKey(name)
 	binfile := filepath.Join(v.Root, GetVaultPath(vaultname))
 	metafile := binfile + ".meta"
 
 	// load vault element
-	ve, err := v.getVaultElement(vaultname)
-
-	if err != nil {
-		return nil, err
+	if ve, err = v.getVaultElement(vaultname); err != nil {
+		return
 	}
 
 	// load metadata
-	meta := NewVaultMetadata()
+	if data, err = ioutil.ReadFile(metafile); err != nil {
+		return
+	}
 
-	// load binary stream
-	fm, _ := os.Open(metafile)
-	err = json.NewDecoder(GetDecryptionReader(v.Algo, ve.Key, fm)).Decode(&meta)
+	if err = Unmarshal(v.Algo, ve.Key, data, &vm); err != nil {
+		return
+	}
 
-	return meta, err
+	return
 }
 
-func (v *VaultFs) GetReader(name string) (io.Reader, error) {
+func (v *VaultFs) Get(name string, w io.Writer) (written int64, err error) {
+	var ve *VaultElement
+	var fb *os.File
+
 	vaultname := GetVaultKey(name)
 
 	binfile := filepath.Join(v.Root, GetVaultPath(vaultname))
 
-	ve, err := v.getVaultElement(vaultname)
-
-	if err != nil {
-		return nil, err
+	if ve, err = v.getVaultElement(vaultname); err != nil {
+		return
 	}
 
 	// load binary stream
-	fb, err := os.Open(binfile)
-	if err != nil {
-		return nil, err
+	if fb, err = os.Open(binfile); err != nil {
+		return
 	}
 
-	return GetDecryptionReader(v.Algo, ve.Key, fb), nil
+	return Decrypt(v.Algo, ve.Key, fb, w)
 }
 
-func (v *VaultFs) Put(name string, meta VaultMetadata, r io.Reader) (int64, error) {
+func (v *VaultFs) Put(name string, meta VaultMetadata, r io.Reader) (written int64, err error) {
+	var ve *VaultElement
+	var fb *os.File
+	var data []byte
+
 	if v.Has(name) {
-		return 0, VaultFileExistsError
+		return written, VaultFileExistsError
 	}
 
 	vaultname := GetVaultKey(name)
@@ -85,50 +95,41 @@ func (v *VaultFs) Put(name string, meta VaultMetadata, r io.Reader) (int64, erro
 	vaultfile := binfile + ".vault"
 	metafile := binfile + ".meta"
 
-	ve, err := v.createVaultElement(vaultname)
-
-	if err != nil {
-		return 0, nil
+	// create vault element
+	if ve, err = v.createVaultElement(vaultname); err != nil {
+		return
 	}
 
-	// store metafile
-	fm, err := os.Create(metafile)
-	if err != nil {
-		defer RemoveIfExists(vaultfile)
-
-		return 0, err
+	if data, err = Marshal(v.Algo, ve.Key, meta); err != nil {
+		return
 	}
-	defer fm.Close()
 
-	err = json.NewEncoder(GetEncryptionWriter(v.Algo, ve.Key, fm)).Encode(meta)
-	if err != nil {
+	if err = ioutil.WriteFile(metafile, data, 0600); err != nil {
 		defer RemoveIfExists(vaultfile)
 		defer RemoveIfExists(metafile)
 
-		return 0, err
+		return
 	}
 
-	// store binary
-	fb, err := os.Create(binfile)
+	if fb, err = os.Create(binfile); err != nil {
+		defer RemoveIfExists(vaultfile)
+		defer RemoveIfExists(metafile)
+
+		return
+	}
+
 	defer fb.Close()
 
-	if err != nil {
-		defer RemoveIfExists(vaultfile)
-		defer RemoveIfExists(metafile)
-
-		return 0, err
-	}
-
 	// Copy the input stream to the encryted stream.
-	if written, err := io.Copy(GetEncryptionWriter(v.Algo, ve.Key, fb), r); err != nil {
+	if written, err = Encrypt(v.Algo, ve.Key, r, fb); err != nil {
 		defer RemoveIfExists(vaultfile)
 		defer RemoveIfExists(metafile)
 		defer RemoveIfExists(binfile)
 
-		return 0, err
-	} else {
-		return written, nil
+		return
 	}
+
+	return
 }
 
 func (v *VaultFs) Remove(name string) error {
@@ -141,58 +142,58 @@ func (v *VaultFs) Remove(name string) error {
 	return nil
 }
 
-func (v *VaultFs) createVaultElement(namekey []byte) (*VaultElement, error) {
+func (v *VaultFs) createVaultElement(namekey []byte) (ve *VaultElement, err error) {
+	var data []byte
+
+	ve = NewVaultElement()
+	ve.Algo = v.Algo
+
 	vaultfile := filepath.Join(v.Root, GetVaultPath(namekey)) + ".vault"
 
 	// create base folder
 	path := filepath.Dir(vaultfile)
-	if err := os.MkdirAll(path, 0700); err != nil {
-		return nil, err
+	if err = os.MkdirAll(path, 0700); err != nil {
+		return
 	}
-
-	// store vault element
-	ve := NewVaultElement()
-	ve.Algo = v.Algo
-
-	fv, err := os.Create(vaultfile)
-	if err != nil {
-		return nil, err
-	}
-
-	defer fv.Close()
 
 	if len(v.BaseKey) > 0 {
 		key := GetVaultKey(string(append(namekey, v.BaseKey...)[:]))
-
-		err = json.NewEncoder(GetEncryptionWriter(v.Algo, key, fv)).Encode(ve)
+		data, err = Marshal(v.Algo, key, ve)
 	} else {
-		err = json.NewEncoder(fv).Encode(ve)
+		data, err = json.Marshal(ve)
 	}
 
 	if err != nil {
-		defer RemoveIfExists(vaultfile)
-
-		return nil, err
+		return
 	}
 
-	return ve, nil
+	if err = ioutil.WriteFile(vaultfile, data, 0600); err != nil {
+		defer RemoveIfExists(vaultfile)
+
+		return
+	}
+
+	return
 }
 
-func (v *VaultFs) getVaultElement(namekey []byte) (*VaultElement, error) {
+func (v *VaultFs) getVaultElement(namekey []byte) (ve *VaultElement, err error) {
 	// load vault element
-	var err error
+	var data []byte
+
+	ve = NewVaultElement()
 
 	// generate the key from the Vault.Base + namekey
 	vaultfile := filepath.Join(v.Root, GetVaultPath(namekey)) + ".vault"
 
-	ve := NewVaultElement()
-	fv, _ := os.Open(vaultfile)
+	if data, err = ioutil.ReadFile(vaultfile); err != nil {
+		return
+	}
 
 	if len(v.BaseKey) > 0 {
 		key := GetVaultKey(string(append(namekey, v.BaseKey...)[:]))
-		err = json.NewDecoder(GetDecryptionReader(v.Algo, key, fv)).Decode(ve)
+		err = Unmarshal(v.Algo, key, data, ve)
 	} else {
-		err = json.NewDecoder(fv).Decode(ve)
+		err = json.Unmarshal(data, ve)
 	}
 
 	return ve, err
