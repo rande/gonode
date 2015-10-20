@@ -105,15 +105,15 @@ func (v *VaultFs) Put(name string, meta VaultMetadata, r io.Reader) (written int
 	}
 
 	if err = ioutil.WriteFile(metafile, data, 0600); err != nil {
-		defer RemoveIfExists(vaultfile)
-		defer RemoveIfExists(metafile)
+		RemoveIfExists(vaultfile)
+		RemoveIfExists(metafile)
 
 		return
 	}
 
 	if fb, err = os.Create(binfile); err != nil {
-		defer RemoveIfExists(vaultfile)
-		defer RemoveIfExists(metafile)
+		RemoveIfExists(vaultfile)
+		RemoveIfExists(metafile)
 
 		return
 	}
@@ -122,9 +122,9 @@ func (v *VaultFs) Put(name string, meta VaultMetadata, r io.Reader) (written int
 
 	// Copy the input stream to the encryted stream.
 	if written, err = Encrypt(v.Algo, ve.Key, r, fb); err != nil {
-		defer RemoveIfExists(vaultfile)
-		defer RemoveIfExists(metafile)
-		defer RemoveIfExists(binfile)
+		RemoveIfExists(vaultfile)
+		RemoveIfExists(metafile)
+		RemoveIfExists(binfile)
 
 		return
 	}
@@ -168,7 +168,7 @@ func (v *VaultFs) createVaultElement(namekey []byte) (ve *VaultElement, err erro
 	}
 
 	if err = ioutil.WriteFile(vaultfile, data, 0600); err != nil {
-		defer RemoveIfExists(vaultfile)
+		RemoveIfExists(vaultfile)
 
 		return
 	}

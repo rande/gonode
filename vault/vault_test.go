@@ -4,26 +4,35 @@ import (
 	"bytes"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	//	"crypto/rand"
+	//	"fmt"
 )
 
+//	message := make([]byte, 2048)
+//	io.ReadFull(rand.Reader, message)
+
 // write/encrypted file
-func RunTestVault(t *testing.T, v Vault) {
+func RunTestVault(t *testing.T, v Vault, plaintext []byte) {
+	var read int64
+
 	file := "this-is-a-test"
 
 	meta := NewVaultMetadata()
 	meta["foo"] = "bar"
 
-	reader := bytes.NewBuffer([]byte("Comment ca va ??"))
+	reader := bytes.NewBuffer(plaintext)
 
 	written, err := v.Put(file, meta, reader)
 
 	assert.NoError(t, err)
-	assert.Equal(t, written, 16)
+	assert.True(t, written >= int64(len(plaintext))) // some cipher might add extra data
+	assert.True(t, written > 0)                      // some cipher might add extra data
 	assert.True(t, v.Has(file))
 
-	message := []byte("Another invalid message with the same key")
+	invalid := []byte("Another invalid message with the same key")
+
 	// test overwrite
-	written, err = v.Put(file, meta, bytes.NewBuffer(message))
+	written, err = v.Put(file, meta, bytes.NewBuffer(invalid))
 	assert.Error(t, err)
 	assert.Equal(t, written, 0)
 
@@ -34,9 +43,11 @@ func RunTestVault(t *testing.T, v Vault) {
 
 	// get file
 	writer := bytes.NewBuffer([]byte(""))
-	_, err = v.Get(file, writer)
+	read, err = v.Get(file, writer)
+	assert.Equal(t, read, len(plaintext))
+	assert.True(t, len(plaintext) > 0, "plaintext length should not be empty")
 	assert.NoError(t, err)
-	assert.Equal(t, []byte("Comment ca va ??"), writer.Bytes())
+	assert.Equal(t, plaintext, writer.Bytes())
 
 	// remove file
 	v.Remove(file)
