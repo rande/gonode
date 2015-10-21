@@ -49,7 +49,7 @@ func (m *MockedManager) RemoveOne(node *Node) (*Node, error) {
 	return args.Get(0).(*Node), args.Error(1)
 }
 
-func (m *MockedManager) Save(node *Node) (*Node, error) {
+func (m *MockedManager) Save(node *Node, revision bool) (*Node, error) {
 	args := m.Mock.Called(node)
 
 	return args.Get(0).(*Node), args.Error(1)

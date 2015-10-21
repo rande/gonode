@@ -31,13 +31,14 @@ type Listener interface {
 type SubscriberHander func(notification *pq.Notification) (int, error)
 
 type ModelEvent struct {
-	Subject  string    `json:"subject"`
-	Action   string    `json:"action"`
-	Type     string    `json:"type"`
-	Revision int       `json:"revision"`
-	Date     time.Time `json:"date"`
-	Extra    string    `json:"extra"`
-	Name     string    `json:"name"`
+	Subject     string    `json:"subject"`
+	Action      string    `json:"action"`
+	Type        string    `json:"type"`
+	Revision    int       `json:"revision"`
+	Date        time.Time `json:"date"`
+	Extra       string    `json:"extra"`
+	Name        string    `json:"name"`
+	NewRevision bool      `json:"new_revision"`
 }
 
 func NewSubscriber(conninfo string, logger *log.Logger) *Subscriber {

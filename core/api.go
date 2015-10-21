@@ -132,7 +132,7 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 		return ValidationError
 	}
 
-	a.Manager.Save(node)
+	a.Manager.Save(node, true)
 
 	a.Serializer.Serialize(w, node)
 

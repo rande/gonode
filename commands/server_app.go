@@ -9,16 +9,16 @@ import (
 	"github.com/rande/goapp"
 
 	"fmt"
-	nc "github.com/rande/gonode/core"
+	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/handlers"
+	"github.com/rande/gonode/test/fixtures"
+	"github.com/rande/gonode/vault"
 	"net/http"
 
 	"database/sql"
 	sq "github.com/lann/squirrel"
 	pq "github.com/lib/pq"
-	nh "github.com/rande/gonode/handlers"
 
-	"github.com/rande/gonode/test/fixtures"
-	"github.com/spf13/afero"
 	"log"
 	"time"
 
@@ -28,7 +28,7 @@ import (
 	"os"
 )
 
-func ConfigureServer(l *goapp.Lifecycle, config *nc.ServerConfig) {
+func ConfigureServer(l *goapp.Lifecycle, config *core.ServerConfig) {
 
 	l.Config(func(app *goapp.App) error {
 		app.Set("gonode.configuration", func(app *goapp.App) interface{} {
@@ -70,8 +70,8 @@ func ConfigureServer(l *goapp.Lifecycle, config *nc.ServerConfig) {
 
 		mux.Put(prefix+"/data/purge", func(res http.ResponseWriter, req *http.Request) {
 
-			manager := app.Get("gonode.manager").(*nc.PgNodeManager)
-			configuration := app.Get("gonode.configuration").(*nc.ServerConfig)
+			manager := app.Get("gonode.manager").(*core.PgNodeManager)
+			configuration := app.Get("gonode.configuration").(*core.ServerConfig)
 
 			prefix := configuration.Databases["master"].Prefix
 
@@ -81,18 +81,18 @@ func ConfigureServer(l *goapp.Lifecycle, config *nc.ServerConfig) {
 			err := tx.Commit()
 
 			if err != nil {
-				nc.SendWithStatus("KO", err.Error(), res)
+				core.SendWithStatus("KO", err.Error(), res)
 			} else {
-				nc.SendWithStatus("OK", "Data purged!", res)
+				core.SendWithStatus("OK", "Data purged!", res)
 			}
 		})
 
 		mux.Put(prefix+"/data/load", func(res http.ResponseWriter, req *http.Request) {
-			manager := app.Get("gonode.manager").(*nc.PgNodeManager)
+			manager := app.Get("gonode.manager").(*core.PgNodeManager)
 			nodes := manager.FindBy(manager.SelectBuilder(), 0, 10)
 
 			if nodes.Len() != 0 {
-				nc.SendWithStatus("KO", "Table contains data, purge the data first!", res)
+				core.SendWithStatus("KO", "Table contains data, purge the data first!", res)
 
 				return
 			}
@@ -100,9 +100,9 @@ func ConfigureServer(l *goapp.Lifecycle, config *nc.ServerConfig) {
 			err := fixtures.LoadFixtures(manager, 100)
 
 			if err != nil {
-				nc.SendWithStatus("KO", err.Error(), res)
+				core.SendWithStatus("KO", err.Error(), res)
 			} else {
-				nc.SendWithStatus("OK", "Data loaded!", res)
+				core.SendWithStatus("OK", "Data loaded!", res)
 			}
 		})
 
@@ -110,10 +110,14 @@ func ConfigureServer(l *goapp.Lifecycle, config *nc.ServerConfig) {
 	})
 
 	l.Register(func(app *goapp.App) error {
-		app.Set("gonode.fs", func(app *goapp.App) interface{} {
-			configuration := app.Get("gonode.configuration").(*nc.ServerConfig)
+		app.Set("gonode.vault.fs", func(app *goapp.App) interface{} {
+			configuration := app.Get("gonode.configuration").(*core.ServerConfig)
 
-			return nc.NewSecureFs(&afero.OsFs{}, configuration.Filesystem.Path)
+			return &vault.VaultFs{
+				BaseKey: []byte(""),
+				Algo:    "no_op",
+				Root:    configuration.Filesystem.Path,
+			}
 		})
 
 		app.Set("gonode.http_client", func(app *goapp.App) interface{} {
@@ -121,32 +125,32 @@ func ConfigureServer(l *goapp.Lifecycle, config *nc.ServerConfig) {
 		})
 
 		app.Set("gonode.handler_collection", func(app *goapp.App) interface{} {
-			return nc.HandlerCollection{
-				"default": &nh.DefaultHandler{},
-				"media.image": &nh.ImageHandler{
-					Fs: app.Get("gonode.fs").(*nc.SecureFs),
+			return core.HandlerCollection{
+				"default": &handlers.DefaultHandler{},
+				"media.image": &handlers.ImageHandler{
+					Vault: app.Get("gonode.vault.fs").(vault.Vault),
 				},
-				"media.youtube": &nh.YoutubeHandler{},
-				"blog.post":     &nh.PostHandler{},
-				"core.user":     &nh.UserHandler{},
+				"media.youtube": &handlers.YoutubeHandler{},
+				"blog.post":     &handlers.PostHandler{},
+				"core.user":     &handlers.UserHandler{},
 			}
 		})
 
 		app.Set("gonode.manager", func(app *goapp.App) interface{} {
-			configuration := app.Get("gonode.configuration").(*nc.ServerConfig)
+			configuration := app.Get("gonode.configuration").(*core.ServerConfig)
 
-			return &nc.PgNodeManager{
+			return &core.PgNodeManager{
 				Logger:   app.Get("logger").(*log.Logger),
 				Db:       app.Get("gonode.postgres.connection").(*sql.DB),
 				ReadOnly: false,
-				Handlers: app.Get("gonode.handler_collection").(nc.Handlers),
+				Handlers: app.Get("gonode.handler_collection").(core.Handlers),
 				Prefix:   configuration.Databases["master"].Prefix,
 			}
 		})
 
 		app.Set("gonode.postgres.connection", func(app *goapp.App) interface{} {
 
-			configuration := app.Get("gonode.configuration").(*nc.ServerConfig)
+			configuration := app.Get("gonode.configuration").(*core.ServerConfig)
 
 			sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 			db, err := sql.Open("postgres", configuration.Databases["master"].DSN)
@@ -167,25 +171,25 @@ func ConfigureServer(l *goapp.Lifecycle, config *nc.ServerConfig) {
 		})
 
 		app.Set("gonode.api", func(app *goapp.App) interface{} {
-			return &nc.Api{
-				Manager:    app.Get("gonode.manager").(*nc.PgNodeManager),
+			return &core.Api{
+				Manager:    app.Get("gonode.manager").(*core.PgNodeManager),
 				Version:    "1.0.0",
-				Serializer: app.Get("gonode.node.serializer").(*nc.Serializer),
+				Serializer: app.Get("gonode.node.serializer").(*core.Serializer),
 				Logger:     app.Get("logger").(*log.Logger),
 			}
 		})
 
 		app.Set("gonode.node.serializer", func(app *goapp.App) interface{} {
-			s := nc.NewSerializer()
-			s.Handlers = app.Get("gonode.handler_collection").(nc.Handlers)
+			s := core.NewSerializer()
+			s.Handlers = app.Get("gonode.handler_collection").(core.Handlers)
 
 			return s
 		})
 
 		app.Set("gonode.postgres.subscriber", func(app *goapp.App) interface{} {
-			configuration := app.Get("gonode.configuration").(*nc.ServerConfig)
+			configuration := app.Get("gonode.configuration").(*core.ServerConfig)
 
-			return nc.NewSubscriber(
+			return core.NewSubscriber(
 				configuration.Databases["master"].DSN,
 				app.Get("logger").(*log.Logger),
 			)
@@ -194,18 +198,15 @@ func ConfigureServer(l *goapp.Lifecycle, config *nc.ServerConfig) {
 		app.Set("gonode.listener.youtube", func(app *goapp.App) interface{} {
 			client := app.Get("gonode.http_client").(*http.Client)
 
-			return &nh.YoutubeListener{
+			return &handlers.YoutubeListener{
 				HttpClient: client,
 			}
 		})
 
 		app.Set("gonode.listener.file_downloader", func(app *goapp.App) interface{} {
-			client := app.Get("gonode.http_client").(*http.Client)
-			fs := app.Get("gonode.fs").(*nc.SecureFs)
-
-			return &nh.ImageDownloadListener{
-				Fs:         fs,
-				HttpClient: client,
+			return &handlers.ImageDownloadListener{
+				Vault:      app.Get("gonode.vault.fs").(vault.Vault),
+				HttpClient: app.Get("gonode.http_client").(*http.Client),
 			}
 		})
 
@@ -214,27 +215,27 @@ func ConfigureServer(l *goapp.Lifecycle, config *nc.ServerConfig) {
 
 	l.Prepare(func(app *goapp.App) error {
 		// need to find a way to trigger the handler registration
-		sub := app.Get("gonode.postgres.subscriber").(*nc.Subscriber)
+		sub := app.Get("gonode.postgres.subscriber").(*core.Subscriber)
 
-		sub.ListenMessage("media_youtube_update", func(app *goapp.App) nc.SubscriberHander {
-			manager := app.Get("gonode.manager").(*nc.PgNodeManager)
-			listener := app.Get("gonode.listener.youtube").(*nh.YoutubeListener)
-
-			return func(notification *pq.Notification) (int, error) {
-				return listener.Handle(notification, manager)
-			}
-		}(app))
-
-		sub.ListenMessage("media_file_download", func(app *goapp.App) nc.SubscriberHander {
-			manager := app.Get("gonode.manager").(*nc.PgNodeManager)
-			listener := app.Get("gonode.listener.file_downloader").(*nh.ImageDownloadListener)
+		sub.ListenMessage("media_youtube_update", func(app *goapp.App) core.SubscriberHander {
+			manager := app.Get("gonode.manager").(*core.PgNodeManager)
+			listener := app.Get("gonode.listener.youtube").(*handlers.YoutubeListener)
 
 			return func(notification *pq.Notification) (int, error) {
 				return listener.Handle(notification, manager)
 			}
 		}(app))
 
-		sub.ListenMessage("core_sleep", func(app *goapp.App) nc.SubscriberHander {
+		sub.ListenMessage("media_file_download", func(app *goapp.App) core.SubscriberHander {
+			manager := app.Get("gonode.manager").(*core.PgNodeManager)
+			listener := app.Get("gonode.listener.file_downloader").(*handlers.ImageDownloadListener)
+
+			return func(notification *pq.Notification) (int, error) {
+				return listener.Handle(notification, manager)
+			}
+		}(app))
+
+		sub.ListenMessage("core_sleep", func(app *goapp.App) core.SubscriberHander {
 			return func(notification *pq.Notification) (int, error) {
 
 				logger := app.Get("logger").(*log.Logger)
@@ -247,7 +248,7 @@ func ConfigureServer(l *goapp.Lifecycle, config *nc.ServerConfig) {
 
 				logger.Printf("[core_sleep] wake up ...")
 
-				return nc.PubSubListenContinue, nil
+				return core.PubSubListenContinue, nil
 			}
 		}(app))
 

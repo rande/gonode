@@ -7,7 +7,6 @@ package handlers
 
 import (
 	nc "github.com/rande/gonode/core"
-	"github.com/spf13/afero"
 	"io"
 )
 
@@ -46,6 +45,6 @@ func (h *DefaultHandler) Load(data []byte, meta []byte, node *nc.Node) error {
 	return nc.HandlerLoad(h, data, meta, node)
 }
 
-func (h *DefaultHandler) StoreStream(node *nc.Node, r io.Reader) (afero.File, int64, error) {
+func (h *DefaultHandler) StoreStream(node *nc.Node, r io.Reader) (int64, error) {
 	return nc.DefaultHandlerStoreStream(node, r)
 }

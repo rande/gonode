@@ -54,7 +54,6 @@ func Unmarshal(mode string, key interface{}, data []byte, v interface{}) (err er
 
 	if err = json.Unmarshal(dst.Bytes(), v); err != nil {
 		panic(err)
-		return
 	}
 
 	return
@@ -192,8 +191,6 @@ func AesCBCEncrypter(key interface{}, r io.Reader, w io.Writer) (written int64, 
 			written += int64(twritten)
 		}
 	}
-
-	return
 }
 
 func AesCBCDecrypter(key interface{}, r io.Reader, w io.Writer) (written int64, err error) {
@@ -232,6 +229,4 @@ func AesCBCDecrypter(key interface{}, r io.Reader, w io.Writer) (written int64, 
 			written += int64(twritten)
 		}
 	}
-
-	return
 }

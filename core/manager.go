@@ -40,7 +40,7 @@ type NodeManager interface {
 	Find(uuid Reference) *Node
 	Remove(query sq.SelectBuilder) error
 	RemoveOne(node *Node) (*Node, error)
-	Save(node *Node) (*Node, error)
+	Save(node *Node, revision bool) (*Node, error)
 	Notify(channel string, payload string)
 	NewNode(t string) *Node
 	Validate(node *Node) (bool, Errors)

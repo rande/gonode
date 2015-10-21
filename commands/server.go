@@ -44,13 +44,11 @@ func (c *ServerCommand) Run(args []string) int {
 		return 1
 	}
 
-	config := &nc.ServerConfig{
-		Databases: make(map[string]*nc.ServerDatabase),
-	}
+	config := nc.NewServerConfig()
 
 	nc.LoadConfiguration(c.ConfigFile, config)
 
-	c.Ui.Info("Bind: " + config.Bind)
+	c.Ui.Info("Starting GoNode Server on: " + config.Bind)
 
 	l := goapp.NewLifecycle()
 

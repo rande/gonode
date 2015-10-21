@@ -92,6 +92,10 @@ func (node *Node) Id() int {
 	return node.id
 }
 
+func (node *Node) UniqueId() string {
+	return fmt.Sprintf("%s-v%d", node.Uuid.CleanString(), node.Revision)
+}
+
 func NewNode() *Node {
 	return &Node{
 		Uuid:       GetEmptyReference(),

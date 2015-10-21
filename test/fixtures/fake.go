@@ -77,14 +77,14 @@ func LoadFixtures(m *nc.PgNodeManager, max int) error {
 		PasswordAlgo: "bcrypt",
 	}
 
-	m.Save(admin)
+	m.Save(admin, false)
 
 	for i := 1; i < max; i++ {
 		node := GetFakeUserNode(i)
 		node.UpdatedBy = admin.Uuid
 		node.CreatedBy = admin.Uuid
 
-		_, err = m.Save(node)
+		_, err = m.Save(node, false)
 
 		nc.PanicOnError(err)
 	}
@@ -94,7 +94,7 @@ func LoadFixtures(m *nc.PgNodeManager, max int) error {
 		node.UpdatedBy = admin.Uuid
 		node.CreatedBy = admin.Uuid
 
-		_, err = m.Save(node)
+		_, err = m.Save(node, false)
 
 		nc.PanicOnError(err)
 	}
@@ -104,7 +104,7 @@ func LoadFixtures(m *nc.PgNodeManager, max int) error {
 		node.UpdatedBy = admin.Uuid
 		node.CreatedBy = admin.Uuid
 
-		_, err = m.Save(node)
+		_, err = m.Save(node, false)
 
 		nc.PanicOnError(err)
 	}

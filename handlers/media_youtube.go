@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"github.com/lib/pq"
 	nc "github.com/rande/gonode/core"
-	"github.com/spf13/afero"
 	"io"
 )
 
@@ -89,7 +88,7 @@ func (h *YoutubeHandler) Load(data []byte, meta []byte, node *nc.Node) error {
 	return nc.HandlerLoad(h, data, meta, node)
 }
 
-func (h *YoutubeHandler) StoreStream(node *nc.Node, r io.Reader) (afero.File, int64, error) {
+func (h *YoutubeHandler) StoreStream(node *nc.Node, r io.Reader) (int64, error) {
 	return nc.DefaultHandlerStoreStream(node, r)
 }
 
@@ -114,7 +113,7 @@ func (l *YoutubeListener) Handle(notification *pq.Notification, m nc.NodeManager
 	if err != nil {
 		node.Data.(*Youtube).Status = nc.ProcessStatusError
 		node.Data.(*Youtube).Error = "Error while retrieving json response"
-		m.Save(node)
+		m.Save(node, true)
 
 		return nc.PubSubListenContinue, err
 	}
@@ -127,14 +126,14 @@ func (l *YoutubeListener) Handle(notification *pq.Notification, m nc.NodeManager
 	if err != nil {
 		node.Data.(*Youtube).Status = nc.ProcessStatusError
 		node.Data.(*Youtube).Error = "Error while decoding json"
-		m.Save(node)
+		m.Save(node, true)
 
 		return nc.PubSubListenContinue, err
 	}
 
 	node.Data.(*Youtube).Status = nc.ProcessStatusDone
 
-	m.Save(node)
+	m.Save(node, true)
 
 	if node.Meta.(*YoutubeMeta).ThumbnailUrl != "" {
 		image := m.NewNode("media.image")
@@ -143,7 +142,7 @@ func (l *YoutubeListener) Handle(notification *pq.Notification, m nc.NodeManager
 		image.CreatedBy = node.CreatedBy
 		image.UpdatedBy = node.UpdatedBy
 
-		m.Save(image)
+		m.Save(image, false)
 	}
 
 	return nc.PubSubListenContinue, nil

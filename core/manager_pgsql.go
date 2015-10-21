@@ -167,7 +167,7 @@ func (m *PgNodeManager) Remove(query sq.SelectBuilder) error {
 			node.Deleted = true
 			node.UpdatedAt = now
 
-			m.Save(node)
+			m.Save(node, false)
 
 			m.sendNotification(m.Prefix+"_manager_action", &ModelEvent{
 				Type:     node.Type,
@@ -198,7 +198,7 @@ func (m *PgNodeManager) RemoveOne(node *Node) (*Node, error) {
 		Name:     node.Name,
 	})
 
-	return m.Save(node)
+	return m.Save(node, true)
 }
 
 func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
@@ -281,7 +281,7 @@ func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 	return node, err
 }
 
-func (m *PgNodeManager) Save(node *Node) (*Node, error) {
+func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 
 	PanicIf(m.ReadOnly, "The manager is readonly, cannot alter the datastore")
 
@@ -327,16 +327,18 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 		return node, NewRevisionError(fmt.Sprintf("Invalid revision for node:%s, current rev: %d", node.Uuid, node.Revision))
 	}
 
-	// 2. Flag the current node as deprecated
-	saved.UpdatedAt = time.Now()
-	saved, err = m.insertNode(saved, m.Prefix+"_nodes_audit")
+	if revision {
+		// 2. Flag the current node as deprecated
+		saved.UpdatedAt = time.Now()
+		saved, err = m.insertNode(saved, m.Prefix+"_nodes_audit")
 
-	PanicOnError(err)
+		PanicOnError(err)
 
-	// 3. Update the revision number
-	node.Revision++
-	node.CreatedAt = saved.CreatedAt
-	node.UpdatedAt = saved.UpdatedAt
+		// 3. Update the revision number
+		node.Revision++
+		node.CreatedAt = saved.CreatedAt
+		node.UpdatedAt = saved.UpdatedAt
+	}
 
 	node, err = m.updateNode(node, m.Prefix+"_nodes")
 
@@ -345,12 +347,13 @@ func (m *PgNodeManager) Save(node *Node) (*Node, error) {
 	PanicOnError(err)
 
 	m.sendNotification(m.Prefix+"_manager_action", &ModelEvent{
-		Type:     node.Type,
-		Action:   "Update",
-		Subject:  node.Uuid.CleanString(),
-		Revision: node.Revision,
-		Date:     node.UpdatedAt,
-		Name:     node.Name,
+		Type:        node.Type,
+		Action:      "Update",
+		Subject:     node.Uuid.CleanString(),
+		Revision:    node.Revision,
+		Date:        node.UpdatedAt,
+		Name:        node.Name,
+		NewRevision: revision,
 	})
 
 	return node, err

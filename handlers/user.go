@@ -8,7 +8,6 @@ package handlers
 import (
 	v "github.com/asaskevich/govalidator"
 	nc "github.com/rande/gonode/core"
-	"github.com/spf13/afero"
 	"golang.org/x/crypto/bcrypt"
 	"io"
 	"regexp"
@@ -100,7 +99,7 @@ func (h *UserHandler) Load(data []byte, meta []byte, node *nc.Node) error {
 	return nc.HandlerLoad(h, data, meta, node)
 }
 
-func (h *UserHandler) StoreStream(node *nc.Node, r io.Reader) (afero.File, int64, error) {
+func (h *UserHandler) StoreStream(node *nc.Node, r io.Reader) (int64, error) {
 	return nc.DefaultHandlerStoreStream(node, r)
 }
 

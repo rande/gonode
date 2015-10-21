@@ -256,12 +256,12 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 					return
 				}
 
-				_, _, err := handlers.Get(node).StoreStream(node, req.Body)
+				_, err := handlers.Get(node).StoreStream(node, req.Body)
 
 				if err != nil {
 					SendWithHttpCode(res, http.StatusInternalServerError, err.Error())
 				} else {
-					manager.Save(node)
+					manager.Save(node, false)
 
 					SendWithHttpCode(res, http.StatusOK, "binary stored")
 				}

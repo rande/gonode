@@ -46,7 +46,7 @@ func InitSearchFixture(app *goapp.App) []*nc.Node {
 	node.Data.(*handlers.User).FirstName = "User"
 	node.Data.(*handlers.User).LastName = "A"
 	node.Data.(*handlers.User).Login = "user-a"
-	manager.Save(node)
+	manager.Save(node, false)
 
 	nodes = append(nodes, node)
 
@@ -57,7 +57,7 @@ func InitSearchFixture(app *goapp.App) []*nc.Node {
 	node.Data.(*handlers.User).FirstName = "User"
 	node.Data.(*handlers.User).LastName = "AA"
 	node.Data.(*handlers.User).Login = "user-aa"
-	manager.Save(node)
+	manager.Save(node, false)
 
 	nodes = append(nodes, node)
 
@@ -68,7 +68,7 @@ func InitSearchFixture(app *goapp.App) []*nc.Node {
 	node.Data.(*handlers.User).FirstName = "User"
 	node.Data.(*handlers.User).LastName = "B"
 	node.Data.(*handlers.User).Login = "user-b"
-	manager.Save(node)
+	manager.Save(node, false)
 
 	nodes = append(nodes, node)
 
