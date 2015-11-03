@@ -34,7 +34,7 @@ func RunTestVault(t *testing.T, v Vault, plaintext []byte) {
 	// test overwrite
 	written, err = v.Put(file, meta, bytes.NewBuffer(invalid))
 	assert.Error(t, err)
-	assert.Equal(t, written, 0)
+	assert.Equal(t, written, int64(0))
 
 	// get metadata
 	meta, err = v.GetMeta(file)
@@ -44,7 +44,7 @@ func RunTestVault(t *testing.T, v Vault, plaintext []byte) {
 	// get file
 	writer := bytes.NewBuffer([]byte(""))
 	read, err = v.Get(file, writer)
-	assert.Equal(t, read, len(plaintext))
+	assert.Equal(t, read, int64(len(plaintext)))
 	assert.True(t, len(plaintext) > 0, "plaintext length should not be empty")
 	assert.NoError(t, err)
 	assert.Equal(t, plaintext, writer.Bytes())

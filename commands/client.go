@@ -54,7 +54,7 @@ func (c *ClientCommand) Run(args []string) int {
 
 	l := goapp.NewLifecycle()
 
-	ConfigureClient(l, config)
+	//	ConfigureClient(l, config)
 
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 		mux := app.Get("goji.mux").(*web.Mux)
