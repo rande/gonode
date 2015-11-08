@@ -75,25 +75,26 @@ func Test_VaultElement(t *testing.T) {
 	ve := NewVaultElement()
 
 	assert.Equal(t, ve.Algo, "aes_ctr") // default value
-	assert.NotEmpty(t, ve.Key)
+	assert.NotEmpty(t, ve.BinKey)
+	assert.NotEmpty(t, ve.MetaKey)
 }
 
 func Test_AesEncrypt(t *testing.T) {
 	ve := NewVaultElement()
-	ve.Key = []byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+	ve.MetaKey = []byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 
-	assert.Equal(t, 32, len(ve.Key))
+	assert.Equal(t, 32, len(ve.MetaKey))
 
 	src := bytes.NewBuffer([]byte("Hello World!!"))
 	dst := bytes.NewBuffer([]byte(""))
 
-	AesOFBEncrypter(ve.Key, src, dst)
+	AesOFBEncrypter(ve.MetaKey, src, dst)
 
 	assert.NotEmpty(t, dst.String())
 
 	decrypted := bytes.NewBuffer([]byte(""))
 
-	AesOFBDecrypter(ve.Key, dst, decrypted)
+	AesOFBDecrypter(ve.MetaKey, dst, decrypted)
 
 	assert.Equal(t, []byte("Hello World!!"), decrypted.Bytes())
 }

@@ -25,7 +25,7 @@ type VaultFs struct {
 func (v *VaultFs) Has(name string) bool {
 	path := filepath.Join(v.Root, GetVaultPath(GetVaultKey(name)))
 
-	if _, error := os.Stat(path); error != nil {
+	if _, err := os.Stat(path); err != nil {
 		return false
 	}
 
@@ -53,7 +53,7 @@ func (v *VaultFs) GetMeta(name string) (vm VaultMetadata, err error) {
 		return
 	}
 
-	if err = Unmarshal(v.Algo, ve.Key, data, &vm); err != nil {
+	if err = Unmarshal(v.Algo, ve.MetaKey, data, &vm); err != nil {
 		return
 	}
 
@@ -77,7 +77,7 @@ func (v *VaultFs) Get(name string, w io.Writer) (written int64, err error) {
 		return
 	}
 
-	return Decrypt(v.Algo, ve.Key, fb, w)
+	return Decrypt(v.Algo, ve.BinKey, fb, w)
 }
 
 func (v *VaultFs) Put(name string, meta VaultMetadata, r io.Reader) (written int64, err error) {
@@ -100,7 +100,7 @@ func (v *VaultFs) Put(name string, meta VaultMetadata, r io.Reader) (written int
 		return
 	}
 
-	if data, err = Marshal(v.Algo, ve.Key, meta); err != nil {
+	if data, err = Marshal(v.Algo, ve.MetaKey, meta); err != nil {
 		return
 	}
 
@@ -121,7 +121,7 @@ func (v *VaultFs) Put(name string, meta VaultMetadata, r io.Reader) (written int
 	defer fb.Close()
 
 	// Copy the input stream to the encryted stream.
-	if written, err = Encrypt(v.Algo, ve.Key, r, fb); err != nil {
+	if written, err = Encrypt(v.Algo, ve.BinKey, r, fb); err != nil {
 		RemoveIfExists(vaultfile)
 		RemoveIfExists(metafile)
 		RemoveIfExists(binfile)

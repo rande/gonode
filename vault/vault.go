@@ -25,7 +25,8 @@ type Vault interface {
 }
 
 type VaultElement struct {
-	Key  []byte `json:"key"`
+	MetaKey []byte `json:"meta_key"`
+	BinKey  []byte `json:"bin_key"`
 	Algo string `json:"algo"`
 	Hash string `json:"hash"`
 }
@@ -49,6 +50,7 @@ func generateKey() []byte {
 func NewVaultElement() *VaultElement {
 	return &VaultElement{
 		Algo: "aes_ctr",
-		Key:  generateKey(),
+		MetaKey:  generateKey(),
+		BinKey:  generateKey(),
 	}
 }
