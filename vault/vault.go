@@ -1,8 +1,8 @@
 package vault
 
 import (
-	"crypto/sha256"
 	"crypto/rand"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"io"
@@ -27,8 +27,8 @@ type Vault interface {
 type VaultElement struct {
 	MetaKey []byte `json:"meta_key"`
 	BinKey  []byte `json:"bin_key"`
-	Algo string `json:"algo"`
-	Hash string `json:"hash"`
+	Algo    string `json:"algo"`
+	Hash    string `json:"hash"`
 }
 
 func GetVaultKey(name string) []byte {
@@ -55,8 +55,8 @@ func generateKey() []byte {
 
 func NewVaultElement() *VaultElement {
 	return &VaultElement{
-		Algo: "aes_ctr",
-		MetaKey:  generateKey(),
+		Algo:    "aes_ctr",
+		MetaKey: generateKey(),
 		BinKey:  generateKey(),
 	}
 }
