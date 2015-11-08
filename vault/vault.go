@@ -2,9 +2,9 @@ package vault
 
 import (
 	"crypto/sha256"
+	"crypto/rand"
 	"errors"
 	"fmt"
-	"github.com/elgs/gostrgen"
 	"io"
 )
 
@@ -42,9 +42,15 @@ func GetVaultPath(sum []byte) string {
 }
 
 func generateKey() []byte {
-	str, _ := gostrgen.RandGen(32, gostrgen.All, "", "")
 
-	return []byte(str)
+	b := make([]byte, 32)
+	_, err := rand.Read(b)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return b
 }
 
 func NewVaultElement() *VaultElement {
