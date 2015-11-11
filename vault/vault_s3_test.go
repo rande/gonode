@@ -19,6 +19,7 @@ import (
 func Test_Vault_Basic_S3_Usage(t *testing.T) {
 	var err error
 	var headResult *s3.HeadObjectOutput
+	var getResult *s3.GetObjectOutput
 
 	// init vault
 	v := &VaultS3{
@@ -83,12 +84,18 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, headResult.ETag)
 
+	getObject := &s3.GetObjectInput{
+		Bucket:        aws.String(bucketName), // required
+		Key:           aws.String(key), // required
+	}
+
+	getResult, err = s3client.GetObject(getObject)
 	assert.NoError(t, err)
 
-	//	v := &VaultS3{
-	//		Root: "/",
-	//		Algo: "aes_ctr",
-	//		BaseKey: key,
-	//		Region: "eu-west-1",
-	//		Credentials: creds,
+	data = []byte("xxxxxxxxxxxxx")
+
+	getResult.Body.Read(data)
+	getResult.Body.Close()
+
+	assert.Equal(t, []byte("foobar et foo"), data)
 }
