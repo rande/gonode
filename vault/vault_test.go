@@ -12,7 +12,7 @@ import (
 //	io.ReadFull(rand.Reader, message)
 
 // write/encrypted file
-func RunTestVault(t *testing.T, v Vault, plaintext []byte) {
+func RunTestVault(t *testing.T, v *Vault, plaintext []byte) {
 	var read int64
 
 	file := "this-is-a-test"
@@ -55,7 +55,7 @@ func RunTestVault(t *testing.T, v Vault, plaintext []byte) {
 }
 
 // read stored encrypted files
-func RunRegressionTest(t *testing.T, v Vault) {
+func RunRegressionTest(t *testing.T, v *Vault) {
 	file := "The secret file"
 
 	assert.True(t, v.Has(file))

@@ -113,10 +113,12 @@ func ConfigureServer(l *goapp.Lifecycle, config *core.ServerConfig) {
 		app.Set("gonode.vault.fs", func(app *goapp.App) interface{} {
 			configuration := app.Get("gonode.configuration").(*core.ServerConfig)
 
-			return &vault.VaultFs{
+			return &vault.Vault{
 				BaseKey: []byte(""),
 				Algo:    "no_op",
-				Root:    configuration.Filesystem.Path,
+				Driver: &vault.DriverFs{
+					Root:    configuration.Filesystem.Path,
+				},
 			}
 		})
 
@@ -128,7 +130,7 @@ func ConfigureServer(l *goapp.Lifecycle, config *core.ServerConfig) {
 			return core.HandlerCollection{
 				"default": &handlers.DefaultHandler{},
 				"media.image": &handlers.ImageHandler{
-					Vault: app.Get("gonode.vault.fs").(vault.Vault),
+					Vault: app.Get("gonode.vault.fs").(*vault.Vault),
 				},
 				"media.youtube": &handlers.YoutubeHandler{},
 				"blog.post":     &handlers.PostHandler{},
@@ -205,7 +207,7 @@ func ConfigureServer(l *goapp.Lifecycle, config *core.ServerConfig) {
 
 		app.Set("gonode.listener.file_downloader", func(app *goapp.App) interface{} {
 			return &handlers.ImageDownloadListener{
-				Vault:      app.Get("gonode.vault.fs").(vault.Vault),
+				Vault:      app.Get("gonode.vault.fs").(*vault.Vault),
 				HttpClient: app.Get("gonode.http_client").(*http.Client),
 			}
 		})

@@ -6,12 +6,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-//	"github.com/aws/aws-sdk-go/aws/awserr"
-//	"github.com/aws/aws-sdk-go/aws/awsutil"
+	//	"github.com/aws/aws-sdk-go/aws/awserr"
+	//	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"fmt"
-//	"time"
+	//	"time"
 	"bytes"
 	"os"
 )
@@ -23,17 +23,17 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 
 	// init vault
 	v := &VaultS3{
-		Region: "eu-west-1",
+		Region:   "eu-west-1",
 		EndPoint: "s3-eu-west-1.amazonaws.com",
 		Credentials: credentials.NewChainCredentials([]credentials.Provider{
 			&credentials.EnvProvider{},
 			&credentials.SharedCredentialsProvider{
 				Filename: os.Getenv("HOME") + "/.aws/credentials",
-				Profile: "gonode-test",
+				Profile:  "gonode-test",
 			},
 			&credentials.SharedCredentialsProvider{
 				Filename: os.Getenv("HOME") + "/.aws/credentials",
-				Profile: os.Getenv("GONODE_TEST_AWS_PROFILE"),
+				Profile:  os.Getenv("GONODE_TEST_AWS_PROFILE"),
 			},
 		}),
 	}
@@ -41,7 +41,7 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 	// init credentials information
 	config := &aws.Config{
 		Region:           &v.Region,
-		Endpoint:         &v.EndPoint, // <-- forking important !
+		Endpoint:         &v.EndPoint,    // <-- forking important !
 		S3ForcePathStyle: aws.Bool(true), // <-- without these lines. All will fail! fork you aws!
 		Credentials:      v.Credentials,
 	}
@@ -57,7 +57,7 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 
 	headResult, err = s3client.HeadObject(&s3.HeadObjectInput{
 		Bucket: aws.String(bucketName),
-		Key: aws.String("/no-file"),
+		Key:    aws.String("/no-file"),
 	})
 
 	assert.Error(t, err)
@@ -68,25 +68,25 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 	data := []byte("foobar et foo")
 
 	putObject := &s3.PutObjectInput{
-		Bucket:        aws.String(bucketName), // required
-		Key:           aws.String(key), // required
-		Body:          bytes.NewReader(data),
-		ContentType:   aws.String("application/octet-stream"),
+		Bucket:      aws.String(bucketName), // required
+		Key:         aws.String(key),        // required
+		Body:        bytes.NewReader(data),
+		ContentType: aws.String("application/octet-stream"),
 	}
 
 	_, err = s3client.PutObject(putObject)
 
 	headResult, err = s3client.HeadObject(&s3.HeadObjectInput{
 		Bucket: aws.String(bucketName),
-		Key: aws.String(key),
+		Key:    aws.String(key),
 	})
 
 	assert.NoError(t, err)
 	assert.NotNil(t, headResult.ETag)
 
 	getObject := &s3.GetObjectInput{
-		Bucket:        aws.String(bucketName), // required
-		Key:           aws.String(key), // required
+		Bucket: aws.String(bucketName), // required
+		Key:    aws.String(key),        // required
 	}
 
 	getResult, err = s3client.GetObject(getObject)

@@ -34,7 +34,7 @@ type Image struct {
 }
 
 type ImageHandler struct {
-	Vault vault.Vault
+	Vault *vault.Vault
 }
 
 func (h *ImageHandler) GetStruct() (core.NodeData, core.NodeMeta) {
@@ -123,7 +123,7 @@ func (h *ImageHandler) StoreStream(node *core.Node, r io.Reader) (written int64,
 }
 
 type ImageDownloadListener struct {
-	Vault      vault.Vault
+	Vault      *vault.Vault
 	HttpClient core.HttpClient
 }
 

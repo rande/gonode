@@ -1,7 +1,7 @@
 package vault
 
 import (
-	//	"bytes"
+	//		"bytes"
 	"crypto/rand"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -11,14 +11,19 @@ import (
 	"fmt"
 )
 
-func getVaultFs(algo string, key []byte) Vault {
-	v := &VaultFs{
-		Root:    "/tmp/goapp/test/vault",
+func getVaultFs(algo string, key []byte) *Vault {
+
+	root := "/tmp/goapp/test/vault"
+
+	v := &Vault{
 		Algo:    algo,
 		BaseKey: key,
+		Driver: &DriverFs{
+			Root: root,
+		},
 	}
 
-	os.RemoveAll(v.Root)
+	os.RemoveAll(root)
 
 	return v
 }
@@ -114,14 +119,15 @@ func Test_VaultFS_Secure_Aes_CBC_XLarge(t *testing.T) {
 }
 
 //func Test_Generate_Regression_Files(t *testing.T) {
-//
 //	types := []string{"aes_ofb", "aes_ctr", "aes_cbc"}
 //
 //	for _, v := range types {
-//		v := &VaultFs{
-//			Root:    "../test/vault/" + v,
+//		v := &Vault{
 //			Algo:    v,
 //			BaseKey: []byte("de4d3ae8cf578c971b39ab5f21b2435483a3654f63b9f3777925c77e9492a141"),
+//			Driver: &DriverFs{
+//				Root: "../test/vault/" + v,
+//			},
 //		}
 //
 //		file := "The secret file"
@@ -137,32 +143,24 @@ func Test_VaultFS_Secure_Aes_CBC_XLarge(t *testing.T) {
 //	}
 //}
 
-func Test_VaultFS_Secure_Aes_OFB_NoRegression(t *testing.T) {
-	v := &VaultFs{
-		Root:    "../test/vault/aes_ofb",
-		Algo:    "aes_ofb",
+func getNoRegressionVaultFs(algo string) *Vault {
+	return &Vault{
+		Algo:    algo,
 		BaseKey: key,
+		Driver: &DriverFs{
+			Root: "../test/vault/" + algo,
+		},
 	}
+}
 
-	RunRegressionTest(t, v)
+func Test_VaultFS_Secure_Aes_OFB_NoRegression(t *testing.T) {
+	RunRegressionTest(t, getNoRegressionVaultFs("aes_ofb"))
 }
 
 func Test_VaultFS_Secure_Aes_CTR_NoRegression(t *testing.T) {
-	v := &VaultFs{
-		Root:    "../test/vault/aes_ctr",
-		Algo:    "aes_ctr",
-		BaseKey: key,
-	}
-
-	RunRegressionTest(t, v)
+	RunRegressionTest(t, getNoRegressionVaultFs("aes_ctr"))
 }
 
 func Test_VaultFS_Secure_Aes_CBC_NoRegression(t *testing.T) {
-	v := &VaultFs{
-		Root:    "../test/vault/aes_cbc",
-		Algo:    "aes_cbc",
-		BaseKey: key,
-	}
-
-	RunRegressionTest(t, v)
+	RunRegressionTest(t, getNoRegressionVaultFs("aes_cbc"))
 }

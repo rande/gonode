@@ -1,11 +1,11 @@
 package vault
 
 import (
-//	"github.com/aws/aws-sdk-go/aws"
-//	"github.com/aws/aws-sdk-go/aws/awserr"
-//	"github.com/aws/aws-sdk-go/aws/awsutil"
+	//	"github.com/aws/aws-sdk-go/aws"
+	//	"github.com/aws/aws-sdk-go/aws/awserr"
+	//	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-//	"github.com/aws/aws-sdk-go/service/s3"
+	//	"github.com/aws/aws-sdk-go/service/s3"
 )
 
 type VaultS3 struct {
@@ -16,4 +16,3 @@ type VaultS3 struct {
 	EndPoint    string
 	Credentials *credentials.Credentials
 }
-
