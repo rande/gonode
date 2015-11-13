@@ -160,9 +160,9 @@ func (v *Vault) Put(name string, meta VaultMetadata, r io.Reader) (written int64
 		v.removeIfExists(metafile)
 
 		return
+	} else {
+		defer w.Close()
 	}
-
-	defer w.Close()
 
 	if _, err = io.Copy(w, buf); err != nil {
 		v.removeIfExists(vaultfile)
@@ -176,9 +176,9 @@ func (v *Vault) Put(name string, meta VaultMetadata, r io.Reader) (written int64
 		v.removeIfExists(metafile)
 
 		return
+	} else {
+		defer w.Close()
 	}
-
-	defer w.Close()
 
 	// Copy the input stream to the encryted stream.
 	if written, err = Encrypt(v.Algo, ve.BinKey, r, w); err != nil {
@@ -224,9 +224,11 @@ func (v *Vault) createVaultElement(namekey []byte) (ve *VaultElement, err error)
 
 	if w, err = v.Driver.GetWriter(vaultfile); err != nil {
 		v.removeIfExists(vaultfile)
-	}
 
-	defer w.Close()
+		return
+	} else {
+		defer w.Close()
+	}
 
 	if _, err = io.Copy(w, bytes.NewReader(data)); err != nil {
 		v.removeIfExists(vaultfile)

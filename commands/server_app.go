@@ -117,7 +117,7 @@ func ConfigureServer(l *goapp.Lifecycle, config *core.ServerConfig) {
 				BaseKey: []byte(""),
 				Algo:    "no_op",
 				Driver: &vault.DriverFs{
-					Root:    configuration.Filesystem.Path,
+					Root: configuration.Filesystem.Path,
 				},
 			}
 		})

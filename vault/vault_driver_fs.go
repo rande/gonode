@@ -37,7 +37,7 @@ func (v *DriverFs) GetWriter(name string) (io.WriteCloser, error) {
 		return nil, err
 	}
 
-	return os.OpenFile(filename, os.O_CREATE | os.O_WRONLY, 0600)
+	return os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0600)
 }
 
 func (v *DriverFs) Remove(name string) error {

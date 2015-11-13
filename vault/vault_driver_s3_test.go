@@ -4,25 +4,29 @@ import (
 	"github.com/stretchr/testify/assert"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	//	"github.com/aws/aws-sdk-go/aws/awserr"
-	//	"github.com/aws/aws-sdk-go/aws/awsutil"
-	"fmt"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/service/s3"
-	//	"time"
 	"bytes"
+	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"os"
 )
 
+// this is just a test to validata how the aws sdk behave
 func Test_Vault_Basic_S3_Usage(t *testing.T) {
 	var err error
 	var headResult *s3.HeadObjectOutput
 	var getResult *s3.GetObjectOutput
 
+	root := os.Getenv("GONODE_TEST_AWS_VAULT_ROOT")
+	if len(root) == 0 {
+		root = "/local"
+	}
+
 	// init vault
-	v := &VaultS3{
+	v := &DriverS3{
+		Root:     "/local",
 		Region:   "eu-west-1",
 		EndPoint: "s3-eu-west-1.amazonaws.com",
 		Credentials: credentials.NewChainCredentials([]credentials.Provider{
@@ -32,7 +36,7 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 				Profile:  "gonode-test",
 			},
 			&credentials.SharedCredentialsProvider{
-				Filename: os.Getenv("HOME") + "/.aws/credentials",
+				Filename: os.Getenv("GONODE_TEST_AWS_CREDENTIALS_FILE"),
 				Profile:  os.Getenv("GONODE_TEST_AWS_PROFILE"),
 			},
 		}),
@@ -41,8 +45,8 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 	// init credentials information
 	config := &aws.Config{
 		Region:           &v.Region,
-		Endpoint:         &v.EndPoint,    // <-- forking important !
-		S3ForcePathStyle: aws.Bool(true), // <-- without these lines. All will fail! fork you aws!
+		Endpoint:         &v.EndPoint,
+		S3ForcePathStyle: aws.Bool(true),
 		Credentials:      v.Credentials,
 	}
 
@@ -53,7 +57,7 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 		bucketName = "gonode-test"
 	}
 
-	key := fmt.Sprintf("/test/assd")
+	key := fmt.Sprintf("%s/test/assd", v.Root)
 
 	headResult, err = s3client.HeadObject(&s3.HeadObjectInput{
 		Bucket: aws.String(bucketName),
@@ -63,8 +67,6 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, headResult.ETag)
 
-	//	now := time.Now()
-	//	key := fmt.Sprintf("/test/%s", now.String())
 	data := []byte("foobar et foo")
 
 	putObject := &s3.PutObjectInput{

@@ -2,17 +2,33 @@ package vault
 
 import (
 	"bytes"
+	"crypto/rand"
+	"fmt"
 	"github.com/stretchr/testify/assert"
+	"io"
 	"testing"
-	//	"crypto/rand"
-	//	"fmt"
 )
 
-//	message := make([]byte, 2048)
-//	io.ReadFull(rand.Reader, message)
+var largeMessage []byte
+var smallMessage []byte
+var xLargeMessage []byte
+
+var key = []byte("de4d3ae8cf578c971b39ab5f21b2435483a3654f63b9f3777925c77e9492a141")
+
+func init() {
+	smallMessage = []byte("Comment ca va ??")
+
+	largeMessage = make([]byte, 1024*1024*1+2)
+	io.ReadFull(rand.Reader, largeMessage)
+
+	fmt.Println("Start generating XLarge message")
+	xLargeMessage = make([]byte, 1024*1024*10+3)
+	io.ReadFull(rand.Reader, xLargeMessage)
+	fmt.Println("End generating XLarge message")
+}
 
 // write/encrypted file
-func RunTestVault(t *testing.T, v *Vault, plaintext []byte) {
+func RunTestVault(t *testing.T, v *Vault, plaintext []byte, msgPrefix string) {
 	var read int64
 
 	file := "this-is-a-test"
@@ -24,34 +40,34 @@ func RunTestVault(t *testing.T, v *Vault, plaintext []byte) {
 
 	written, err := v.Put(file, meta, reader)
 
-	assert.NoError(t, err)
-	assert.True(t, written >= int64(len(plaintext))) // some cipher might add extra data
-	assert.True(t, written > 0)                      // some cipher might add extra data
-	assert.True(t, v.Has(file))
+	assert.NoError(t, err, msgPrefix+"err returned")
+	assert.True(t, written >= int64(len(plaintext)), msgPrefix) // some cipher might add extra data
+	assert.True(t, written > 0, msgPrefix)                      // some cipher might add extra data
+	assert.True(t, v.Has(file), msgPrefix)
 
 	invalid := []byte("Another invalid message with the same key")
 
 	// test overwrite
 	written, err = v.Put(file, meta, bytes.NewBuffer(invalid))
-	assert.Error(t, err)
-	assert.Equal(t, written, int64(0))
+	assert.Error(t, err, msgPrefix)
+	assert.Equal(t, written, int64(0), msgPrefix)
 
 	// get metadata
 	meta, err = v.GetMeta(file)
-	assert.NoError(t, err)
-	assert.Equal(t, meta["foo"].(string), "bar")
+	assert.NoError(t, err, msgPrefix)
+	assert.Equal(t, meta["foo"].(string), "bar", msgPrefix)
 
 	// get file
 	writer := bytes.NewBuffer([]byte(""))
 	read, err = v.Get(file, writer)
-	assert.Equal(t, read, int64(len(plaintext)))
-	assert.True(t, len(plaintext) > 0, "plaintext length should not be empty")
-	assert.NoError(t, err)
-	assert.Equal(t, plaintext, writer.Bytes())
+	assert.Equal(t, read, int64(len(plaintext)), msgPrefix)
+	assert.True(t, len(plaintext) > 0, "plaintext length should not be empty", msgPrefix)
+	assert.NoError(t, err, msgPrefix)
+	assert.Equal(t, plaintext, writer.Bytes(), msgPrefix)
 
 	// remove file
 	v.Remove(file)
-	assert.NoError(t, err)
+	assert.NoError(t, err, msgPrefix)
 }
 
 // read stored encrypted files
