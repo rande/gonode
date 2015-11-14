@@ -86,13 +86,17 @@ func runTest(driver string, t *testing.T, f func(algo string, key []byte) *Vault
 			t.Log(m)
 			RunTestVault(t, v, smallMessage, m)
 
+			if _, travis := os.LookupEnv("TRAVIS"); travis == false {
+				continue
+			}
+
 			m = fmt.Sprintf("Type: %s/%s/largeMessage", driver, algo)
 			t.Log(m)
 			RunTestVault(t, v, largeMessage, m)
 
-			//			m = fmt.Sprintf("Type: %s/%s/xLargeMessage", driver, algo)
-			//			t.Log(m)
-			//			RunTestVault(t, v, xLargeMessage, m)
+			m = fmt.Sprintf("Type: %s/%s/xLargeMessage", driver, algo)
+			t.Log(m)
+			RunTestVault(t, v, xLargeMessage, m)
 		}
 	}
 }
@@ -103,7 +107,7 @@ func Test_Vault_Drivers_FS(t *testing.T) {
 }
 
 func Test_Vault_Drivers_S3(t *testing.T) {
-	runTest("fs", t, getVaultS3)
+	runTest("s3", t, getVaultS3)
 }
 
 //func Test_Generate_Regression_Files(t *testing.T) {

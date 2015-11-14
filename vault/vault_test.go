@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"io"
 	"testing"
+	"os"
 )
 
 var largeMessage []byte
@@ -18,13 +19,16 @@ var key = []byte("de4d3ae8cf578c971b39ab5f21b2435483a3654f63b9f3777925c77e9492a1
 func init() {
 	smallMessage = []byte("Comment ca va ??")
 
-	largeMessage = make([]byte, 1024*1024*1+2)
-	io.ReadFull(rand.Reader, largeMessage)
 
-	fmt.Println("Start generating XLarge message")
-	xLargeMessage = make([]byte, 1024*1024*10+3)
-	io.ReadFull(rand.Reader, xLargeMessage)
-	fmt.Println("End generating XLarge message")
+	if _, travis := os.LookupEnv("TRAVIS"); travis {
+		largeMessage = make([]byte, 1024*1024*1+2)
+		io.ReadFull(rand.Reader, largeMessage)
+
+		fmt.Println("Start generating XLarge message")
+		xLargeMessage = make([]byte, 1024*1024*10+3)
+		io.ReadFull(rand.Reader, xLargeMessage)
+		fmt.Println("End generating XLarge message")
+	}
 }
 
 // write/encrypted file
