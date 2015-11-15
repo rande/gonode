@@ -2,9 +2,12 @@ package vault
 
 import (
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/stretchr/testify/assert"
 	"os"
+	"syscall"
 	"testing"
 )
 
@@ -26,8 +29,13 @@ func getVaultFs(algo string, key []byte) *Vault {
 
 func getVaultS3(algo string, key []byte) *Vault {
 	root := os.Getenv("GONODE_TEST_AWS_VAULT_ROOT")
+
+	if len(os.Getenv("TRAVIS_JOB_NUMBER")) > 0 {
+		root += "/" + os.Getenv("TRAVIS_JOB_NUMBER")
+	}
+
 	if len(root) == 0 {
-		root = "/local"
+		root = "local"
 	}
 
 	bucket := os.Getenv("GONODE_TEST_AWS_VAULT_BUCKET")
@@ -35,36 +43,50 @@ func getVaultS3(algo string, key []byte) *Vault {
 		bucket = "gonode-test"
 	}
 
+	fmt.Printf("bucket: %s, root: %s\n", bucket, root)
+
+	creds := credentials.NewChainCredentials([]credentials.Provider{
+		&credentials.EnvProvider{},
+		&credentials.SharedCredentialsProvider{
+			Filename: os.Getenv("HOME") + "/.aws/credentials",
+			Profile:  "gonode-test",
+		},
+		&credentials.SharedCredentialsProvider{
+			Filename: os.Getenv("GONODE_TEST_AWS_CREDENTIALS_FILE"),
+			Profile:  os.Getenv("GONODE_TEST_AWS_PROFILE"),
+		},
+	})
+
+	driver := &DriverS3{
+		Root:        root,
+		Region:      "eu-west-1",
+		EndPoint:    "s3-eu-west-1.amazonaws.com",
+		Bucket:      bucket,
+		Credentials: creds,
+	}
+
 	v := &Vault{
 		Algo:    algo,
 		BaseKey: key,
-		Driver: &DriverS3{
-			Root:     root,
-			Region:   "eu-west-1",
-			EndPoint: "s3-eu-west-1.amazonaws.com",
-			Bucket:   bucket,
-			Credentials: credentials.NewChainCredentials([]credentials.Provider{
-				&credentials.EnvProvider{},
-				&credentials.SharedCredentialsProvider{
-					Filename: os.Getenv("HOME") + "/.aws/credentials",
-					Profile:  "gonode-test",
-				},
-				&credentials.SharedCredentialsProvider{
-					Filename: os.Getenv("GONODE_TEST_AWS_CREDENTIALS_FILE"),
-					Profile:  os.Getenv("GONODE_TEST_AWS_PROFILE"),
-				},
-			}),
-		},
+		Driver:  driver,
 	}
 
-	//	os.RemoveAll(root)
+	driver.init()
+
+	// delete objects
+	l, _ := driver.client.ListObjects(&s3.ListObjectsInput{
+		Bucket: aws.String(bucket),
+		Prefix: aws.String(root),
+	})
+
+	for _, o := range l.Contents {
+		driver.client.DeleteObject(&s3.DeleteObjectInput{
+			Key:    o.Key,
+			Bucket: aws.String(bucket),
+		})
+	}
 
 	return v
-}
-
-var vaults = map[string]func(algo string, key []byte) *Vault{
-	"fs": getVaultFs,
-	"s3": getVaultS3,
 }
 
 var algos = map[string][][]byte{
@@ -86,7 +108,7 @@ func runTest(driver string, t *testing.T, f func(algo string, key []byte) *Vault
 			t.Log(m)
 			RunTestVault(t, v, smallMessage, m)
 
-			if _, travis := os.LookupEnv("TRAVIS"); travis == false {
+			if _, travis := syscall.Getenv("TRAVIS"); travis == false {
 				continue
 			}
 

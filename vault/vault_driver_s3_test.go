@@ -21,12 +21,12 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 
 	root := os.Getenv("GONODE_TEST_AWS_VAULT_ROOT")
 	if len(root) == 0 {
-		root = "/local"
+		root = "local"
 	}
 
 	// init vault
 	v := &DriverS3{
-		Root:     "/local",
+		Root:     root,
 		Region:   "eu-west-1",
 		EndPoint: "s3-eu-west-1.amazonaws.com",
 		Credentials: credentials.NewChainCredentials([]credentials.Provider{
@@ -61,7 +61,7 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 
 	headResult, err = s3client.HeadObject(&s3.HeadObjectInput{
 		Bucket: aws.String(bucketName),
-		Key:    aws.String("/no-file"),
+		Key:    aws.String("no-file"),
 	})
 
 	assert.Error(t, err)
@@ -70,8 +70,8 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 	data := []byte("foobar et foo")
 
 	putObject := &s3.PutObjectInput{
-		Bucket:      aws.String(bucketName), // required
-		Key:         aws.String(key),        // required
+		Bucket:      aws.String(bucketName),
+		Key:         aws.String(key),
 		Body:        bytes.NewReader(data),
 		ContentType: aws.String("application/octet-stream"),
 	}
@@ -87,8 +87,8 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 	assert.NotNil(t, headResult.ETag)
 
 	getObject := &s3.GetObjectInput{
-		Bucket: aws.String(bucketName), // required
-		Key:    aws.String(key),        // required
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(key),
 	}
 
 	getResult, err = s3client.GetObject(getObject)
