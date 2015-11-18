@@ -31,6 +31,11 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 		root = "local"
 	}
 
+	profile := os.Getenv("GONODE_TEST_AWS_PROFILE")
+	if len(profile) == 0 {
+		profile = "gonode-test"
+	}
+
 	// init vault
 	v := &DriverS3{
 		Root:     root,
@@ -40,11 +45,11 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 			&credentials.EnvProvider{},
 			&credentials.SharedCredentialsProvider{
 				Filename: os.Getenv("HOME") + "/.aws/credentials",
-				Profile:  "gonode-test",
+				Profile:  profile,
 			},
 			&credentials.SharedCredentialsProvider{
 				Filename: os.Getenv("GONODE_TEST_AWS_CREDENTIALS_FILE"),
-				Profile:  os.Getenv("GONODE_TEST_AWS_PROFILE"),
+				Profile:  profile,
 			},
 		}),
 	}
