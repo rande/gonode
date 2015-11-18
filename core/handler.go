@@ -16,6 +16,8 @@ type NodeMeta interface{}
 type Handlers interface {
 	NewNode(t string) *Node
 	Get(node *Node) Handler
+	GetByCode(code string) Handler
+	GetKeys() []string
 }
 
 type HandlerCollection map[string]Handler
@@ -29,11 +31,25 @@ func (c HandlerCollection) NewNode(t string) *Node {
 }
 
 func (c HandlerCollection) Get(node *Node) Handler {
-	if handler, ok := c[node.Type]; ok {
+	return c.GetByCode(node.Type)
+}
+
+func (c HandlerCollection) GetByCode(code string) Handler {
+	if handler, ok := c[code]; ok {
 		return handler.(Handler)
 	}
 
 	return c["default"].(Handler)
+}
+
+func (c HandlerCollection) GetKeys() []string {
+	keys := make([]string, 0)
+
+	for k, _ := range c {
+		keys = append(keys, k)
+	}
+
+	return keys
 }
 
 type DownloadData struct {

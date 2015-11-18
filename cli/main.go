@@ -30,9 +30,21 @@ func main() {
 				Ui: ui,
 			}, nil
 		},
+
+		"dev:service:list": func() (cli.Command, error) {
+			return &commands.DevListServicesCommand{
+				Ui: ui,
+			}, nil
+		},
+		"dev:node:list": func() (cli.Command, error) {
+			return &commands.DevListNodeTypesCommand{
+				Ui: ui,
+			}, nil
+		},
 	}
 
 	exitStatus, err := c.Run()
+
 	if err != nil {
 		log.Println(err)
 	}
