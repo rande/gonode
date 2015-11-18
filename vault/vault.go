@@ -10,6 +10,11 @@ import (
 	"io"
 )
 
+const (
+	KeySize   = 32
+	NonceSize = 24
+)
+
 var VaultFileExistsError = errors.New("Vault file already exists")
 
 type VaultMetadata map[string]interface{}
@@ -43,15 +48,24 @@ func GetVaultPath(sum []byte) string {
 }
 
 func generateKey() []byte {
+	r, _ := generateRandom(KeySize)
 
-	b := make([]byte, 32)
-	_, err := rand.Read(b)
+	return r
+}
 
-	if err != nil {
-		panic(err)
+func generateNonce() []byte {
+	r, _ := generateRandom(NonceSize)
+
+	return r
+}
+
+func generateRandom(size int) ([]byte, error) {
+	b := make([]byte, size)
+	if _, err := rand.Read(b); err != nil {
+		return b, err
 	}
 
-	return b
+	return b, nil
 }
 
 func NewVaultElement() *VaultElement {

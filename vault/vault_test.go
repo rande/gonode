@@ -6,28 +6,28 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"io"
-	"syscall"
 	"testing"
 )
 
-var largeMessage []byte
+var xSmallMessage []byte
 var smallMessage []byte
+var largeMessage []byte
 var xLargeMessage []byte
 
 var key = []byte("de4d3ae8cf578c971b39ab5f21b2435483a3654f63b9f3777925c77e9492a141")
 
 func init() {
+
+	xSmallMessage = []byte("1")
 	smallMessage = []byte("Comment ca va ??")
 
-	if _, travis := syscall.Getenv("TRAVIS"); travis {
-		largeMessage = make([]byte, 1024*1024*1+2)
-		io.ReadFull(rand.Reader, largeMessage)
+	largeMessage = make([]byte, 1024*1024*1+2)
+	io.ReadFull(rand.Reader, largeMessage)
 
-		fmt.Println("Start generating XLarge message")
-		xLargeMessage = make([]byte, 1024*1024*10+3)
-		io.ReadFull(rand.Reader, xLargeMessage)
-		fmt.Println("End generating XLarge message")
-	}
+	fmt.Println("Start generating XLarge message")
+	xLargeMessage = make([]byte, 1024*1024*10+3)
+	io.ReadFull(rand.Reader, xLargeMessage)
+	fmt.Println("End generating XLarge message")
 }
 
 // write/encrypted file
@@ -96,24 +96,4 @@ func Test_VaultElement(t *testing.T) {
 	assert.Equal(t, ve.Algo, "aes_ctr") // default value
 	assert.NotEmpty(t, ve.BinKey)
 	assert.NotEmpty(t, ve.MetaKey)
-}
-
-func Test_AesEncrypt(t *testing.T) {
-	ve := NewVaultElement()
-	ve.MetaKey = []byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-
-	assert.Equal(t, 32, len(ve.MetaKey))
-
-	src := bytes.NewBuffer([]byte("Hello World!!"))
-	dst := bytes.NewBuffer([]byte(""))
-
-	AesOFBEncrypter(ve.MetaKey, src, dst)
-
-	assert.NotEmpty(t, dst.String())
-
-	decrypted := bytes.NewBuffer([]byte(""))
-
-	AesOFBDecrypter(ve.MetaKey, dst, decrypted)
-
-	assert.Equal(t, []byte("Hello World!!"), decrypted.Bytes())
 }

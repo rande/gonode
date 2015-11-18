@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 )
 
 type Encrypter func(key interface{}, r io.Reader, w io.Writer) (int64, error)
@@ -21,6 +22,8 @@ func GetCipher(mode string) (Encrypter, Decrypter) {
 		return AesCTREncrypter, AesCTRDecrypter
 	case "aes_cbc":
 		return AesCBCEncrypter, AesCBCDecrypter
+	case "aes_gcm":
+		return AesGCMEncrypter, AesGCMDecrypter
 	case "no_op":
 		return NoopEncrypter, NoopDecrypter
 
@@ -53,7 +56,7 @@ func Unmarshal(mode string, key interface{}, data []byte, v interface{}) (err er
 	}
 
 	if err = json.Unmarshal(dst.Bytes(), v); err != nil {
-		panic(err)
+		return
 	}
 
 	return
@@ -116,6 +119,54 @@ func AesCTRDecrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
 	return NoopDecrypter(key, &cipher.StreamReader{S: stream, R: r}, w)
 }
 
+// this implementation required to load all information into memory before encrypting
+// data.
+func AesGCMEncrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
+	gcm, err := cipher.NewGCMWithNonceSize(GetAes(key), NonceSize)
+	if err != nil {
+		return 0, nil
+	}
+
+	nonce, _ := generateRandom(NonceSize)
+
+	plaintext, err := ioutil.ReadAll(r)
+	if err != nil {
+		return 0, nil
+	}
+
+	out := gcm.Seal(nonce, nonce, plaintext, nil)
+
+	written, err := w.Write(out)
+
+	return int64(written), err
+}
+
+// this implementation required to load all information into memory before decrypting
+// data.
+func AesGCMDecrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
+	gcm, err := cipher.NewGCMWithNonceSize(GetAes(key), NonceSize)
+	if err != nil {
+		return 0, err
+	}
+
+	ciphertext, err := ioutil.ReadAll(r)
+	if err != nil {
+		return 0, err
+	}
+
+	nonce := make([]byte, NonceSize)
+	copy(nonce, ciphertext)
+
+	out, err := gcm.Open(nil, nonce, ciphertext[NonceSize:], nil)
+	if err != nil {
+		return 0, err
+	}
+
+	written, err := w.Write(out)
+
+	return int64(written), err
+}
+
 func Pad(data []byte, blocklen int) ([]byte, error) {
 	if blocklen <= 0 {
 		return nil, fmt.Errorf("invalid blocklen %d", blocklen)
@@ -126,6 +177,7 @@ func Pad(data []byte, blocklen int) ([]byte, error) {
 	}
 
 	pad := bytes.Repeat([]byte{byte(padlen)}, padlen)
+
 	return append(data, pad...), nil
 }
 

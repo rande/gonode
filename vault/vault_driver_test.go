@@ -9,6 +9,7 @@ import (
 	"os"
 	"syscall"
 	"testing"
+	//	"bytes"
 )
 
 func getVaultFs(algo string, key []byte) *Vault {
@@ -94,6 +95,7 @@ var algos = map[string][][]byte{
 	"aes_ofb": {[]byte(""), key},
 	"aes_ctr": {[]byte(""), key},
 	"aes_cbc": {[]byte(""), key},
+	"aes_gcm": {[]byte(""), key},
 }
 
 func runTest(driver string, t *testing.T, f func(algo string, key []byte) *Vault) {
@@ -103,6 +105,10 @@ func runTest(driver string, t *testing.T, f func(algo string, key []byte) *Vault
 			v := f(algo, key)
 
 			assert.False(t, v.Has("salut"), m+" - assert file does not exist")
+
+			m = fmt.Sprintf("Type: %s/%s/xSmallMessage", driver, algo)
+			t.Log(m)
+			RunTestVault(t, v, xSmallMessage, m)
 
 			m = fmt.Sprintf("Type: %s/%s/smallMessage", driver, algo)
 			t.Log(m)
@@ -125,15 +131,21 @@ func runTest(driver string, t *testing.T, f func(algo string, key []byte) *Vault
 
 func Test_Vault_Drivers_FS(t *testing.T) {
 	runTest("fs", t, getVaultFs)
-
 }
 
 func Test_Vault_Drivers_S3(t *testing.T) {
+	if _, offline := syscall.Getenv("GONODE_TEST_OFFLINE"); offline == true {
+		t.Skip("OFFLINE TEST ONLY")
+
+		return
+	}
+
 	runTest("s3", t, getVaultS3)
 }
 
 //func Test_Generate_Regression_Files(t *testing.T) {
-//	types := []string{"aes_ofb", "aes_ctr", "aes_cbc"}
+////	types := []string{"aes_ofb", "aes_ctr", "aes_cbc"}
+//	types := []string{"aes_gcm"}
 //
 //	for _, v := range types {
 //		v := &Vault{
@@ -177,4 +189,8 @@ func Test_VaultFS_Secure_Aes_CTR_NoRegression(t *testing.T) {
 
 func Test_VaultFS_Secure_Aes_CBC_NoRegression(t *testing.T) {
 	RunRegressionTest(t, getNoRegressionVaultFs("aes_cbc"))
+}
+
+func Test_VaultFS_Secure_Aes_GCM_NoRegression(t *testing.T) {
+	RunRegressionTest(t, getNoRegressionVaultFs("aes_gcm"))
 }

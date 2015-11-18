@@ -11,10 +11,17 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"os"
+	"syscall"
 )
 
 // this is just a test to validata how the aws sdk behave
 func Test_Vault_Basic_S3_Usage(t *testing.T) {
+
+	if _, offline := syscall.Getenv("GONODE_TEST_OFFLINE"); offline == true {
+		t.Skip("OFFLINE TEST ONLY")
+		return
+	}
+
 	var err error
 	var headResult *s3.HeadObjectOutput
 	var getResult *s3.GetObjectOutput

@@ -15,7 +15,6 @@ func (v *DriverFs) getFilename(name string) string {
 }
 
 func (v *DriverFs) Has(name string) bool {
-
 	if _, err := os.Stat(v.getFilename(name)); err != nil {
 		return false
 	}
@@ -28,7 +27,6 @@ func (v *DriverFs) GetReader(name string) (io.ReadCloser, error) {
 }
 
 func (v *DriverFs) GetWriter(name string) (io.WriteCloser, error) {
-
 	filename := v.getFilename(name)
 
 	path := filepath.Dir(filename)
