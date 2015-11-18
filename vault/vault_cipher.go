@@ -11,6 +11,7 @@ import (
 )
 
 type Encrypter func(key interface{}, r io.Reader, w io.Writer) (int64, error)
+
 type Decrypter func(key interface{}, r io.Reader, w io.Writer) (int64, error)
 
 func GetCipher(mode string) (Encrypter, Decrypter) {
@@ -82,7 +83,7 @@ func NoopDecrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
 	return io.Copy(w, r)
 }
 
-func GetAes(key interface{}) cipher.Block {
+func getAes(key interface{}) cipher.Block {
 	block, err := aes.NewCipher(key.([]byte))
 	if err != nil {
 		panic(err)
@@ -93,28 +94,28 @@ func GetAes(key interface{}) cipher.Block {
 
 func AesOFBEncrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
 	var iv [aes.BlockSize]byte
-	stream := cipher.NewOFB(GetAes(key), iv[:])
+	stream := cipher.NewOFB(getAes(key), iv[:])
 
 	return NoopEncrypter(key, r, &cipher.StreamWriter{S: stream, W: w})
 }
 
 func AesOFBDecrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
 	var iv [aes.BlockSize]byte
-	stream := cipher.NewOFB(GetAes(key), iv[:])
+	stream := cipher.NewOFB(getAes(key), iv[:])
 
 	return NoopDecrypter(key, &cipher.StreamReader{S: stream, R: r}, w)
 }
 
 func AesCTREncrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
 	var iv [aes.BlockSize]byte
-	stream := cipher.NewCTR(GetAes(key), iv[:])
+	stream := cipher.NewCTR(getAes(key), iv[:])
 
 	return NoopEncrypter(key, r, &cipher.StreamWriter{S: stream, W: w})
 }
 
 func AesCTRDecrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
 	var iv [aes.BlockSize]byte
-	stream := cipher.NewCTR(GetAes(key), iv[:])
+	stream := cipher.NewCTR(getAes(key), iv[:])
 
 	return NoopDecrypter(key, &cipher.StreamReader{S: stream, R: r}, w)
 }
@@ -122,7 +123,7 @@ func AesCTRDecrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
 // this implementation required to load all information into memory before encrypting
 // data.
 func AesGCMEncrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
-	gcm, err := cipher.NewGCMWithNonceSize(GetAes(key), NonceSize)
+	gcm, err := cipher.NewGCMWithNonceSize(getAes(key), NonceSize)
 	if err != nil {
 		return 0, nil
 	}
@@ -144,7 +145,7 @@ func AesGCMEncrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
 // this implementation required to load all information into memory before decrypting
 // data.
 func AesGCMDecrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
-	gcm, err := cipher.NewGCMWithNonceSize(GetAes(key), NonceSize)
+	gcm, err := cipher.NewGCMWithNonceSize(getAes(key), NonceSize)
 	if err != nil {
 		return 0, err
 	}
@@ -167,7 +168,7 @@ func AesGCMDecrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
 	return int64(written), err
 }
 
-func Pad(data []byte, blocklen int) ([]byte, error) {
+func pad(data []byte, blocklen int) ([]byte, error) {
 	if blocklen <= 0 {
 		return nil, fmt.Errorf("invalid blocklen %d", blocklen)
 	}
@@ -181,7 +182,7 @@ func Pad(data []byte, blocklen int) ([]byte, error) {
 	return append(data, pad...), nil
 }
 
-func Unpad(data []byte, blocklen int) ([]byte, error) {
+func unpad(data []byte, blocklen int) ([]byte, error) {
 
 	if blocklen <= 0 {
 		return nil, fmt.Errorf("invalid blocklen %d", blocklen)
@@ -231,7 +232,7 @@ func AesCBCEncrypter(key interface{}, r io.Reader, w io.Writer) (written int64, 
 			}
 		}
 
-		if buf, err = Pad(buf[:read], block.BlockSize()); err != nil {
+		if buf, err = pad(buf[:read], block.BlockSize()); err != nil {
 			return written, err
 		}
 
@@ -272,7 +273,7 @@ func AesCBCDecrypter(key interface{}, r io.Reader, w io.Writer) (written int64, 
 
 		d.CryptBlocks(buf, buf)
 
-		if buf, err = Unpad(buf, d.BlockSize()); err != nil {
+		if buf, err = unpad(buf, d.BlockSize()); err != nil {
 			return
 		}
 		if twritten, err = w.Write(buf); err != nil {
