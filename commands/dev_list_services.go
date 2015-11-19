@@ -52,11 +52,7 @@ func (c *DevListServicesCommand) Run(args []string) int {
 
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 		for _, k := range app.GetKeys() {
-			c.Ui.Info(fmt.Sprintf(" > % -40s - % -40T - v := app.Get(\"%s\").(%T)",
-				k,
-				app.Get(k),
-				k,
-				app.Get(k)))
+			c.Ui.Info(fmt.Sprintf(" > % -40s - %T - v := app.Get(\"%s\").(%T)", k, app.Get(k), k, app.Get(k)))
 		}
 
 		c.Ui.Info(fmt.Sprintf("Found %d services", len(app.GetKeys())))
