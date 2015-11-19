@@ -128,7 +128,7 @@ func AesCTRDecrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
 // this implementation required to load all information into memory before encrypting
 // data.
 func AesGCMEncrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
-	gcm, err := cipher.NewGCMWithNonceSize(getAes(key), NonceSize)
+	gcm, err := cipher.NewGCM(getAes(key))
 	if err != nil {
 		return 0, nil
 	}
@@ -150,7 +150,7 @@ func AesGCMEncrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
 // this implementation required to load all information into memory before decrypting
 // data.
 func AesGCMDecrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
-	gcm, err := cipher.NewGCMWithNonceSize(getAes(key), NonceSize)
+	gcm, err := cipher.NewGCM(getAes(key))
 	if err != nil {
 		return 0, err
 	}

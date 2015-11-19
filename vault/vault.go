@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	KeySize   = 32
-	NonceSize = 24
+	KeySize = 32
+	NonceSize = 12
 )
 
 var VaultFileExistsError = errors.New("Vault file already exists")
