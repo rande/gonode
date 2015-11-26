@@ -97,7 +97,11 @@ type YoutubeListener struct {
 }
 
 func (l *YoutubeListener) Handle(notification *pq.Notification, m nc.NodeManager) (int, error) {
-	reference := nc.GetReferenceFromString(notification.Extra)
+	reference, err := nc.GetReferenceFromString(notification.Extra)
+
+	if err != nil { // unable to parse the reference
+		return nc.PubSubListenContinue, nil
+	}
 
 	node := m.Find(reference)
 

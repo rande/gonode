@@ -52,12 +52,14 @@ func (m *Reference) CleanString() string {
 	return uuid.Formatter(m.UUID, uuid.CleanHyphen)
 }
 
-func GetReferenceFromString(reference string) Reference {
+func GetReferenceFromString(reference string) (Reference, error) {
 	v, err := uuid.Parse(reference)
 
-	PanicOnError(err)
+	if err != nil {
+		return GetEmptyReference(), InvalidReferenceFormatError
+	}
 
-	return GetReference(v)
+	return GetReference(v), nil
 }
 
 func GetReference(uuid uuid.UUID) Reference {
@@ -136,6 +138,7 @@ func DumpNode(node *Node) {
 	fmt.Printf(" CreatedBy:  %s\n", node.CreatedBy)
 	fmt.Printf(" UpdatedBy:  %s\n", node.UpdatedBy)
 	fmt.Printf(" ParentUuid: %s\n", node.ParentUuid)
+	fmt.Printf(" Parents:    %+v\n", node.Parents)
 	fmt.Printf(" SetUuid:    %s\n", node.SetUuid)
 	fmt.Printf(" Source:     %s\n", node.Source)
 	fmt.Printf(" <<< End Node\n")

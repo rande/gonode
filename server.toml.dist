@@ -3,7 +3,7 @@ bind= ":2405"
 
 [databases.master]
 type    = "master"
-dsn     = "postgres://safre:safre@172.16.33.20/safre"
+dsn     = "postgres://safre:safre@192.168.30.20/gonode?sslmode=disable"
 enabled = true
 prefix  = "prod"
 

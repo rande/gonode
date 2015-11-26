@@ -128,7 +128,11 @@ type ImageDownloadListener struct {
 }
 
 func (l *ImageDownloadListener) Handle(notification *pq.Notification, m core.NodeManager) (int, error) {
-	reference := core.GetReferenceFromString(notification.Extra)
+	reference, err := core.GetReferenceFromString(notification.Extra)
+
+	if err != nil { // unable to parse the reference
+		return core.PubSubListenContinue, nil
+	}
 
 	fmt.Printf("Download binary from uuid: %s\n", notification.Extra)
 	node := m.Find(reference)

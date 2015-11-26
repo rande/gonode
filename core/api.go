@@ -8,9 +8,15 @@ package core
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	sq "github.com/lann/squirrel"
 	"io"
 	"log"
+)
+
+const (
+	OPERATION_OK = "OK"
+	OPERATION_KO = "KO"
 )
 
 type SearchForm struct {
@@ -61,6 +67,11 @@ type Api struct {
 	BaseUrl    string
 	Serializer *Serializer
 	Logger     *log.Logger
+}
+
+type ApiOperation struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
 }
 
 func (a *Api) SelectBuilder() sq.SelectBuilder {
@@ -118,6 +129,11 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 		}
 
 		node.id = saved.id
+
+		// we cannot overwrite the Parents, Or the ParentUuid, need to use the http API
+		node.Parents = saved.Parents
+		node.ParentUuid = saved.ParentUuid
+
 	} else if a.Logger != nil {
 		a.Logger.Printf("cannot find uuid: %s, create a new one", node.Uuid)
 	}
@@ -139,9 +155,43 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 	return nil
 }
 
+func (a *Api) Move(nodeUuid, parentUuid string, w io.Writer) error {
+
+	nodeReference, err := GetReferenceFromString(nodeUuid)
+
+	if err != nil {
+		return err
+	}
+
+	parentReference, err := GetReferenceFromString(parentUuid)
+
+	if err != nil {
+		return err
+	}
+
+	affectedNodes, err := a.Manager.Move(nodeReference, parentReference)
+
+	if err != nil {
+		return err
+	}
+
+	a.Serializer.Serialize(w, &ApiOperation{
+		Status:  OPERATION_OK,
+		Message: fmt.Sprintf("Node altered: %d", affectedNodes),
+	})
+
+	return nil
+}
+
 func (a *Api) FindOne(uuid string, w io.Writer) error {
 
-	node := a.Manager.Find(GetReferenceFromString(uuid))
+	reference, err := GetReferenceFromString(uuid)
+
+	if err != nil {
+		return NotFoundError
+	}
+
+	node := a.Manager.Find(reference)
 
 	if node == nil {
 		return NotFoundError
@@ -153,7 +203,13 @@ func (a *Api) FindOne(uuid string, w io.Writer) error {
 }
 
 func (a *Api) RemoveOne(uuid string, w io.Writer) error {
-	node := a.Manager.Find(GetReferenceFromString(uuid))
+	reference, err := GetReferenceFromString(uuid)
+
+	if err != nil {
+		return err
+	}
+
+	node := a.Manager.Find(reference)
 
 	if node == nil {
 		return NotFoundError

@@ -76,3 +76,9 @@ func (m *MockedManager) Validate(node *Node) (bool, Errors) {
 
 	return args.Get(0).(bool), args.Get(1).(Errors)
 }
+
+func (m *MockedManager) Move(uuid, parentUuid Reference) (int64, error) {
+	args := m.Mock.Called(uuid, parentUuid)
+
+	return args.Get(0).(int64), args.Error(1)
+}

@@ -187,7 +187,15 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 			values := req.URL.Query()
 
 			if _, raw := values["raw"]; raw { // ask for binary content
-				node := manager.Find(GetReferenceFromString(c.URLParams["uuid"]))
+				reference, err := GetReferenceFromString(c.URLParams["uuid"])
+
+				if err != nil {
+					SendWithHttpCode(res, http.StatusInternalServerError, "Unable to parse the reference")
+
+					return
+				}
+
+				node := manager.Find(reference)
 
 				if node == nil {
 					SendWithHttpCode(res, http.StatusNotFound, "Element not found")
@@ -249,14 +257,22 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 			values := req.URL.Query()
 
 			if _, raw := values["raw"]; raw { // send binary data
-				node := manager.Find(GetReferenceFromString(c.URLParams["uuid"]))
+				reference, err := GetReferenceFromString(c.URLParams["uuid"])
+
+				if err != nil {
+					SendWithHttpCode(res, http.StatusInternalServerError, "Unable to parse the reference")
+
+					return
+				}
+
+				node := manager.Find(reference)
 
 				if node == nil {
 					SendWithHttpCode(res, http.StatusNotFound, "Element not found")
 					return
 				}
 
-				_, err := handlers.Get(node).StoreStream(node, req.Body)
+				_, err = handlers.Get(node).StoreStream(node, req.Body)
 
 				if err != nil {
 					SendWithHttpCode(res, http.StatusInternalServerError, err.Error())
@@ -280,6 +296,18 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 				}
 
 				w.Flush()
+			}
+		})
+
+		mux.Put(prefix+"/nodes/moves/:uuid/:parentUuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
+			res.Header().Set("Content-Type", "application/json")
+			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
+			res.Header().Set("Access-Control-Allow-Origin", "*")
+
+			err := api.Move(c.URLParams["uuid"], c.URLParams["parentUuid"], res)
+
+			if err != nil {
+				SendWithHttpCode(res, http.StatusInternalServerError, err.Error())
 			}
 		})
 
@@ -351,6 +379,7 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 				"source" UUid,
 				"set_uuid" UUid,
 				"parent_uuid" UUid,
+				"parents" UUid[],
 				"created_at" TIMESTAMP WITHOUT TIME ZONE NOT NULL,
 				"created_by" UUid NOT NULL,
 				"updated_at" TIMESTAMP WITHOUT TIME ZONE NOT NULL,
@@ -383,6 +412,7 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 				"source" UUid,
 				"set_uuid" UUid,
 				"parent_uuid" UUid,
+				"parents" UUid[],
 				"created_at" TIMESTAMP WITHOUT TIME ZONE NOT NULL,
 				"created_by" UUid NOT NULL,
 				"updated_at" TIMESTAMP WITHOUT TIME ZONE NOT NULL,

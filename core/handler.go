@@ -45,7 +45,7 @@ func (c HandlerCollection) GetByCode(code string) Handler {
 func (c HandlerCollection) GetKeys() []string {
 	keys := make([]string, 0)
 
-	for k, _ := range c {
+	for k := range c {
 		keys = append(keys, k)
 	}
 

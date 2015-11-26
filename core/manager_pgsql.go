@@ -28,7 +28,7 @@ type PgNodeManager struct {
 
 func (m *PgNodeManager) SelectBuilder() sq.SelectBuilder {
 	return sq.
-		Select("id, uuid, type, name, revision, version, created_at, updated_at, set_uuid, parent_uuid, slug, created_by, updated_by, data, meta, deleted, enabled, source, status, weight").
+		Select("id, uuid, type, name, revision, version, created_at, updated_at, set_uuid, parent_uuid, parents, slug, created_by, updated_by, data, meta, deleted, enabled, source, status, weight").
 		From(m.Prefix + "_nodes").
 		PlaceholderFormat(sq.Dollar)
 }
@@ -104,6 +104,8 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 	UpdatedBy := ""
 	Source := ""
 
+	var Parents StringSlice
+
 	err := rows.Scan(
 		&node.id,
 		&Uuid,
@@ -115,6 +117,7 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 		&node.UpdatedAt,
 		&SetUuid,
 		&ParentUuid,
+		&Parents,
 		&node.Slug,
 		&CreatedBy,
 		&UpdatedBy,
@@ -144,6 +147,15 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 	node.UpdatedBy = GetReference(tmpUuid)
 	tmpUuid, _ = uuid.Parse(Source)
 	node.Source = GetReference(tmpUuid)
+
+	pUuids := make([]Reference, 0)
+
+	for _, ref := range Parents {
+		pUuid, _ := uuid.Parse(ref)
+		pUuids = append(pUuids, GetReference(pUuid))
+	}
+
+	node.Parents = pUuids
 
 	m.Handlers.Get(node).Load(data, meta, node)
 
@@ -210,10 +222,15 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 		node.Slug = node.Uuid.String()
 	}
 
+	Parents := make(StringSlice, 0)
+	for _, p := range node.Parents {
+		Parents = append(Parents, p.CleanString())
+	}
+
 	query := sq.Insert(table).
 		Columns(
 		"uuid", "type", "revision", "version", "name", "created_at", "updated_at", "set_uuid",
-		"parent_uuid", "slug", "created_by", "updated_by", "data", "meta", "deleted",
+		"parent_uuid", "parents", "slug", "created_by", "updated_by", "data", "meta", "deleted",
 		"enabled", "source", "status", "weight").
 		Values(
 		node.Uuid.CleanString(),
@@ -225,6 +242,7 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 		node.UpdatedAt,
 		node.SetUuid.CleanString(),
 		node.ParentUuid.CleanString(),
+		Parents,
 		node.Slug,
 		node.CreatedBy.CleanString(),
 		node.UpdatedBy.CleanString(),
@@ -234,7 +252,8 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 		node.Enabled,
 		node.Source.CleanString(),
 		node.Status,
-		node.Weight).
+		node.Weight,
+	).
 		Suffix("RETURNING \"id\"").
 		RunWith(m.Db).
 		PlaceholderFormat(sq.Dollar)
@@ -242,6 +261,63 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 	err := query.QueryRow().Scan(&node.id)
 
 	return node, err
+}
+
+func (m *PgNodeManager) Move(uuid, parentUuid Reference) (int64, error) {
+
+	tx, err := m.Db.Begin()
+
+	if err != nil {
+		return 0, err
+	}
+
+	r, err := tx.Exec(fmt.Sprintf(`UPDATE %s SET parent_uuid = $1 WHERE uuid = $2 AND EXISTS(SELECT uuid FROM %s WHERE uuid = $3 and $4 <> ALL(parents))`,
+		m.Prefix+"_nodes", m.Prefix+"_nodes"),
+		parentUuid.CleanString(),
+		uuid.CleanString(),
+		parentUuid.CleanString(),
+		uuid.CleanString())
+
+	if err != nil {
+		tx.Rollback()
+
+		return 0, err
+	}
+
+	affectedRows, err := r.RowsAffected()
+
+	if err != nil {
+		tx.Rollback()
+
+		return 0, err
+	}
+
+	if affectedRows > 0 {
+		tx.Exec(fmt.Sprintf(`WITH RECURSIVE  r AS (
+					SELECT uuid, parent_uuid, parents
+					FROM %s r
+					WHERE uuid = $1::uuid
+				UNION ALL
+					SELECT c.uuid, c.parent_uuid, array_append(r.parents, c.parent_uuid) AS parents
+					FROM %s c
+					JOIN r ON c.parent_uuid = r.uuid
+			)
+			UPDATE %s n SET parents = r.parents FROM r WHERE r.uuid = n.uuid`,
+			m.Prefix+"_nodes",
+			m.Prefix+"_nodes",
+			m.Prefix+"_nodes"),
+			parentUuid.CleanString())
+	}
+
+	err = tx.Commit()
+
+	if err != nil {
+		tx.Rollback()
+
+		return 0, err
+	}
+
+	return affectedRows, nil
 }
 
 func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
@@ -256,7 +332,6 @@ func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 		Set("created_at", node.CreatedAt).
 		Set("updated_at", node.UpdatedAt).
 		Set("set_uuid", node.SetUuid.CleanString()).
-		Set("parent_uuid", node.ParentUuid.CleanString()).
 		Set("slug", node.Slug).
 		Set("created_by", node.CreatedBy.CleanString()).
 		Set("updated_by", node.UpdatedBy.CleanString()).

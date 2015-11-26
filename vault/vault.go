@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	KeySize = 32
+	KeySize   = 32
 	NonceSize = 12
 )
 

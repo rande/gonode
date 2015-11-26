@@ -44,4 +44,5 @@ type NodeManager interface {
 	Notify(channel string, payload string)
 	NewNode(t string) *Node
 	Validate(node *Node) (bool, Errors)
+	Move(uuid, parent Reference) (int64, error)
 }

@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"runtime/debug"
 	"testing"
 )
 
@@ -115,7 +116,7 @@ func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *go
 			ts.Close()
 
 			if r := recover(); r != nil {
-				assert.Equal(t, false, true, fmt.Sprintf("Panic recovered, message=%s\n", r))
+				assert.Equal(t, false, true, fmt.Sprintf("RunHttpTest: Panic recovered, message=%s\n\n%s", r, string(debug.Stack()[:])))
 			}
 		}()
 

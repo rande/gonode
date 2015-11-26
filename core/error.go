@@ -6,11 +6,12 @@
 package core
 
 var (
-	ValidationError     = &validationError{"Unable to validate date"}
-	RevisionError       = &revisionError{"Wrong revision while saving"}
-	NotFoundError       = &notFoundError{"Unable to find the node"}
-	AlreadyDeletedError = &alreadyDeletedError{"Unable to find the node"}
-	NoStreamHandler     = &noStreamHandlerError{"No stream handler defined"}
+	ValidationError             = &validationError{"Unable to validate date"}
+	RevisionError               = &revisionError{"Wrong revision while saving"}
+	NotFoundError               = &notFoundError{"Unable to find the node"}
+	InvalidReferenceFormatError = &invalidReferenceFormatError{"Unable to parse the reference"}
+	AlreadyDeletedError         = &alreadyDeletedError{"Unable to find the node"}
+	NoStreamHandler             = &noStreamHandlerError{"No stream handler defined"}
 )
 
 type validationError struct {
@@ -50,6 +51,14 @@ type notFoundError struct {
 }
 
 func (e *notFoundError) Error() string {
+	return e.message
+}
+
+type invalidReferenceFormatError struct {
+	message string
+}
+
+func (e *invalidReferenceFormatError) Error() string {
 	return e.message
 }
 

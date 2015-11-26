@@ -14,7 +14,10 @@ type DefaultHandler struct {
 }
 
 func (h *DefaultHandler) GetStruct() (nc.NodeData, nc.NodeMeta) {
-	return make(map[string]interface{}), make(map[string]interface{})
+	data := make(map[string]interface{})
+	meta := make(map[string]interface{})
+
+	return &data, &meta
 }
 
 func (h *DefaultHandler) PreInsert(node *nc.Node, m nc.NodeManager) error {
