@@ -299,7 +299,7 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 			}
 		})
 
-		mux.Put(prefix+"/nodes/moves/:uuid/:parentUuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
+		mux.Put(prefix+"/nodes/move/:uuid/:parentUuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
 			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
 			res.Header().Set("Access-Control-Allow-Origin", "*")
