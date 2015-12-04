@@ -32,7 +32,7 @@ format:
 	go fix ./...
 
 test:
-	go test -v ./handlers ./test/api ./core ./vault ./commands/server
+	go test ./handlers ./test/api ./core ./vault ./commands/server
 	go vet ./...
 	#cd explorer && npm test
 
