@@ -135,7 +135,6 @@ func ConfigureServer(l *goapp.Lifecycle, config *ServerConfig) {
 				"media.youtube": &handlers.YoutubeHandler{},
 				"blog.post":     &handlers.PostHandler{},
 				"core.user":     &handlers.UserHandler{},
-				"core.jwt_token": &handlers.JwtTokentHandler{},
 			}
 		})
 

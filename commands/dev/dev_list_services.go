@@ -10,8 +10,8 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/rande/goapp"
 
-	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/commands/server"
+	"github.com/rande/gonode/core"
 
 	"fmt"
 )

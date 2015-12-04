@@ -1,8 +1,8 @@
 package core
 
 import (
-	"github.com/rande/goapp"
 	"github.com/BurntSushi/toml"
+	"github.com/rande/goapp"
 )
 
 type ClientConfig struct {

@@ -7,8 +7,8 @@ package api
 
 import (
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/commands/server"
+	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
 	"net/http/httptest"

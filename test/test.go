@@ -18,11 +18,11 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"runtime/debug"
-	"testing"
-	"net/url"
 	"strings"
+	"testing"
 )
 
 func GetLifecycle(file string) *goapp.Lifecycle {

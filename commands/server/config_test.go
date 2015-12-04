@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"testing"
 	//	"github.com/twinj/uuid"
-	"os"
 	"github.com/rande/gonode/core"
+	"os"
 )
 
 func Test_Server_LoadConfiguration(t *testing.T) {

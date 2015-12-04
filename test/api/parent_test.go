@@ -8,9 +8,9 @@ package api
 import (
 	"fmt"
 	"github.com/rande/goapp"
+	"github.com/rande/gonode/commands/server"
 	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/test"
-	"github.com/rande/gonode/commands/server"
 	"github.com/stretchr/testify/assert"
 	"net/http/httptest"
 	"testing"
