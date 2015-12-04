@@ -3,7 +3,7 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package core
+package server
 
 import (
 	"bytes"
@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/schema"
 	sq "github.com/lann/squirrel"
 	"github.com/stretchr/testify/assert"
+	"github.com/rande/gonode/core"
 	"io/ioutil"
 	"testing"
 	"time"
@@ -21,28 +22,28 @@ func Test_ApiPager_Serialization(t *testing.T) {
 	sb := sq.Select("id, name").From("test_nodes").PlaceholderFormat(sq.Dollar)
 
 	list := list.New()
-	node1 := NewNode()
+	node1 := core.NewNode()
 	node1.Type = "image"
 	node1.CreatedAt, _ = time.Parse(time.RFC3339Nano, "2015-06-15T10:23:08.698707603+02:00")
 	node1.UpdatedAt, _ = time.Parse(time.RFC3339Nano, "2015-06-15T10:23:08.698707603+02:00")
 
 	list.PushBack(node1)
 
-	node2 := NewNode()
+	node2 := core.NewNode()
 	node2.Type = "video"
 	node2.CreatedAt, _ = time.Parse(time.RFC3339Nano, "2015-06-15T10:23:08.698707603+02:00")
 	node2.UpdatedAt, _ = time.Parse(time.RFC3339Nano, "2015-06-15T10:23:08.698707603+02:00")
 
 	list.PushBack(node2)
 
-	manager := &MockedManager{}
+	manager := &core.MockedManager{}
 	manager.On("SelectBuilder").Return(sb)
 	manager.On("FindBy", sb, uint64(0), uint64(11)).Return(list)
 
 	api := &Api{
 		Version:    "1",
 		Manager:    manager,
-		Serializer: NewSerializer(),
+		Serializer: core.NewSerializer(),
 	}
 
 	b := bytes.NewBuffer([]byte{})
@@ -55,13 +56,15 @@ func Test_ApiPager_Serialization(t *testing.T) {
 
 	json.Indent(&out, b.Bytes(), "", "    ")
 
-	data, _ := ioutil.ReadFile("../test/fixtures/pager_results.json")
+	data, err := ioutil.ReadFile("../../test/fixtures/pager_results.json")
+
+	core.PanicOnError(err)
 
 	assert.Equal(t, string(data[:]), out.String())
 }
 
 func Test_ApiPager_Deserialization(t *testing.T) {
-	data, _ := ioutil.ReadFile("../test/fixtures/pager_results.json")
+	data, _ := ioutil.ReadFile("../../test/fixtures/pager_results.json")
 
 	p := &ApiPager{}
 
@@ -77,7 +80,7 @@ func Test_ApiPager_Deserialization(t *testing.T) {
 	// and then unmarshal again with the correct structure
 	raw, _ := json.Marshal(p.Elements[0])
 
-	n := NewNode()
+	n := core.NewNode()
 	json.Unmarshal(raw, n)
 
 	assert.Equal(t, "image", n.Type)

@@ -6,7 +6,6 @@
 package core
 
 import (
-	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
@@ -22,39 +21,4 @@ type HttpClient interface {
 
 func GetHttpClient() HttpClient {
 	return &http.Client{}
-}
-
-func SendWithHttpCode(res http.ResponseWriter, code int, message string) {
-	res.Header().Set("Content-Type", "application/json")
-
-	res.WriteHeader(code)
-
-	status := "KO"
-	if code >= 200 && code < 300 {
-		status = "OK"
-	}
-
-	data, _ := json.Marshal(map[string]string{
-		"status":  status,
-		"message": message,
-	})
-
-	res.Write(data)
-}
-
-func SendWithStatus(status string, message string, res http.ResponseWriter) {
-	res.Header().Set("Content-Type", "application/json")
-
-	if status == "KO" {
-		res.WriteHeader(http.StatusInternalServerError)
-	} else {
-		res.WriteHeader(http.StatusOK)
-	}
-
-	data, _ := json.Marshal(map[string]string{
-		"status":  status,
-		"message": message,
-	})
-
-	res.Write(data)
 }

@@ -3,7 +3,7 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package core
+package server
 
 import (
 	"bufio"
@@ -22,12 +22,16 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/rande/gonode/handlers"
+	"golang.org/x/crypto/bcrypt"
+	"github.com/rande/gonode/core"
 )
 
 var (
 	rexOrderBy = regexp.MustCompile(`(^[a-z,_.A-Z]*),(DESC|ASC|desc|asc)$`)
-	rexMeta    = regexp.MustCompile(`meta\.([a-zA-Z]*)`)
-	rexData    = regexp.MustCompile(`data\.([a-zA-Z]*)`)
+	rexMeta = regexp.MustCompile(`meta\.([a-zA-Z]*)`)
+	rexData = regexp.MustCompile(`data\.([a-zA-Z]*)`)
 )
 
 var upgrader = websocket.Upgrader{
@@ -51,7 +55,7 @@ func GetJsonQuery(left string, sep string) string {
 		if p == 0 {
 			c += f
 		} else {
-			c += fmt.Sprintf(sep+"'%s'", f)
+			c += fmt.Sprintf(sep + "'%s'", f)
 		}
 	}
 
@@ -63,12 +67,12 @@ func GetJsonSearchQuery(query sq.SelectBuilder, data map[string][]string, field 
 	//-- SELECT uuid, "data" #> '{tags}' AS tags FROM nodes WHERE  "data" -> 'tags' ?| array['sport'];
 	for name, value := range data {
 		if len(value) > 1 {
-			name = GetJsonQuery(field+"."+name, "->")
-			query = query.Where(NewExprSlice(fmt.Sprintf("%s ??| array["+sq.Placeholders(len(value))+"]", name), value))
+			name = GetJsonQuery(field + "." + name, "->")
+			query = query.Where(core.NewExprSlice(fmt.Sprintf("%s ??| array[" + sq.Placeholders(len(value)) + "]", name), value))
 		}
 
 		if len(value) == 1 {
-			name = GetJsonQuery(field+"."+name, "->>")
+			name = GetJsonQuery(field + "." + name, "->>")
 			query = query.Where(sq.Expr(fmt.Sprintf("%s = ?", name), value[0]))
 		}
 	}
@@ -85,8 +89,8 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 
 		configuration := app.Get("gonode.configuration").(*ServerConfig)
 
-		sub := app.Get("gonode.postgres.subscriber").(*Subscriber)
-		sub.ListenMessage(configuration.Databases["master"].Prefix+"_manager_action", func(notification *pq.Notification) (int, error) {
+		sub := app.Get("gonode.postgres.subscriber").(*core.Subscriber)
+		sub.ListenMessage(configuration.Databases["master"].Prefix + "_manager_action", func(notification *pq.Notification) (int, error) {
 			logger := app.Get("logger").(*log.Logger)
 			logger.Printf("WebSocket: Sending message \n")
 			webSocketList := app.Get("gonode.websocket.clients").(*list.List)
@@ -99,7 +103,7 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 
 			logger.Printf("WebSocket: End Sending message \n")
 
-			return PubSubListenContinue, nil
+			return core.PubSubListenContinue, nil
 		})
 
 		graceful.PreHook(func() {
@@ -118,7 +122,7 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 		logger := app.Get("logger").(*log.Logger)
 		logger.Printf("Starting PostgreSQL subcriber \n")
-		app.Get("gonode.postgres.subscriber").(*Subscriber).Register()
+		app.Get("gonode.postgres.subscriber").(*core.Subscriber).Register()
 
 		return nil
 	})
@@ -126,7 +130,7 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 	l.Exit(func(app *goapp.App) error {
 		logger := app.Get("logger").(*log.Logger)
 		logger.Printf("Closing PostgreSQL subcriber \n")
-		app.Get("gonode.postgres.subscriber").(*Subscriber).Stop()
+		app.Get("gonode.postgres.subscriber").(*core.Subscriber).Stop()
 		logger.Printf("End closing PostgreSQL subcriber \n")
 
 		return nil
@@ -134,22 +138,76 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 
 	l.Prepare(func(app *goapp.App) error {
 		mux := app.Get("goji.mux").(*web.Mux)
-		manager := app.Get("gonode.manager").(*PgNodeManager)
+		manager := app.Get("gonode.manager").(*core.PgNodeManager)
 		api := app.Get("gonode.api").(*Api)
 
 		prefix := ""
 
-		handlers := app.Get("gonode.handler_collection").(Handlers)
+		handler_collection := app.Get("gonode.handler_collection").(core.Handlers)
 		configuration := app.Get("gonode.configuration").(*ServerConfig)
 
-		mux.Get(prefix+"/hello", func(c web.C, res http.ResponseWriter, req *http.Request) {
+		mux.Get(prefix + "/hello", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Access-Control-Allow-Origin", "*")
-			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
+			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
 
 			res.Write([]byte("Hello!"))
 		})
 
-		mux.Get(prefix+"/nodes/stream", func(res http.ResponseWriter, req *http.Request) {
+		mux.Post(prefix + "/login", func(c web.C, res http.ResponseWriter, req *http.Request) {
+
+			configuration := app.Get("gonode.configuration").(*ServerConfig)
+
+			res.Header().Set("Content-Type", "application/json")
+			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
+			res.Header().Set("Access-Control-Allow-Origin", "*")
+
+			req.ParseForm()
+
+			loginForm := &struct{
+				Login string `schema:"login"`
+				Password string `schema:"password"`
+			}{}
+
+			decoder := schema.NewDecoder()
+			err := decoder.Decode(loginForm, req.Form)
+
+			core.PanicOnError(err)
+
+			query := manager.SelectBuilder().Where("type = 'core.user' AND data->>'login' = ?", loginForm.Login)
+
+			node := manager.FindOneBy(query)
+
+			password := []byte("$2a$10$KDobsZdRDVnuMqvimYH82.Tnu3suk5xP7QzhQjlCo7Wy7d67xtYay")
+
+			if node != nil {
+				data := node.Data.(*handlers.User)
+				password = []byte(data.Password)
+			}
+
+			fmt.Printf("%s => %s", password, loginForm.Password)
+
+			if err := bcrypt.CompareHashAndPassword([]byte(password), []byte(loginForm.Password)); err == nil { // equal
+				token := jwt.New(jwt.SigningMethodHS256)
+				token.Header["kid"] = "the sha1"
+
+				// Set some claims
+				token.Claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
+				// Sign and get the complete encoded token as a string
+				tokenString, err := token.SignedString([]byte(configuration.Auth.Key))
+
+				if err != nil {
+					SendWithHttpCode(res, http.StatusInternalServerError, "Unable to sign the token")
+					return
+				}
+
+				core.PanicOnError(err)
+				res.Write([]byte(tokenString));
+			} else {
+				SendWithHttpCode(res, http.StatusForbidden, "Unable to authenticate request: " + err.Error())
+			}
+		})
+
+		mux.Get(prefix + "/nodes/stream", func(res http.ResponseWriter, req *http.Request) {
 			webSocketList := app.Get("gonode.websocket.clients").(*list.List)
 
 			upgrader.CheckOrigin = func(r *http.Request) bool {
@@ -158,7 +216,7 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 
 			ws, err := upgrader.Upgrade(res, req, nil)
 
-			PanicOnError(err)
+			core.PanicOnError(err)
 
 			element := webSocketList.PushBack(ws)
 
@@ -180,14 +238,14 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 			}
 		})
 
-		mux.Get(prefix+"/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
-			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
+		mux.Get(prefix + "/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
+			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
 			res.Header().Set("Access-Control-Allow-Origin", "*")
 
 			values := req.URL.Query()
 
 			if _, raw := values["raw"]; raw { // ask for binary content
-				reference, err := GetReferenceFromString(c.URLParams["uuid"])
+				reference, err := core.GetReferenceFromString(c.URLParams["uuid"])
 
 				if err != nil {
 					SendWithHttpCode(res, http.StatusInternalServerError, "Unable to parse the reference")
@@ -203,7 +261,7 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 					return
 				}
 
-				data := handlers.Get(node).GetDownloadData(node)
+				data := handler_collection.Get(node).GetDownloadData(node)
 
 				res.Header().Set("Content-Type", data.ContentType)
 
@@ -217,7 +275,7 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 				res.Header().Set("Content-Type", "application/json")
 				err := api.FindOne(c.URLParams["uuid"], res)
 
-				if err == NotFoundError {
+				if err == core.NotFoundError {
 					SendWithHttpCode(res, http.StatusNotFound, err.Error())
 				}
 
@@ -227,20 +285,20 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 			}
 		})
 
-		mux.Post(prefix+"/nodes", func(res http.ResponseWriter, req *http.Request) {
+		mux.Post(prefix + "/nodes", func(res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
-			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
+			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
 			res.Header().Set("Access-Control-Allow-Origin", "*")
 
 			w := bufio.NewWriter(res)
 
 			err := api.Save(req.Body, w)
 
-			if err == RevisionError {
+			if err == core.RevisionError {
 				res.WriteHeader(http.StatusConflict)
 			}
 
-			if err == ValidationError {
+			if err == core.ValidationError {
 				res.WriteHeader(http.StatusPreconditionFailed)
 			}
 
@@ -249,15 +307,15 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 			w.Flush()
 		})
 
-		mux.Put(prefix+"/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
+		mux.Put(prefix + "/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
-			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
+			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
 			res.Header().Set("Access-Control-Allow-Origin", "*")
 
 			values := req.URL.Query()
 
 			if _, raw := values["raw"]; raw { // send binary data
-				reference, err := GetReferenceFromString(c.URLParams["uuid"])
+				reference, err := core.GetReferenceFromString(c.URLParams["uuid"])
 
 				if err != nil {
 					SendWithHttpCode(res, http.StatusInternalServerError, "Unable to parse the reference")
@@ -272,7 +330,7 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 					return
 				}
 
-				_, err = handlers.Get(node).StoreStream(node, req.Body)
+				_, err = handler_collection.Get(node).StoreStream(node, req.Body)
 
 				if err != nil {
 					SendWithHttpCode(res, http.StatusInternalServerError, err.Error())
@@ -287,11 +345,11 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 
 				err := api.Save(req.Body, w)
 
-				if err == RevisionError {
+				if err == core.RevisionError {
 					res.WriteHeader(http.StatusConflict)
 				}
 
-				if err == ValidationError {
+				if err == core.ValidationError {
 					res.WriteHeader(http.StatusPreconditionFailed)
 				}
 
@@ -299,9 +357,9 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 			}
 		})
 
-		mux.Put(prefix+"/nodes/move/:uuid/:parentUuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
+		mux.Put(prefix + "/nodes/move/:uuid/:parentUuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
-			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
+			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
 			res.Header().Set("Access-Control-Allow-Origin", "*")
 
 			err := api.Move(c.URLParams["uuid"], c.URLParams["parentUuid"], res)
@@ -311,15 +369,15 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 			}
 		})
 
-		mux.Delete(prefix+"/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
+		mux.Delete(prefix + "/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			err := api.RemoveOne(c.URLParams["uuid"], res)
 
-			if err == NotFoundError {
+			if err == core.NotFoundError {
 				SendWithHttpCode(res, http.StatusNotFound, err.Error())
 				return
 			}
 
-			if err == AlreadyDeletedError {
+			if err == core.AlreadyDeletedError {
 				SendWithHttpCode(res, http.StatusGone, err.Error())
 				return
 			}
@@ -329,15 +387,15 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 			}
 		})
 
-		mux.Put(prefix+"/notify/:name", func(c web.C, res http.ResponseWriter, req *http.Request) {
+		mux.Put(prefix + "/notify/:name", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			body, _ := ioutil.ReadAll(req.Body)
 
 			manager.Notify(c.URLParams["name"], string(body[:]))
 		})
 
-		mux.Put(prefix+"/uninstall", func(res http.ResponseWriter, req *http.Request) {
+		mux.Put(prefix + "/uninstall", func(res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
-			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
+			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
 			res.Header().Set("Access-Control-Allow-Origin", "*")
 
 			prefix := configuration.Databases["master"].Prefix
@@ -352,9 +410,9 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 			SendWithHttpCode(res, http.StatusOK, "Successfully delete tables!")
 		})
 
-		mux.Put(prefix+"/install", func(res http.ResponseWriter, req *http.Request) {
+		mux.Put(prefix + "/install", func(res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
-			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
+			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
 			res.Header().Set("Access-Control-Allow-Origin", "*")
 
 			prefix := configuration.Databases["master"].Prefix
@@ -430,9 +488,9 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 			}
 		})
 
-		mux.Get(prefix+"/nodes", func(res http.ResponseWriter, req *http.Request) {
+		mux.Get(prefix + "/nodes", func(res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
-			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v"+api.Version)
+			res.Header().Set("X-Generator", "gonode - thomas.rabaix@gmail.com - v" + api.Version)
 			res.Header().Set("Access-Control-Allow-Origin", "*")
 
 			query := api.SelectBuilder()

@@ -19,7 +19,7 @@ func Test_NewNode(t *testing.T) {
 	assert.Equal(t, node.Enabled, true)
 	assert.Equal(t, node.Status, StatusNew)
 
-	assert.Equal(t, node.Id(), 0)
+	assert.Equal(t, node.Id, 0)
 }
 
 func Test_Reference(t *testing.T) {

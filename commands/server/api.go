@@ -3,13 +3,14 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package core
+package server
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	sq "github.com/lann/squirrel"
+	"github.com/rande/gonode/core"
 	"io"
 	"log"
 )
@@ -63,9 +64,9 @@ type ApiPager struct {
 
 type Api struct {
 	Version    string
-	Manager    NodeManager
+	Manager    core.NodeManager
 	BaseUrl    string
-	Serializer *Serializer
+	Serializer *core.Serializer
 	Logger     *log.Logger
 }
 
@@ -94,23 +95,23 @@ func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uin
 
 	for e := list.Front(); e != nil; e = e.Next() {
 		b := bytes.NewBuffer([]byte{})
-		a.Serializer.Serialize(b, e.Value.(*Node))
+		a.Serializer.Serialize(b, e.Value.(*core.Node))
 
 		message := json.RawMessage(b.Bytes())
 		pager.Elements = append(pager.Elements, &message)
 	}
 
-	Serialize(w, pager)
+	core.Serialize(w, pager)
 
 	return nil
 }
 
 func (a *Api) Save(r io.Reader, w io.Writer) error {
-	node := NewNode()
+	node := core.NewNode()
 
 	err := a.Serializer.Deserialize(r, node)
 
-	PanicOnError(err)
+	core.PanicOnError(err)
 
 	if a.Logger != nil {
 		a.Logger.Printf("trying to save node.uuid=%s, node.type=%s", node.Uuid, node.Type)
@@ -121,14 +122,14 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 	if saved != nil {
 		a.Logger.Printf("find uuid: %s", node.Uuid)
 
-		PanicUnless(node.Type == saved.Type, "Type mismatch")
-		PanicIf(saved.Deleted, "Cannot save a deleted node, restore it first ...")
+		core.PanicUnless(node.Type == saved.Type, "Type mismatch")
+		core.PanicIf(saved.Deleted, "Cannot save a deleted node, restore it first ...")
 
 		if node.Revision != saved.Revision {
-			return RevisionError
+			return core.RevisionError
 		}
 
-		node.id = saved.id
+		node.Id = saved.Id
 
 		// we cannot overwrite the Parents, Or the ParentUuid, need to use the http API
 		node.Parents = saved.Parents
@@ -139,13 +140,13 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 	}
 
 	if a.Logger != nil {
-		a.Logger.Printf("saving node.id=%d, node.uuid=%s", node.id, node.Uuid)
+		a.Logger.Printf("saving node.id=%d, node.uuid=%s", node.Id, node.Uuid)
 	}
 
 	if ok, errors := a.Manager.Validate(node); !ok {
-		Serialize(w, errors)
+		core.Serialize(w, errors)
 
-		return ValidationError
+		return core.ValidationError
 	}
 
 	a.Manager.Save(node, true)
@@ -157,13 +158,13 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 
 func (a *Api) Move(nodeUuid, parentUuid string, w io.Writer) error {
 
-	nodeReference, err := GetReferenceFromString(nodeUuid)
+	nodeReference, err := core.GetReferenceFromString(nodeUuid)
 
 	if err != nil {
 		return err
 	}
 
-	parentReference, err := GetReferenceFromString(parentUuid)
+	parentReference, err := core.GetReferenceFromString(parentUuid)
 
 	if err != nil {
 		return err
@@ -185,16 +186,16 @@ func (a *Api) Move(nodeUuid, parentUuid string, w io.Writer) error {
 
 func (a *Api) FindOne(uuid string, w io.Writer) error {
 
-	reference, err := GetReferenceFromString(uuid)
+	reference, err := core.GetReferenceFromString(uuid)
 
 	if err != nil {
-		return NotFoundError
+		return core.NotFoundError
 	}
 
 	node := a.Manager.Find(reference)
 
 	if node == nil {
-		return NotFoundError
+		return core.NotFoundError
 	}
 
 	a.Serializer.Serialize(w, node)
@@ -203,7 +204,7 @@ func (a *Api) FindOne(uuid string, w io.Writer) error {
 }
 
 func (a *Api) RemoveOne(uuid string, w io.Writer) error {
-	reference, err := GetReferenceFromString(uuid)
+	reference, err := core.GetReferenceFromString(uuid)
 
 	if err != nil {
 		return err
@@ -212,11 +213,11 @@ func (a *Api) RemoveOne(uuid string, w io.Writer) error {
 	node := a.Manager.Find(reference)
 
 	if node == nil {
-		return NotFoundError
+		return core.NotFoundError
 	}
 
 	if node.Deleted {
-		return AlreadyDeletedError
+		return core.AlreadyDeletedError
 	}
 
 	node, _ = a.Manager.RemoveOne(node)

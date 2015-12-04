@@ -3,13 +3,14 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package core
+package server
 
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
 	//	"github.com/twinj/uuid"
 	"os"
+	"github.com/rande/gonode/core"
 )
 
 func Test_Server_LoadConfiguration(t *testing.T) {
@@ -25,7 +26,7 @@ func Test_Server_LoadConfiguration(t *testing.T) {
 		Databases: make(map[string]*ServerDatabase),
 	}
 
-	LoadConfiguration("../test/config_codeship.toml", config)
+	core.LoadConfiguration("../../test/config_codeship.toml", config)
 
 	assert.Equal(t, config.Name, "GoNode - Codeship")
 	assert.Equal(t, config.Databases["master"].Type, "master")

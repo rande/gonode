@@ -3,14 +3,14 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package commands
+package server
 
 import (
 	"flag"
 	"github.com/mitchellh/cli"
 	"github.com/rande/goapp"
 
-	nc "github.com/rande/gonode/core"
+	"github.com/rande/gonode/core"
 
 	"net/http"
 
@@ -44,20 +44,20 @@ func (c *ServerCommand) Run(args []string) int {
 		return 1
 	}
 
-	config := nc.NewServerConfig()
+	config := NewServerConfig()
 
-	nc.LoadConfiguration(c.ConfigFile, config)
+	core.LoadConfiguration(c.ConfigFile, config)
 
 	c.Ui.Info("Starting GoNode Server on: " + config.Bind)
 
 	l := goapp.NewLifecycle()
 
 	ConfigureServer(l, config)
-	nc.ConfigureHttpApi(l)
+	ConfigureHttpApi(l)
 
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 		mux := app.Get("goji.mux").(*web.Mux)
-		config := app.Get("gonode.configuration").(*nc.ServerConfig)
+		config := app.Get("gonode.configuration").(*ServerConfig)
 
 		mux.Compile()
 

@@ -8,7 +8,7 @@ package test
 import (
 	"fmt"
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/commands"
+	"github.com/rande/gonode/commands/server"
 	nc "github.com/rande/gonode/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/zenazn/goji/web"
@@ -21,13 +21,15 @@ import (
 	"os"
 	"runtime/debug"
 	"testing"
+	"net/url"
+	"strings"
 )
 
 func GetLifecycle(file string) *goapp.Lifecycle {
 
 	l := goapp.NewLifecycle()
 
-	config := nc.NewServerConfig()
+	config := server.NewServerConfig()
 	config.Test = true
 
 	nc.LoadConfiguration(file, config)
@@ -60,8 +62,8 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 		return nil
 	})
 
-	commands.ConfigureServer(l, config)
-	nc.ConfigureHttpApi(l)
+	server.ConfigureServer(l, config)
+	server.ConfigureHttpApi(l)
 
 	return l
 }
@@ -88,10 +90,26 @@ func (r Response) GetBody() []byte {
 	return r.RawBody
 }
 
-func RunRequest(method string, url string, body io.Reader) (*Response, error) {
+func RunRequest(method string, path string, body interface{}) (*Response, error) {
 	client := &http.Client{}
+	var req *http.Request
+	var err error
 
-	req, err := http.NewRequest(method, url, body)
+	switch v := body.(type) {
+	case nil:
+		req, err = http.NewRequest(method, path, nil)
+	case *strings.Reader:
+		req, err = http.NewRequest(method, path, v)
+	case io.Reader:
+		req, err = http.NewRequest(method, path, v)
+
+	case url.Values:
+		req, err = http.NewRequest(method, path, strings.NewReader(v.Encode()))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	default:
+		panic(fmt.Sprintf("please add a new test case for %T", body))
+	}
 
 	nc.PanicOnError(err)
 

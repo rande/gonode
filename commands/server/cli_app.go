@@ -3,7 +3,7 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package commands
+package server
 
 import (
 	"github.com/rande/goapp"
@@ -28,7 +28,7 @@ import (
 	"os"
 )
 
-func ConfigureServer(l *goapp.Lifecycle, config *core.ServerConfig) {
+func ConfigureServer(l *goapp.Lifecycle, config *ServerConfig) {
 
 	l.Config(func(app *goapp.App) error {
 		app.Set("gonode.configuration", func(app *goapp.App) interface{} {
@@ -71,7 +71,7 @@ func ConfigureServer(l *goapp.Lifecycle, config *core.ServerConfig) {
 		mux.Put(prefix+"/data/purge", func(res http.ResponseWriter, req *http.Request) {
 
 			manager := app.Get("gonode.manager").(*core.PgNodeManager)
-			configuration := app.Get("gonode.configuration").(*core.ServerConfig)
+			configuration := app.Get("gonode.configuration").(*ServerConfig)
 
 			prefix := configuration.Databases["master"].Prefix
 
@@ -81,9 +81,9 @@ func ConfigureServer(l *goapp.Lifecycle, config *core.ServerConfig) {
 			err := tx.Commit()
 
 			if err != nil {
-				core.SendWithStatus("KO", err.Error(), res)
+				SendWithStatus("KO", err.Error(), res)
 			} else {
-				core.SendWithStatus("OK", "Data purged!", res)
+				SendWithStatus("OK", "Data purged!", res)
 			}
 		})
 
@@ -92,7 +92,7 @@ func ConfigureServer(l *goapp.Lifecycle, config *core.ServerConfig) {
 			nodes := manager.FindBy(manager.SelectBuilder(), 0, 10)
 
 			if nodes.Len() != 0 {
-				core.SendWithStatus("KO", "Table contains data, purge the data first!", res)
+				SendWithStatus("KO", "Table contains data, purge the data first!", res)
 
 				return
 			}
@@ -100,9 +100,9 @@ func ConfigureServer(l *goapp.Lifecycle, config *core.ServerConfig) {
 			err := fixtures.LoadFixtures(manager, 100)
 
 			if err != nil {
-				core.SendWithStatus("KO", err.Error(), res)
+				SendWithStatus("KO", err.Error(), res)
 			} else {
-				core.SendWithStatus("OK", "Data loaded!", res)
+				SendWithStatus("OK", "Data loaded!", res)
 			}
 		})
 
@@ -111,7 +111,7 @@ func ConfigureServer(l *goapp.Lifecycle, config *core.ServerConfig) {
 
 	l.Register(func(app *goapp.App) error {
 		app.Set("gonode.vault.fs", func(app *goapp.App) interface{} {
-			configuration := app.Get("gonode.configuration").(*core.ServerConfig)
+			configuration := app.Get("gonode.configuration").(*ServerConfig)
 
 			return &vault.Vault{
 				BaseKey: []byte(""),
@@ -135,11 +135,12 @@ func ConfigureServer(l *goapp.Lifecycle, config *core.ServerConfig) {
 				"media.youtube": &handlers.YoutubeHandler{},
 				"blog.post":     &handlers.PostHandler{},
 				"core.user":     &handlers.UserHandler{},
+				"core.jwt_token": &handlers.JwtTokentHandler{},
 			}
 		})
 
 		app.Set("gonode.manager", func(app *goapp.App) interface{} {
-			configuration := app.Get("gonode.configuration").(*core.ServerConfig)
+			configuration := app.Get("gonode.configuration").(*ServerConfig)
 
 			return &core.PgNodeManager{
 				Logger:   app.Get("logger").(*log.Logger),
@@ -152,7 +153,7 @@ func ConfigureServer(l *goapp.Lifecycle, config *core.ServerConfig) {
 
 		app.Set("gonode.postgres.connection", func(app *goapp.App) interface{} {
 
-			configuration := app.Get("gonode.configuration").(*core.ServerConfig)
+			configuration := app.Get("gonode.configuration").(*ServerConfig)
 
 			sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 			db, err := sql.Open("postgres", configuration.Databases["master"].DSN)
@@ -173,7 +174,7 @@ func ConfigureServer(l *goapp.Lifecycle, config *core.ServerConfig) {
 		})
 
 		app.Set("gonode.api", func(app *goapp.App) interface{} {
-			return &core.Api{
+			return &Api{
 				Manager:    app.Get("gonode.manager").(*core.PgNodeManager),
 				Version:    "1.0.0",
 				Serializer: app.Get("gonode.node.serializer").(*core.Serializer),
@@ -189,7 +190,7 @@ func ConfigureServer(l *goapp.Lifecycle, config *core.ServerConfig) {
 		})
 
 		app.Set("gonode.postgres.subscriber", func(app *goapp.App) interface{} {
-			configuration := app.Get("gonode.configuration").(*core.ServerConfig)
+			configuration := app.Get("gonode.configuration").(*ServerConfig)
 
 			return core.NewSubscriber(
 				configuration.Databases["master"].DSN,

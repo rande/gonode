@@ -67,7 +67,7 @@ func GetReference(uuid uuid.UUID) Reference {
 }
 
 type Node struct {
-	id         int
+	Id         int         `json:"-"`
 	Uuid       Reference   `json:"uuid"`
 	Type       string      `json:"type"`
 	Name       string      `json:"name"`
@@ -88,10 +88,6 @@ type Node struct {
 	ParentUuid Reference   `json:"parent_uuid"`
 	SetUuid    Reference   `json:"set_uuid"`
 	Source     Reference   `json:"source"`
-}
-
-func (node *Node) Id() int {
-	return node.id
 }
 
 func (node *Node) UniqueId() string {
@@ -120,7 +116,7 @@ func NewNode() *Node {
 func DumpNode(node *Node) {
 	PanicIf(node == nil, "Cannot dump, node is nil")
 
-	fmt.Printf(" >>> Node: %+v\n", node.id)
+	fmt.Printf(" >>> Node: %+v\n", node.Id)
 	fmt.Printf(" Uuid:       %s\n", node.Uuid)
 	fmt.Printf(" Type:       %s\n", node.Type)
 	fmt.Printf(" Name:       %s\n", node.Name)

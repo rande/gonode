@@ -107,7 +107,7 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 	var Parents StringSlice
 
 	err := rows.Scan(
-		&node.id,
+		&node.Id,
 		&Uuid,
 		&node.Type,
 		&node.Name,
@@ -258,7 +258,7 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 		RunWith(m.Db).
 		PlaceholderFormat(sq.Dollar)
 
-	err := query.QueryRow().Scan(&node.id)
+	err := query.QueryRow().Scan(&node.Id)
 
 	return node, err
 }
@@ -342,7 +342,7 @@ func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 		Set("source", node.Source.CleanString()).
 		Set("status", node.Status).
 		Set("weight", node.Weight).
-		Where("id = ?", node.id)
+		Where("id = ?", node.Id)
 
 	_, err = query.Exec()
 
@@ -364,7 +364,7 @@ func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 
 	handler := m.Handlers.Get(node)
 
-	if node.id == 0 {
+	if node.Id == 0 {
 		handler.PreInsert(node, m)
 
 		node, err = m.insertNode(node, m.Prefix+"_nodes")
@@ -373,7 +373,7 @@ func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 		PanicOnError(err)
 
 		if m.Logger != nil {
-			m.Logger.Printf("[PgNode] Creating node uuid: %s, id: %d, type: %s", node.Uuid, node.id, node.Type)
+			m.Logger.Printf("[PgNode] Creating node uuid: %s, id: %d, type: %s", node.Uuid, node.Id, node.Type)
 		}
 
 		handler.PostInsert(node, m)
@@ -392,7 +392,7 @@ func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 	handler.PreUpdate(node, m)
 
 	if m.Logger != nil {
-		m.Logger.Printf("[PgNode] Updating node uuid: %s with id: %d, type: %s", node.Uuid, node.id, node.Type)
+		m.Logger.Printf("[PgNode] Updating node uuid: %s with id: %d, type: %s", node.Uuid, node.Id, node.Type)
 	}
 
 	// 1. check if the one in the datastore is older

@@ -3,30 +3,31 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package commands
+package dev
 
 import (
 	"flag"
 	"github.com/mitchellh/cli"
 	"github.com/rande/goapp"
 
-	nc "github.com/rande/gonode/core"
+	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/commands/server"
 
 	"fmt"
 )
 
-type DevListServicesCommand struct {
+type DevListNodeTypesCommand struct {
 	Ui         cli.Ui
 	ConfigFile string
 	Test       bool
 	Verbose    bool
 }
 
-func (c *DevListServicesCommand) Help() string {
-	return `List registered services`
+func (c *DevListNodeTypesCommand) Help() string {
+	return `List registered node types`
 }
 
-func (c *DevListServicesCommand) Run(args []string) int {
+func (c *DevListNodeTypesCommand) Run(args []string) int {
 
 	cmdFlags := flag.NewFlagSet("server", flag.ContinueOnError)
 	cmdFlags.Usage = func() { c.Ui.Output(c.Help()) }
@@ -39,23 +40,26 @@ func (c *DevListServicesCommand) Run(args []string) int {
 		return 1
 	}
 
-	config := nc.NewServerConfig()
+	config := server.NewServerConfig()
 
-	nc.LoadConfiguration(c.ConfigFile, config)
+	core.LoadConfiguration(c.ConfigFile, config)
 
 	l := goapp.NewLifecycle()
 
-	ConfigureServer(l, config)
-	nc.ConfigureHttpApi(l)
+	server.ConfigureServer(l, config)
+	server.ConfigureHttpApi(l)
 
-	c.Ui.Info("Listing services available for the server configuration")
+	c.Ui.Info("Node types available")
 
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
-		for _, k := range app.GetKeys() {
-			c.Ui.Info(fmt.Sprintf(" > % -40s - %T - v := app.Get(\"%s\").(%T)", k, app.Get(k), k, app.Get(k)))
+
+		handlers := app.Get("gonode.handler_collection").(core.HandlerCollection)
+
+		for _, k := range handlers.GetKeys() {
+			c.Ui.Info(fmt.Sprintf(" > % -40s - %T", k, handlers.GetByCode(k)))
 		}
 
-		c.Ui.Info(fmt.Sprintf("Found %d services", len(app.GetKeys())))
+		c.Ui.Info(fmt.Sprintf("Found %d node types", len(app.GetKeys())))
 
 		state.Out <- goapp.Control_Stop
 
@@ -65,6 +69,6 @@ func (c *DevListServicesCommand) Run(args []string) int {
 	return l.Go(goapp.NewApp())
 }
 
-func (c *DevListServicesCommand) Synopsis() string {
-	return "list registered services"
+func (c *DevListNodeTypesCommand) Synopsis() string {
+	return "list registered node types"
 }

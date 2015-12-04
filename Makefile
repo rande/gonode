@@ -1,4 +1,4 @@
-.PHONY: test run explorer
+.PHONY: test run explorer build
 
 PID = .pid
 GO_FILES = $(shell find . -type f -name "*.go")
@@ -19,33 +19,35 @@ update:
 	cd explorer && npm update && npm update react-admin
 
 run:
-	cd cli && go run main.go server -config=../server.toml.dist
+	cd commands && go run main.go server -config=../server.toml.dist
+
+build:
+	rm -rf dist && mkdir dist
+	#cd explorer && webpack --progress --color
+	#cd commands && go build -o dist/gonode
+	cd commands && go build -o ../dist/gonode
 
 format:
 	gofmt -l -w -s .
 	go fix ./...
 
 test:
-	go test ./handlers ./test/api ./core ./vault
+	go test -v ./handlers ./test/api ./core ./vault ./commands/server
 	go vet ./...
 	#cd explorer && npm test
 
 kill:
 	kill `cat $(PID)` || true
 
-build:
-	cd explorer && webpack --progress --color
-	cd explorer && go build -o dist/explorer
-
 serve: clean
 	make restart
-	cd explorer && node webpack.config.js $$! > $(PID)_wds &
+	#cd explorer && node webpack.config.js $$! > $(PID)_wds &
 	fswatch $(GO_FILES) | xargs -n1 -I{} make restart || make kill
 	kill `cat $(PID)_wds` || true
 
 restart:
 	make kill
-	cd explorer && rm -rf dist/explorer
-	cd explorer && go build -o dist/explorer
-	cd explorer && cp config.toml dist/config.toml
-	cd explorer/dist && (./explorer -bind :9090 & echo $$! > ../../$(PID))
+	rm -rf dist/gonode
+	cd commands && go build -o ../dist/gonode
+	cp server.toml.dist dist/config.toml
+	cd dist && (./gonode server & echo $$! > ../../$(PID))

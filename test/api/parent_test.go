@@ -8,8 +8,9 @@ package api
 import (
 	"fmt"
 	"github.com/rande/goapp"
-	nc "github.com/rande/gonode/core"
+	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/test"
+	"github.com/rande/gonode/commands/server"
 	"github.com/stretchr/testify/assert"
 	"net/http/httptest"
 	"testing"
@@ -18,8 +19,8 @@ import (
 func Test_Create_Parents_With_Manager(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		// WITH
-		handlers := app.Get("gonode.handler_collection").(nc.HandlerCollection)
-		manager := app.Get("gonode.manager").(*nc.PgNodeManager)
+		handlers := app.Get("gonode.handler_collection").(core.HandlerCollection)
+		manager := app.Get("gonode.manager").(*core.PgNodeManager)
 
 		node1 := handlers.NewNode("default")
 		manager.Save(node1, false)
@@ -66,8 +67,8 @@ func Test_Create_Parents_With_Manager(t *testing.T) {
 func Test_Create_Parents_With_Api(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		// WITH
-		handlers := app.Get("gonode.handler_collection").(nc.HandlerCollection)
-		manager := app.Get("gonode.manager").(*nc.PgNodeManager)
+		handlers := app.Get("gonode.handler_collection").(core.HandlerCollection)
+		manager := app.Get("gonode.manager").(*core.PgNodeManager)
 
 		node1 := handlers.NewNode("default")
 		manager.Save(node1, false)
@@ -93,8 +94,8 @@ func Test_Create_Parents_With_Api(t *testing.T) {
 		res, _ = test.RunRequest("PUT", fmt.Sprintf("%s/nodes/move/%s/%s", ts.URL, node1.Uuid, node4.Uuid), nil)
 		assert.Equal(t, 200, res.StatusCode)
 
-		serializer := app.Get("gonode.node.serializer").(*nc.Serializer)
-		op := &nc.ApiOperation{}
+		serializer := app.Get("gonode.node.serializer").(*core.Serializer)
+		op := &server.ApiOperation{}
 		serializer.Deserialize(res.Body, op)
 
 		assert.Equal(t, "OK", op.Status)

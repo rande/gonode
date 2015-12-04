@@ -7,7 +7,8 @@ package main
 
 import (
 	"github.com/mitchellh/cli"
-	"github.com/rande/gonode/commands"
+	"github.com/rande/gonode/commands/dev"
+	"github.com/rande/gonode/commands/server"
 	"log"
 	"os"
 )
@@ -21,23 +22,17 @@ func main() {
 
 	c.Commands = map[string]cli.CommandFactory{
 		"server": func() (cli.Command, error) {
-			return &commands.ServerCommand{
+			return &server.ServerCommand{
 				Ui: ui,
 			}, nil
 		},
-		"client": func() (cli.Command, error) {
-			return &commands.ClientCommand{
-				Ui: ui,
-			}, nil
-		},
-
 		"dev:service:list": func() (cli.Command, error) {
-			return &commands.DevListServicesCommand{
+			return &dev.DevListServicesCommand{
 				Ui: ui,
 			}, nil
 		},
 		"dev:node:list": func() (cli.Command, error) {
-			return &commands.DevListNodeTypesCommand{
+			return &dev.DevListNodeTypesCommand{
 				Ui: ui,
 			}, nil
 		},

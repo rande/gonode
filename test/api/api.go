@@ -8,15 +8,16 @@ package api
 import (
 	"encoding/json"
 	"github.com/rande/goapp"
-	nc "github.com/rande/gonode/core"
+	"github.com/rande/gonode/commands/server"
+	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/handlers"
 	"github.com/rande/gonode/test"
 )
 
-func GetPager(app *goapp.App, res *test.Response) *nc.ApiPager {
-	p := &nc.ApiPager{}
+func GetPager(app *goapp.App, res *test.Response) *server.ApiPager {
+	p := &server.ApiPager{}
 
-	serializer := app.Get("gonode.node.serializer").(*nc.Serializer)
+	serializer := app.Get("gonode.node.serializer").(*core.Serializer)
 	serializer.Deserialize(res.Body, p)
 
 	// the Element is a [string]interface so we need to convert it back to []byte
@@ -24,7 +25,7 @@ func GetPager(app *goapp.App, res *test.Response) *nc.ApiPager {
 	for k, v := range p.Elements {
 		raw, _ := json.Marshal(v)
 
-		n := nc.NewNode()
+		n := core.NewNode()
 		json.Unmarshal(raw, n)
 
 		p.Elements[k] = n
@@ -33,10 +34,10 @@ func GetPager(app *goapp.App, res *test.Response) *nc.ApiPager {
 	return p
 }
 
-func InitSearchFixture(app *goapp.App) []*nc.Node {
-	manager := app.Get("gonode.manager").(*nc.PgNodeManager)
-	collection := app.Get("gonode.handler_collection").(nc.Handlers)
-	nodes := make([]*nc.Node, 0)
+func InitSearchFixture(app *goapp.App) []*core.Node {
+	manager := app.Get("gonode.manager").(*core.PgNodeManager)
+	collection := app.Get("gonode.handler_collection").(core.Handlers)
+	nodes := make([]*core.Node, 0)
 
 	// WITH 3 nodes
 	node := collection.NewNode("core.user")
