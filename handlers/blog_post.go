@@ -6,7 +6,7 @@
 package handlers
 
 import (
-	nc "github.com/rande/gonode/core"
+	"github.com/rande/gonode/core"
 	"io"
 )
 
@@ -24,38 +24,38 @@ type Post struct {
 type PostHandler struct {
 }
 
-func (h *PostHandler) GetStruct() (nc.NodeData, nc.NodeMeta) {
+func (h *PostHandler) GetStruct() (core.NodeData, core.NodeMeta) {
 	return &Post{}, &PostMeta{}
 }
 
-func (h *PostHandler) PreInsert(node *nc.Node, m nc.NodeManager) error {
+func (h *PostHandler) PreInsert(node *core.Node, m core.NodeManager) error {
 	return nil
 }
 
-func (h *PostHandler) PreUpdate(node *nc.Node, m nc.NodeManager) error {
+func (h *PostHandler) PreUpdate(node *core.Node, m core.NodeManager) error {
 	return nil
 }
 
-func (h *PostHandler) PostInsert(node *nc.Node, m nc.NodeManager) error {
+func (h *PostHandler) PostInsert(node *core.Node, m core.NodeManager) error {
 	return nil
 }
 
-func (h *PostHandler) PostUpdate(node *nc.Node, m nc.NodeManager) error {
+func (h *PostHandler) PostUpdate(node *core.Node, m core.NodeManager) error {
 	return nil
 }
 
-func (h *PostHandler) Validate(node *nc.Node, m nc.NodeManager, errors nc.Errors) {
+func (h *PostHandler) Validate(node *core.Node, m core.NodeManager, errors core.Errors) {
 
 }
 
-func (h *PostHandler) GetDownloadData(node *nc.Node) *nc.DownloadData {
-	return nc.GetDownloadData()
+func (h *PostHandler) GetDownloadData(node *core.Node) *core.DownloadData {
+	return core.GetDownloadData()
 }
 
-func (h *PostHandler) Load(data []byte, meta []byte, node *nc.Node) error {
-	return nc.HandlerLoad(h, data, meta, node)
+func (h *PostHandler) Load(data []byte, meta []byte, node *core.Node) error {
+	return core.HandlerLoad(h, data, meta, node)
 }
 
-func (h *PostHandler) StoreStream(node *nc.Node, r io.Reader) (int64, error) {
-	return nc.DefaultHandlerStoreStream(node, r)
+func (h *PostHandler) StoreStream(node *core.Node, r io.Reader) (int64, error) {
+	return core.DefaultHandlerStoreStream(node, r)
 }

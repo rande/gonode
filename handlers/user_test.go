@@ -6,13 +6,13 @@
 package handlers
 
 import (
-	nc "github.com/rande/gonode/core"
+	"github.com/rande/gonode/core"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func GetUserHandleNode() (nc.Handler, *nc.Node) {
-	node := nc.NewNode()
+func GetUserHandleNode() (core.Handler, *core.Node) {
+	node := core.NewNode()
 	handler := &UserHandler{}
 
 	node.Data, node.Meta = handler.GetStruct()
@@ -32,8 +32,8 @@ func Test_UserHandler_Validate_EmptyData(t *testing.T) {
 	node.Data.(*User).Email = "invalid email"
 	node.Data.(*User).Gender = "v"
 
-	errors := nc.NewErrors()
-	manager := &nc.MockedManager{}
+	errors := core.NewErrors()
+	manager := &core.MockedManager{}
 
 	handler.Validate(node, manager, errors)
 
@@ -56,7 +56,7 @@ func GeneratePasswordTest(t *testing.T) {
 
 	node.Data.(*User).NewPassword = "password"
 
-	manager := &nc.MockedManager{}
+	manager := &core.MockedManager{}
 
 	a.False(len(node.Data.(*User).Password) > 0)
 

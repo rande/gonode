@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/lib/pq"
-	nc "github.com/rande/gonode/core"
+	"github.com/rande/gonode/core"
 	"io"
 )
 
@@ -38,88 +38,88 @@ type Youtube struct {
 type YoutubeHandler struct {
 }
 
-func (h *YoutubeHandler) GetStruct() (nc.NodeData, nc.NodeMeta) {
+func (h *YoutubeHandler) GetStruct() (core.NodeData, core.NodeMeta) {
 	return &Youtube{
-		Status: nc.ProcessStatusInit,
+		Status: core.ProcessStatusInit,
 	}, &YoutubeMeta{}
 }
 
-func (h *YoutubeHandler) PreInsert(node *nc.Node, m nc.NodeManager) error {
-	if node.Data.(*Youtube).Vid != "" && node.Data.(*Youtube).Status == nc.ProcessStatusInit {
-		node.Data.(*Youtube).Status = nc.ProcessStatusUpdate
+func (h *YoutubeHandler) PreInsert(node *core.Node, m core.NodeManager) error {
+	if node.Data.(*Youtube).Vid != "" && node.Data.(*Youtube).Status == core.ProcessStatusInit {
+		node.Data.(*Youtube).Status = core.ProcessStatusUpdate
 	}
 
 	return nil
 }
 
-func (h *YoutubeHandler) PreUpdate(node *nc.Node, m nc.NodeManager) error {
-	if node.Data.(*Youtube).Vid != "" && node.Data.(*Youtube).Status == nc.ProcessStatusInit {
-		node.Data.(*Youtube).Status = nc.ProcessStatusUpdate
+func (h *YoutubeHandler) PreUpdate(node *core.Node, m core.NodeManager) error {
+	if node.Data.(*Youtube).Vid != "" && node.Data.(*Youtube).Status == core.ProcessStatusInit {
+		node.Data.(*Youtube).Status = core.ProcessStatusUpdate
 	}
 
 	return nil
 }
 
-func (h *YoutubeHandler) PostInsert(node *nc.Node, m nc.NodeManager) error {
-	if node.Data.(*Youtube).Vid != "" && node.Data.(*Youtube).Status == nc.ProcessStatusUpdate {
+func (h *YoutubeHandler) PostInsert(node *core.Node, m core.NodeManager) error {
+	if node.Data.(*Youtube).Vid != "" && node.Data.(*Youtube).Status == core.ProcessStatusUpdate {
 		m.Notify("media_youtube_update", node.Uuid.String())
 	}
 
 	return nil
 }
 
-func (h *YoutubeHandler) PostUpdate(node *nc.Node, m nc.NodeManager) error {
-	if node.Data.(*Youtube).Vid != "" && node.Data.(*Youtube).Status == nc.ProcessStatusUpdate {
+func (h *YoutubeHandler) PostUpdate(node *core.Node, m core.NodeManager) error {
+	if node.Data.(*Youtube).Vid != "" && node.Data.(*Youtube).Status == core.ProcessStatusUpdate {
 		m.Notify("media_youtube_update", node.Uuid.String())
 	}
 
 	return nil
 }
 
-func (h *YoutubeHandler) Validate(node *nc.Node, m nc.NodeManager, errors nc.Errors) {
+func (h *YoutubeHandler) Validate(node *core.Node, m core.NodeManager, errors core.Errors) {
 
 }
 
-func (h *YoutubeHandler) GetDownloadData(node *nc.Node) *nc.DownloadData {
-	return nc.GetDownloadData()
+func (h *YoutubeHandler) GetDownloadData(node *core.Node) *core.DownloadData {
+	return core.GetDownloadData()
 }
 
-func (h *YoutubeHandler) Load(data []byte, meta []byte, node *nc.Node) error {
-	return nc.HandlerLoad(h, data, meta, node)
+func (h *YoutubeHandler) Load(data []byte, meta []byte, node *core.Node) error {
+	return core.HandlerLoad(h, data, meta, node)
 }
 
-func (h *YoutubeHandler) StoreStream(node *nc.Node, r io.Reader) (int64, error) {
-	return nc.DefaultHandlerStoreStream(node, r)
+func (h *YoutubeHandler) StoreStream(node *core.Node, r io.Reader) (int64, error) {
+	return core.DefaultHandlerStoreStream(node, r)
 }
 
 type YoutubeListener struct {
-	HttpClient nc.HttpClient
+	HttpClient core.HttpClient
 }
 
-func (l *YoutubeListener) Handle(notification *pq.Notification, m nc.NodeManager) (int, error) {
-	reference, err := nc.GetReferenceFromString(notification.Extra)
+func (l *YoutubeListener) Handle(notification *pq.Notification, m core.NodeManager) (int, error) {
+	reference, err := core.GetReferenceFromString(notification.Extra)
 
 	if err != nil { // unable to parse the reference
-		return nc.PubSubListenContinue, nil
+		return core.PubSubListenContinue, nil
 	}
 
 	node := m.Find(reference)
 
 	if node == nil {
-		return nc.PubSubListenContinue, nil
+		return core.PubSubListenContinue, nil
 	}
 
-	if node.Data.(*Youtube).Status == nc.ProcessStatusDone {
-		return nc.PubSubListenContinue, nil
+	if node.Data.(*Youtube).Status == core.ProcessStatusDone {
+		return core.PubSubListenContinue, nil
 	}
 
 	resp, err := l.HttpClient.Get(fmt.Sprintf("https://www.youtube.com/oembed?url=http://www.youtube.com/watch?v=%s&format=json", node.Data.(*Youtube).Vid))
 	if err != nil {
-		node.Data.(*Youtube).Status = nc.ProcessStatusError
+		node.Data.(*Youtube).Status = core.ProcessStatusError
 		node.Data.(*Youtube).Error = "Error while retrieving json response"
 		m.Save(node, true)
 
-		return nc.PubSubListenContinue, err
+		return core.PubSubListenContinue, err
 	}
 
 	defer resp.Body.Close()
@@ -128,14 +128,14 @@ func (l *YoutubeListener) Handle(notification *pq.Notification, m nc.NodeManager
 	err = d.Decode(node.Meta.(*YoutubeMeta))
 
 	if err != nil {
-		node.Data.(*Youtube).Status = nc.ProcessStatusError
+		node.Data.(*Youtube).Status = core.ProcessStatusError
 		node.Data.(*Youtube).Error = "Error while decoding json"
 		m.Save(node, true)
 
-		return nc.PubSubListenContinue, err
+		return core.PubSubListenContinue, err
 	}
 
-	node.Data.(*Youtube).Status = nc.ProcessStatusDone
+	node.Data.(*Youtube).Status = core.ProcessStatusDone
 
 	m.Save(node, true)
 
@@ -149,5 +149,5 @@ func (l *YoutubeListener) Handle(notification *pq.Notification, m nc.NodeManager
 		m.Save(image, false)
 	}
 
-	return nc.PubSubListenContinue, nil
+	return core.PubSubListenContinue, nil
 }

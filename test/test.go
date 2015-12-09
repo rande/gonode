@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/commands/server"
-	nc "github.com/rande/gonode/core"
+	"github.com/rande/gonode/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
@@ -32,7 +32,7 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 	config := server.NewServerConfig()
 	config.Test = true
 
-	nc.LoadConfiguration(file, config)
+	core.LoadConfiguration(file, config)
 
 	l.Config(func(app *goapp.App) error {
 		app.Set("gonode.configuration", func(app *goapp.App) interface{} {
@@ -111,7 +111,7 @@ func RunRequest(method string, path string, body interface{}) (*Response, error)
 		panic(fmt.Sprintf("please add a new test case for %T", body))
 	}
 
-	nc.PanicOnError(err)
+	core.PanicOnError(err)
 
 	resp, err := client.Do(req)
 
@@ -139,12 +139,12 @@ func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *go
 		}()
 
 		res, err = RunRequest("PUT", ts.URL+"/uninstall", nil)
-		nc.PanicIf(res.StatusCode != http.StatusOK, fmt.Sprintf("Expected code 200, get %d\n%s", res.StatusCode, string(res.GetBody()[:])))
-		nc.PanicOnError(err)
+		core.PanicIf(res.StatusCode != http.StatusOK, fmt.Sprintf("Expected code 200, get %d\n%s", res.StatusCode, string(res.GetBody()[:])))
+		core.PanicOnError(err)
 
 		res, err = RunRequest("PUT", ts.URL+"/install", nil)
-		nc.PanicIf(res.StatusCode != http.StatusOK, fmt.Sprintf("Expected code 200, get %d\n%s", res.StatusCode, string(res.GetBody()[:])))
-		nc.PanicOnError(err)
+		core.PanicIf(res.StatusCode != http.StatusOK, fmt.Sprintf("Expected code 200, get %d\n%s", res.StatusCode, string(res.GetBody()[:])))
+		core.PanicOnError(err)
 
 		f(t, ts, app)
 

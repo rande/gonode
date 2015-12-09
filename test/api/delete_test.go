@@ -7,7 +7,7 @@ package api
 
 import (
 	. "github.com/rande/goapp"
-	nc "github.com/rande/gonode/core"
+	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
 	"net/http/httptest"
@@ -30,9 +30,9 @@ func Test_Delete_Existant_Node(t *testing.T) {
 
 		assert.Equal(t, 201, res.StatusCode, "Node created")
 
-		node := nc.NewNode()
+		node := core.NewNode()
 
-		serializer := app.Get("gonode.node.serializer").(*nc.Serializer)
+		serializer := app.Get("gonode.node.serializer").(*core.Serializer)
 		serializer.Deserialize(res.Body, node)
 
 		assert.Equal(t, "core.user", node.Type)

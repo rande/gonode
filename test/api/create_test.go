@@ -7,7 +7,7 @@ package api
 
 import (
 	. "github.com/rande/goapp"
-	nc "github.com/rande/gonode/core"
+	"github.com/rande/gonode/core"
 	nh "github.com/rande/gonode/handlers"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
@@ -26,8 +26,8 @@ func Test_Create_User(t *testing.T) {
 		assert.Equal(t, 201, res.StatusCode)
 
 		// WHEN
-		node := nc.NewNode()
-		serializer := app.Get("gonode.node.serializer").(*nc.Serializer)
+		node := core.NewNode()
+		serializer := app.Get("gonode.node.serializer").(*core.Serializer)
 		serializer.Deserialize(res.Body, node)
 
 		// THEN
@@ -48,8 +48,8 @@ func Test_Create_Media_With_Binary_Upload(t *testing.T) {
 
 		assert.Equal(t, 201, res.StatusCode)
 
-		node := nc.NewNode()
-		serializer := app.Get("gonode.node.serializer").(*nc.Serializer)
+		node := core.NewNode()
+		serializer := app.Get("gonode.node.serializer").(*core.Serializer)
 		serializer.Deserialize(res.Body, node)
 
 		var message = "The content of the file, yep it is not an image"
@@ -65,7 +65,7 @@ func Test_Create_Media_With_Binary_Upload(t *testing.T) {
 		res, _ = test.RunRequest("GET", ts.URL+"/nodes/"+node.Uuid.CleanString(), nil)
 		assert.Equal(t, 200, res.StatusCode)
 
-		node = nc.NewNode()
+		node = core.NewNode()
 		serializer.Deserialize(res.Body, node)
 
 		meta := node.Meta.(*nh.ImageMeta)

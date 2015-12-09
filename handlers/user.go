@@ -7,7 +7,7 @@ package handlers
 
 import (
 	v "github.com/asaskevich/govalidator"
-	nc "github.com/rande/gonode/core"
+	"github.com/rande/gonode/core"
 	"golang.org/x/crypto/bcrypt"
 	"io"
 	"regexp"
@@ -48,34 +48,34 @@ type User struct {
 type UserHandler struct {
 }
 
-func (h *UserHandler) GetStruct() (nc.NodeData, nc.NodeMeta) {
+func (h *UserHandler) GetStruct() (core.NodeData, core.NodeMeta) {
 	return &User{}, &UserMeta{
 		PasswordCost: 12,
 		PasswordAlgo: "bcrypt",
 	}
 }
 
-func (h *UserHandler) PreInsert(node *nc.Node, m nc.NodeManager) error {
+func (h *UserHandler) PreInsert(node *core.Node, m core.NodeManager) error {
 	updatePassword(node)
 
 	return nil
 }
 
-func (h *UserHandler) PreUpdate(node *nc.Node, m nc.NodeManager) error {
+func (h *UserHandler) PreUpdate(node *core.Node, m core.NodeManager) error {
 	updatePassword(node)
 
 	return nil
 }
 
-func (h *UserHandler) PostInsert(node *nc.Node, m nc.NodeManager) error {
+func (h *UserHandler) PostInsert(node *core.Node, m core.NodeManager) error {
 	return nil
 }
 
-func (h *UserHandler) PostUpdate(node *nc.Node, m nc.NodeManager) error {
+func (h *UserHandler) PostUpdate(node *core.Node, m core.NodeManager) error {
 	return nil
 }
 
-func (h *UserHandler) Validate(node *nc.Node, m nc.NodeManager, errors nc.Errors) {
+func (h *UserHandler) Validate(node *core.Node, m core.NodeManager, errors core.Errors) {
 	data := node.Data.(*User)
 
 	if data.Login == "" {
@@ -91,19 +91,19 @@ func (h *UserHandler) Validate(node *nc.Node, m nc.NodeManager, errors nc.Errors
 	}
 }
 
-func (h *UserHandler) GetDownloadData(node *nc.Node) *nc.DownloadData {
-	return nc.GetDownloadData()
+func (h *UserHandler) GetDownloadData(node *core.Node) *core.DownloadData {
+	return core.GetDownloadData()
 }
 
-func (h *UserHandler) Load(data []byte, meta []byte, node *nc.Node) error {
-	return nc.HandlerLoad(h, data, meta, node)
+func (h *UserHandler) Load(data []byte, meta []byte, node *core.Node) error {
+	return core.HandlerLoad(h, data, meta, node)
 }
 
-func (h *UserHandler) StoreStream(node *nc.Node, r io.Reader) (int64, error) {
-	return nc.DefaultHandlerStoreStream(node, r)
+func (h *UserHandler) StoreStream(node *core.Node, r io.Reader) (int64, error) {
+	return core.DefaultHandlerStoreStream(node, r)
 }
 
-func updatePassword(node *nc.Node) error {
+func updatePassword(node *core.Node) error {
 	data := node.Data.(*User)
 	meta := node.Meta.(*UserMeta)
 

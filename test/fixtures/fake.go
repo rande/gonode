@@ -1,13 +1,13 @@
 package fixtures
 
 import (
-	nc "github.com/rande/gonode/core"
+	"github.com/rande/gonode/core"
 	nh "github.com/rande/gonode/handlers"
 	"strconv"
 )
 
-func GetFakeMediaNode(pos int) *nc.Node {
-	node := nc.NewNode()
+func GetFakeMediaNode(pos int) *core.Node {
+	node := core.NewNode()
 
 	node.Type = "media.image"
 	node.Name = "The image " + strconv.Itoa(pos)
@@ -21,8 +21,8 @@ func GetFakeMediaNode(pos int) *nc.Node {
 	return node
 }
 
-func GetFakePostNode(pos int) *nc.Node {
-	node := nc.NewNode()
+func GetFakePostNode(pos int) *core.Node {
+	node := core.NewNode()
 
 	node.Type = "blog.post"
 	node.Name = "The blog post " + strconv.Itoa(pos)
@@ -39,8 +39,8 @@ func GetFakePostNode(pos int) *nc.Node {
 	return node
 }
 
-func GetFakeUserNode(pos int) *nc.Node {
-	node := nc.NewNode()
+func GetFakeUserNode(pos int) *core.Node {
+	node := core.NewNode()
 
 	node.Type = "core.user"
 	node.Name = "The user " + strconv.Itoa(pos)
@@ -57,14 +57,14 @@ func GetFakeUserNode(pos int) *nc.Node {
 	return node
 }
 
-func LoadFixtures(m *nc.PgNodeManager, max int) error {
+func LoadFixtures(m *core.PgNodeManager, max int) error {
 
 	var err error
 
 	// create user
-	admin := nc.NewNode()
+	admin := core.NewNode()
 
-	admin.Uuid = nc.GetRootReference()
+	admin.Uuid = core.GetRootReference()
 	admin.Type = "core.user"
 	admin.Name = "The admin user"
 	admin.Slug = "the-admin-user"
@@ -86,7 +86,7 @@ func LoadFixtures(m *nc.PgNodeManager, max int) error {
 
 		_, err = m.Save(node, false)
 
-		nc.PanicOnError(err)
+		core.PanicOnError(err)
 	}
 
 	for i := 1; i < max; i++ {
@@ -96,7 +96,7 @@ func LoadFixtures(m *nc.PgNodeManager, max int) error {
 
 		_, err = m.Save(node, false)
 
-		nc.PanicOnError(err)
+		core.PanicOnError(err)
 	}
 
 	for i := 1; i < max; i++ {
@@ -106,7 +106,7 @@ func LoadFixtures(m *nc.PgNodeManager, max int) error {
 
 		_, err = m.Save(node, false)
 
-		nc.PanicOnError(err)
+		core.PanicOnError(err)
 	}
 
 	return nil

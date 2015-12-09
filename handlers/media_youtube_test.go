@@ -7,7 +7,7 @@ package handlers
 
 import (
 	"github.com/lib/pq"
-	nc "github.com/rande/gonode/core"
+	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/test/mock"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -24,110 +24,110 @@ func Test_YoutubeHandler(t *testing.T) {
 	a.IsType(&YoutubeMeta{}, meta)
 	a.IsType(&Youtube{}, data)
 
-	a.Equal(data.(*Youtube).Status, nc.ProcessStatusInit)
+	a.Equal(data.(*Youtube).Status, core.ProcessStatusInit)
 	a.Equal(data.(*Youtube).Vid, "")
 }
 
 func Test_YoutubeHandler_PreInsert(t *testing.T) {
 	a := assert.New(t)
 
-	node := nc.NewNode()
+	node := core.NewNode()
 
 	handler := &YoutubeHandler{}
-	manager := &nc.PgNodeManager{}
+	manager := &core.PgNodeManager{}
 
 	node.Data, node.Meta = handler.GetStruct()
 
 	//no url => keep status
 	handler.PreInsert(node, manager)
-	a.Equal(node.Data.(*Youtube).Status, nc.ProcessStatusInit)
+	a.Equal(node.Data.(*Youtube).Status, core.ProcessStatusInit)
 
 	//url => update status
 	node.Data.(*Youtube).Vid = "k72S8XYqi0c"
 	handler.PreInsert(node, manager)
-	a.Equal(node.Data.(*Youtube).Status, nc.ProcessStatusUpdate)
+	a.Equal(node.Data.(*Youtube).Status, core.ProcessStatusUpdate)
 
 	//url, status done => no update
-	node.Data.(*Youtube).Status = nc.ProcessStatusDone
+	node.Data.(*Youtube).Status = core.ProcessStatusDone
 	handler.PreInsert(node, manager)
-	a.Equal(node.Data.(*Youtube).Status, nc.ProcessStatusDone)
+	a.Equal(node.Data.(*Youtube).Status, core.ProcessStatusDone)
 }
 
 func Test_YoutubeHandler_PreUpdate(t *testing.T) {
 	a := assert.New(t)
 
-	node := nc.NewNode()
+	node := core.NewNode()
 
 	handler := &YoutubeHandler{}
-	manager := &nc.PgNodeManager{}
+	manager := &core.PgNodeManager{}
 
 	node.Data, node.Meta = handler.GetStruct()
 
 	// no url => keep status
 	handler.PreUpdate(node, manager)
-	a.Equal(node.Data.(*Youtube).Status, nc.ProcessStatusInit)
+	a.Equal(node.Data.(*Youtube).Status, core.ProcessStatusInit)
 
 	// url => update status
 	node.Data.(*Youtube).Vid = "k72S8XYqi0c"
 	handler.PreUpdate(node, manager)
-	a.Equal(node.Data.(*Youtube).Status, nc.ProcessStatusUpdate)
+	a.Equal(node.Data.(*Youtube).Status, core.ProcessStatusUpdate)
 
 	// url, status done => no update
-	node.Data.(*Youtube).Status = nc.ProcessStatusDone
+	node.Data.(*Youtube).Status = core.ProcessStatusDone
 	handler.PreUpdate(node, manager)
-	a.Equal(node.Data.(*Youtube).Status, nc.ProcessStatusDone)
+	a.Equal(node.Data.(*Youtube).Status, core.ProcessStatusDone)
 }
 
 func Test_YoutubeHandler_PostUpdate(t *testing.T) {
 	a := assert.New(t)
 
-	node := nc.NewNode()
+	node := core.NewNode()
 
 	handler := &YoutubeHandler{}
-	manager := &nc.MockedManager{}
+	manager := &core.MockedManager{}
 	manager.On("Notify", "media_youtube_update", node.Uuid.String()).Return()
 
 	node.Data, node.Meta = handler.GetStruct()
 
 	// no url => keep status
 	handler.PostUpdate(node, manager)
-	a.Equal(node.Data.(*Youtube).Status, nc.ProcessStatusInit)
+	a.Equal(node.Data.(*Youtube).Status, core.ProcessStatusInit)
 
 	// url => keep status
 	node.Data.(*Youtube).Vid = "k72S8XYqi0c"
-	node.Data.(*Youtube).Status = nc.ProcessStatusUpdate
+	node.Data.(*Youtube).Status = core.ProcessStatusUpdate
 
 	handler.PostUpdate(node, manager)
 
 	manager.AssertCalled(t, "Notify", "media_youtube_update", node.Uuid.String())
 
-	a.Equal(node.Data.(*Youtube).Status, nc.ProcessStatusUpdate)
+	a.Equal(node.Data.(*Youtube).Status, core.ProcessStatusUpdate)
 }
 
 func Test_YoutubeHandler_PostInsert(t *testing.T) {
 	a := assert.New(t)
 
-	node := nc.NewNode()
+	node := core.NewNode()
 
 	handler := &YoutubeHandler{}
-	manager := &nc.MockedManager{}
+	manager := &core.MockedManager{}
 	manager.On("Notify", "media_youtube_update", node.Uuid.String()).Return()
 
 	node.Data, node.Meta = handler.GetStruct()
 
 	// no url => keep status
 	handler.PostInsert(node, manager)
-	a.Equal(node.Data.(*Youtube).Status, nc.ProcessStatusInit)
+	a.Equal(node.Data.(*Youtube).Status, core.ProcessStatusInit)
 
 	// url => keep status
 	node.Data.(*Youtube).Vid = "k72S8XYqi0c"
-	node.Data.(*Youtube).Status = nc.ProcessStatusUpdate
+	node.Data.(*Youtube).Status = core.ProcessStatusUpdate
 
 	handler.PostInsert(node, manager)
 
 	manager.AssertCalled(t, "Notify", "media_youtube_update", node.Uuid.String())
 
-	a.Equal(node.Data.(*Youtube).Status, nc.ProcessStatusUpdate)
+	a.Equal(node.Data.(*Youtube).Status, core.ProcessStatusUpdate)
 }
 
 func Test_YoutubeListener_NodeNotFound(t *testing.T) {
@@ -137,8 +137,8 @@ func Test_YoutubeListener_NodeNotFound(t *testing.T) {
 		HttpClient: client,
 	}
 
-	manager := &nc.MockedManager{}
-	manager.On("Find", nc.GetEmptyReference()).Return(nil)
+	manager := &core.MockedManager{}
+	manager.On("Find", core.GetEmptyReference()).Return(nil)
 
 	notification := &pq.Notification{
 		Extra: "11111111-1111-1111-1111-111111111111",
@@ -146,7 +146,7 @@ func Test_YoutubeListener_NodeNotFound(t *testing.T) {
 
 	l.Handle(notification, manager)
 
-	manager.AssertCalled(t, "Find", nc.GetEmptyReference())
+	manager.AssertCalled(t, "Find", core.GetEmptyReference())
 	manager.AssertNotCalled(t, "Save", nil)
 }
 
@@ -154,11 +154,11 @@ func Test_YoutubeListener_Found(t *testing.T) {
 	a := assert.New(t)
 
 	handler := &YoutubeHandler{}
-	node := nc.NewNode()
+	node := core.NewNode()
 
 	node.Data, node.Meta = handler.GetStruct()
 
-	node.Data.(*Youtube).Status = nc.ProcessStatusUpdate
+	node.Data.(*Youtube).Status = core.ProcessStatusUpdate
 	node.Data.(*Youtube).Vid = "MyVideoId"
 
 	client := &mock.MockedHttpClient{}
@@ -184,13 +184,13 @@ func Test_YoutubeListener_Found(t *testing.T) {
 		HttpClient: client,
 	}
 
-	nodeImage := nc.NewNode()
+	nodeImage := core.NewNode()
 	nodeImage.Type = "media.image"
 	nodeImage.Data = &Image{}
 	nodeImage.Meta = &ImageMeta{}
 
-	manager := &nc.MockedManager{}
-	manager.On("Find", nc.GetEmptyReference()).Return(node)
+	manager := &core.MockedManager{}
+	manager.On("Find", core.GetEmptyReference()).Return(node)
 	manager.On("Save", node).Return(node, nil)
 	manager.On("Save", nodeImage).Return(nodeImage, nil)
 	manager.On("NewNode", "media.image").Return(nodeImage, nil)
@@ -201,7 +201,7 @@ func Test_YoutubeListener_Found(t *testing.T) {
 
 	l.Handle(notification, manager)
 
-	manager.AssertCalled(t, "Find", nc.GetEmptyReference())
+	manager.AssertCalled(t, "Find", core.GetEmptyReference())
 	manager.AssertCalled(t, "Save", node)
 	manager.AssertCalled(t, "Save", nodeImage)
 	client.AssertCalled(t, "Get", "https://www.youtube.com/oembed?url=http://www.youtube.com/watch?v=MyVideoId&format=json")
@@ -218,7 +218,7 @@ func Test_YoutubeListener_Found(t *testing.T) {
 	a.Equal(node.Meta.(*YoutubeMeta).Height, 270)
 	a.Equal(node.Meta.(*YoutubeMeta).Width, 480)
 
-	a.Equal(node.Data.(*Youtube).Status, nc.ProcessStatusDone)
+	a.Equal(node.Data.(*Youtube).Status, core.ProcessStatusDone)
 	a.Equal(nodeImage.CreatedBy, node.CreatedBy)
 	a.Equal(nodeImage.UpdatedBy, node.UpdatedBy)
 	a.Equal(nodeImage.Source, node.Source)
