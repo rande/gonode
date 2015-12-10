@@ -9,3 +9,6 @@ prefix  = "prod"
 
 [filesystem]
 path = "/tmp/gnode"
+
+[auth]
+key = "ZeSecretKey0oo"
