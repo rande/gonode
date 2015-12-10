@@ -43,4 +43,3 @@ func NewServerConfig() *ServerConfig {
 		Test:      false,
 	}
 }
-

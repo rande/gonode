@@ -8,7 +8,8 @@ package api
 import (
 	. "github.com/rande/goapp"
 	"github.com/rande/gonode/core"
-	nh "github.com/rande/gonode/handlers"
+	"github.com/rande/gonode/plugins/media"
+	"github.com/rande/gonode/plugins/user"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
 	"net/http/httptest"
@@ -33,7 +34,7 @@ func Test_Create_User(t *testing.T) {
 		// THEN
 		assert.Equal(t, node.Type, "core.user")
 
-		user := node.Data.(*nh.User)
+		user := node.Data.(*user.User)
 
 		assert.Equal(t, user.FirstName, "User")
 		assert.Equal(t, user.LastName, "12")
@@ -68,7 +69,7 @@ func Test_Create_Media_With_Binary_Upload(t *testing.T) {
 		node = core.NewNode()
 		serializer.Deserialize(res.Body, node)
 
-		meta := node.Meta.(*nh.ImageMeta)
+		meta := node.Meta.(*media.ImageMeta)
 		assert.Equal(t, "media.image", node.Type)
 		assert.Equal(t, "application/octet-stream", meta.ContentType)
 	})

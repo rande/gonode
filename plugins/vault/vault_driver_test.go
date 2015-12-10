@@ -14,7 +14,7 @@ import (
 	"os"
 	"syscall"
 	"testing"
-	//	"bytes"
+	//		"bytes"
 )
 
 func getVaultFs(algo string, key []byte) *Vault {
@@ -179,7 +179,7 @@ func getNoRegressionVaultFs(algo string) *Vault {
 		Algo:    algo,
 		BaseKey: key,
 		Driver: &DriverFs{
-			Root: "../test/vault/" + algo,
+			Root: "../../test/vault/" + algo,
 		},
 	}
 }

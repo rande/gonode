@@ -444,7 +444,7 @@ func (m *PgNodeManager) Validate(node *Node) (bool, Errors) {
 	errors := NewErrors()
 
 	if node.Name == "" {
-		errors.AddError("name", "Login cannot be empty")
+		errors.AddError("name", "Username cannot be empty")
 	}
 
 	if node.Slug == "" {

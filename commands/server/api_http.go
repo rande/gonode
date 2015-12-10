@@ -16,7 +16,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core"
-	"github.com/rande/gonode/handlers"
+	"github.com/rande/gonode/plugins/user"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
 	"golang.org/x/crypto/bcrypt"
@@ -164,7 +164,7 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 			req.ParseForm()
 
 			loginForm := &struct {
-				Login    string `schema:"login"`
+				Username string `schema:"username"`
 				Password string `schema:"password"`
 			}{}
 
@@ -173,14 +173,14 @@ func ConfigureHttpApi(l *goapp.Lifecycle) {
 
 			core.PanicOnError(err)
 
-			query := manager.SelectBuilder().Where("type = 'core.user' AND data->>'login' = ?", loginForm.Login)
+			query := manager.SelectBuilder().Where("type = 'core.user' AND data->>'username' = ?", loginForm.Username)
 
 			node := manager.FindOneBy(query)
 
 			password := []byte("$2a$10$KDobsZdRDVnuMqvimYH82.Tnu3suk5xP7QzhQjlCo7Wy7d67xtYay")
 
 			if node != nil {
-				data := node.Data.(*handlers.User)
+				data := node.Data.(*user.User)
 				password = []byte(data.Password)
 			}
 

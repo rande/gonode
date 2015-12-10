@@ -35,7 +35,7 @@ type UserMeta struct {
 
 type User struct {
 	Name     string `json:"name"`
-	Login    string `json:"login"`
+	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
@@ -66,8 +66,8 @@ func (h *UserHandler) Validate(node *Node, m NodeManager, errors Errors) {
 
 	data := node.Data.(*User)
 
-	if data.Login == "" {
-		errors.AddError("data.login", "Login cannot be empty")
+	if data.Username == "" {
+		errors.AddError("data.username", "Username cannot be empty")
 	}
 
 	if data.Name == "" {

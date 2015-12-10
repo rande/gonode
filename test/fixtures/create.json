@@ -4,7 +4,7 @@
     "Slug": "the-user-12",
     "Data": {
         "Name": "User API",
-        "Login": "user-api",
+        "Username": "user-api",
         "Password": "{plain}user-api"
     }
 }

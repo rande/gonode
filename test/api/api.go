@@ -10,7 +10,7 @@ import (
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/commands/server"
 	"github.com/rande/gonode/core"
-	"github.com/rande/gonode/handlers"
+	"github.com/rande/gonode/plugins/user"
 	"github.com/rande/gonode/test"
 )
 
@@ -44,9 +44,9 @@ func InitSearchFixture(app *goapp.App) []*core.Node {
 	node.Name = "User A"
 	node.Weight = 1
 	node.Slug = "user-a"
-	node.Data.(*handlers.User).FirstName = "User"
-	node.Data.(*handlers.User).LastName = "A"
-	node.Data.(*handlers.User).Login = "user-a"
+	node.Data.(*user.User).FirstName = "User"
+	node.Data.(*user.User).LastName = "A"
+	node.Data.(*user.User).Username = "user-a"
 	manager.Save(node, false)
 
 	nodes = append(nodes, node)
@@ -55,9 +55,9 @@ func InitSearchFixture(app *goapp.App) []*core.Node {
 	node.Name = "User AA"
 	node.Weight = 2
 	node.Slug = "user-aa"
-	node.Data.(*handlers.User).FirstName = "User"
-	node.Data.(*handlers.User).LastName = "AA"
-	node.Data.(*handlers.User).Login = "user-aa"
+	node.Data.(*user.User).FirstName = "User"
+	node.Data.(*user.User).LastName = "AA"
+	node.Data.(*user.User).Username = "user-aa"
 	manager.Save(node, false)
 
 	nodes = append(nodes, node)
@@ -66,9 +66,9 @@ func InitSearchFixture(app *goapp.App) []*core.Node {
 	node.Name = "User B"
 	node.Weight = 1
 	node.Slug = "user-b"
-	node.Data.(*handlers.User).FirstName = "User"
-	node.Data.(*handlers.User).LastName = "B"
-	node.Data.(*handlers.User).Login = "user-b"
+	node.Data.(*user.User).FirstName = "User"
+	node.Data.(*user.User).LastName = "B"
+	node.Data.(*user.User).Username = "user-b"
 	manager.Save(node, false)
 
 	nodes = append(nodes, node)

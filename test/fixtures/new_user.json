@@ -5,7 +5,7 @@
     "data": {
         "firstname": "User",
         "lastname": "12",
-        "login": "user12",
+        "username": "user12",
         "newpassword": "user12",
         "email": "user-12@exemple.org"
     },

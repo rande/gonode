@@ -10,9 +10,12 @@ import (
 
 	"fmt"
 	"github.com/rande/gonode/core"
-	"github.com/rande/gonode/handlers"
+	"github.com/rande/gonode/plugins/blog"
+	"github.com/rande/gonode/plugins/debug"
+	"github.com/rande/gonode/plugins/media"
+	"github.com/rande/gonode/plugins/user"
+	"github.com/rande/gonode/plugins/vault"
 	"github.com/rande/gonode/test/fixtures"
-	"github.com/rande/gonode/vault"
 	"net/http"
 
 	"database/sql"
@@ -128,13 +131,13 @@ func ConfigureServer(l *goapp.Lifecycle, config *ServerConfig) {
 
 		app.Set("gonode.handler_collection", func(app *goapp.App) interface{} {
 			return core.HandlerCollection{
-				"default": &handlers.DefaultHandler{},
-				"media.image": &handlers.ImageHandler{
+				"default": &debug.DefaultHandler{},
+				"media.image": &media.ImageHandler{
 					Vault: app.Get("gonode.vault.fs").(*vault.Vault),
 				},
-				"media.youtube": &handlers.YoutubeHandler{},
-				"blog.post":     &handlers.PostHandler{},
-				"core.user":     &handlers.UserHandler{},
+				"media.youtube": &media.YoutubeHandler{},
+				"blog.post":     &blog.PostHandler{},
+				"core.user":     &user.UserHandler{},
 			}
 		})
 
@@ -151,7 +154,6 @@ func ConfigureServer(l *goapp.Lifecycle, config *ServerConfig) {
 		})
 
 		app.Set("gonode.postgres.connection", func(app *goapp.App) interface{} {
-
 			configuration := app.Get("gonode.configuration").(*ServerConfig)
 
 			sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
@@ -200,13 +202,13 @@ func ConfigureServer(l *goapp.Lifecycle, config *ServerConfig) {
 		app.Set("gonode.listener.youtube", func(app *goapp.App) interface{} {
 			client := app.Get("gonode.http_client").(*http.Client)
 
-			return &handlers.YoutubeListener{
+			return &media.YoutubeListener{
 				HttpClient: client,
 			}
 		})
 
 		app.Set("gonode.listener.file_downloader", func(app *goapp.App) interface{} {
-			return &handlers.ImageDownloadListener{
+			return &media.ImageDownloadListener{
 				Vault:      app.Get("gonode.vault.fs").(*vault.Vault),
 				HttpClient: app.Get("gonode.http_client").(*http.Client),
 			}
@@ -221,7 +223,7 @@ func ConfigureServer(l *goapp.Lifecycle, config *ServerConfig) {
 
 		sub.ListenMessage("media_youtube_update", func(app *goapp.App) core.SubscriberHander {
 			manager := app.Get("gonode.manager").(*core.PgNodeManager)
-			listener := app.Get("gonode.listener.youtube").(*handlers.YoutubeListener)
+			listener := app.Get("gonode.listener.youtube").(*media.YoutubeListener)
 
 			return func(notification *pq.Notification) (int, error) {
 				return listener.Handle(notification, manager)
@@ -230,7 +232,7 @@ func ConfigureServer(l *goapp.Lifecycle, config *ServerConfig) {
 
 		sub.ListenMessage("media_file_download", func(app *goapp.App) core.SubscriberHander {
 			manager := app.Get("gonode.manager").(*core.PgNodeManager)
-			listener := app.Get("gonode.listener.file_downloader").(*handlers.ImageDownloadListener)
+			listener := app.Get("gonode.listener.file_downloader").(*media.ImageDownloadListener)
 
 			return func(notification *pq.Notification) (int, error) {
 				return listener.Handle(notification, manager)

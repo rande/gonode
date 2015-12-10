@@ -1,0 +1,3 @@
+// The documentation should go there ...
+
+package plugins

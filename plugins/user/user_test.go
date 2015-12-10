@@ -3,7 +3,7 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package handlers
+package user
 
 import (
 	"github.com/rande/gonode/core"
@@ -40,8 +40,8 @@ func Test_UserHandler_Validate_EmptyData(t *testing.T) {
 	a.Equal(3, len(errors))
 	a.True(errors.HasErrors())
 
-	a.True(errors.HasError("data.login"))
-	a.Equal([]string{"Login cannot be empty"}, errors.GetError("data.login"))
+	a.True(errors.HasError("data.username"))
+	a.Equal([]string{"Username cannot be empty"}, errors.GetError("data.username"))
 
 	a.True(errors.HasError("data.email"))
 	a.Equal([]string{"Email is not valid"}, errors.GetError("data.email"))

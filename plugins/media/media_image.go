@@ -3,13 +3,13 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package handlers
+package media
 
 import (
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/rande/gonode/core"
-	"github.com/rande/gonode/vault"
+	"github.com/rande/gonode/plugins/vault"
 	"io"
 )
 

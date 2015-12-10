@@ -2,7 +2,9 @@ package fixtures
 
 import (
 	"github.com/rande/gonode/core"
-	nh "github.com/rande/gonode/handlers"
+	"github.com/rande/gonode/plugins/blog"
+	"github.com/rande/gonode/plugins/media"
+	"github.com/rande/gonode/plugins/user"
 	"strconv"
 )
 
@@ -12,11 +14,11 @@ func GetFakeMediaNode(pos int) *core.Node {
 	node.Type = "media.image"
 	node.Name = "The image " + strconv.Itoa(pos)
 	node.Slug = "the-image-" + strconv.Itoa(pos)
-	node.Data = &nh.Image{
+	node.Data = &media.Image{
 		Name:      "Go pic",
 		Reference: "0x0",
 	}
-	node.Meta = &nh.ImageMeta{}
+	node.Meta = &media.ImageMeta{}
 
 	return node
 }
@@ -27,12 +29,12 @@ func GetFakePostNode(pos int) *core.Node {
 	node.Type = "blog.post"
 	node.Name = "The blog post " + strconv.Itoa(pos)
 	node.Slug = "the-blog-post-" + strconv.Itoa(pos)
-	node.Data = &nh.Post{
+	node.Data = &blog.Post{
 		Title:   "Go pic",
 		Content: "The Content of my blog post",
 		Tags:    []string{"sport", "tennis", "soccer"},
 	}
-	node.Meta = &nh.PostMeta{
+	node.Meta = &blog.PostMeta{
 		Format: "markdown",
 	}
 
@@ -45,11 +47,11 @@ func GetFakeUserNode(pos int) *core.Node {
 	node.Type = "core.user"
 	node.Name = "The user " + strconv.Itoa(pos)
 	node.Slug = "the-user-" + strconv.Itoa(pos)
-	node.Data = &nh.User{
-		Login:       "user" + strconv.Itoa(pos),
+	node.Data = &user.User{
+		Username:    "user" + strconv.Itoa(pos),
 		NewPassword: "user" + strconv.Itoa(pos),
 	}
-	node.Meta = &nh.UserMeta{
+	node.Meta = &user.UserMeta{
 		PasswordCost: 12,
 		PasswordAlgo: "bcrypt",
 	}
@@ -68,11 +70,11 @@ func LoadFixtures(m *core.PgNodeManager, max int) error {
 	admin.Type = "core.user"
 	admin.Name = "The admin user"
 	admin.Slug = "the-admin-user"
-	admin.Data = &nh.User{
-		Login:       "admin",
+	admin.Data = &user.User{
+		Username:    "admin",
 		NewPassword: "admin",
 	}
-	admin.Meta = &nh.UserMeta{
+	admin.Meta = &user.UserMeta{
 		PasswordCost: 12,
 		PasswordAlgo: "bcrypt",
 	}

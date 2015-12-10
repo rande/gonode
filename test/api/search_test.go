@@ -28,8 +28,8 @@ func Test_Search_Basic(t *testing.T) {
 	urls := []string{
 		"/nodes",
 		"/nodes?type=core.user",
-		"/nodes?type=core.user&data.login=user12",
-		"/nodes?type=core.user&data.login=user12&data.login=user13",
+		"/nodes?type=core.user&data.username=user12",
+		"/nodes?type=core.user&data.username=user12&data.username=user13",
 		"/nodes?&page=-1&page=1", // the last occurrence erase first values
 	}
 
@@ -162,14 +162,14 @@ func Test_Search_OrderBy_Weight_DESC_Name_ASC(t *testing.T) {
 	})
 }
 
-func Test_Search_OrderBy_Meta_Login(t *testing.T) {
+func Test_Search_OrderBy_Meta_Username(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		InitSearchFixture(app)
 
 		// TESTING WITH 2 ORDERING OPTION
-		res, _ := test.RunRequest("GET", ts.URL+"/nodes?order_by=meta.login,DESC", nil)
+		res, _ := test.RunRequest("GET", ts.URL+"/nodes?order_by=meta.username,DESC", nil)
 
-		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=meta.login")
+		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=meta.username")
 
 		p := GetPager(app, res)
 
@@ -184,9 +184,9 @@ func Test_Search_OrderBy_Meta_Non_Existant_Meta(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		InitSearchFixture(app)
 
-		res, _ := test.RunRequest("GET", ts.URL+"/nodes?meta.login.fake=foo&order_by=meta.login.fake,DESC", nil)
+		res, _ := test.RunRequest("GET", ts.URL+"/nodes?meta.username.fake=foo&order_by=meta.username.fake,DESC", nil)
 
-		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=meta.login.fake")
+		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=meta.username.fake")
 
 		p := GetPager(app, res)
 
@@ -198,9 +198,9 @@ func Test_Search_Meta(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		InitSearchFixture(app)
 
-		res, _ := test.RunRequest("GET", ts.URL+"/nodes?data.login=user-a", nil)
+		res, _ := test.RunRequest("GET", ts.URL+"/nodes?data.username=user-a", nil)
 
-		assert.Equal(t, 200, res.StatusCode, "url: /nodes?data.login=user-a")
+		assert.Equal(t, 200, res.StatusCode, "url: /nodes?data.username=user-a")
 
 		p := GetPager(app, res)
 

@@ -5,15 +5,6 @@ import (
 	"github.com/rande/goapp"
 )
 
-type ClientConfig struct {
-	Server string `toml:"server"`
-	Bind   string `toml:"bind"`
-}
-
-func NewClientConfig() *ClientConfig {
-	return &ClientConfig{}
-}
-
 func LoadConfiguration(path string, c interface{}) error {
 	data, err := goapp.LoadConfigurationFromFile(path)
 

@@ -35,8 +35,8 @@ Nodes Tables
     
     CREATE INDEX "uuid_idx" ON "public"."nodes" USING btree( "uuid" ASC NULLS LAST );
     CREATE INDEX "uuid_current_idx" ON "public"."nodes" USING btree( "uuid" ASC NULLS LAST, "current" ASC NULLS LAST );
-    -- CREATE INDEX "nodes_expr_idx" ON "public"."nodes" USING btree( "(data ->> 'Login'::text)" ASC NULLS LAST );
-    -- CREATE INDEX "node_login_index" ON "public"."nodes" USING btree( "(data ->> 'Login'::text)" ASC NULLS LAST );    
+    -- CREATE INDEX "nodes_expr_idx" ON "public"."nodes" USING btree( "(data ->> 'Username'::text)" ASC NULLS LAST );
+    -- CREATE INDEX "node_username_index" ON "public"."nodes" USING btree( "(data ->> 'Username'::text)" ASC NULLS LAST );    
     -- CREATE INDEX "node_media_size_index" ON "public"."nodes" USING btree( "(data ->> 'Width'::text)" ASC NULLS LAST, "(data ->> 'Height'::text)" ASC NULLS LAST );
 
 

@@ -50,7 +50,7 @@ var FormElement = React.createClass({
                     </div>
 
                     <ReactAdmin.TextInput form={this.props.form} property="data.email" label="Email"/>
-                    <ReactAdmin.TextInput form={this.props.form} property="data.login" label="Login"/>
+                    <ReactAdmin.TextInput form={this.props.form} property="data.username" label="Username"/>
                     <ReactAdmin.TextInput form={this.props.form} property="data.newpassword" label="New Password" help="Set a new password for the user"/>
 
                     <ReactAdmin.TextInput form={this.props.form} property="data.locale" label="Locale"/>

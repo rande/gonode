@@ -3,7 +3,7 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package handlers
+package user
 
 import (
 	v "github.com/asaskevich/govalidator"
@@ -40,9 +40,21 @@ type User struct {
 	Gender      string   `json:"gender"`
 	Locale      string   `json:"locale"`
 	Timezone    string   `json:"timezone"`
-	Login       string   `json:"login"`
+	Username    string   `json:"username"`
 	Password    string   `json:"password"`
 	NewPassword string   `json:"newpassword,omitempty"`
+}
+
+func (u *User) GetRoles() []string {
+	return u.Roles
+}
+
+func (u *User) GetPassword() string {
+	return u.Password
+}
+
+func (u *User) GetUsername() string {
+	return u.Username
 }
 
 type UserHandler struct {
@@ -78,8 +90,8 @@ func (h *UserHandler) PostUpdate(node *core.Node, m core.NodeManager) error {
 func (h *UserHandler) Validate(node *core.Node, m core.NodeManager, errors core.Errors) {
 	data := node.Data.(*User)
 
-	if data.Login == "" {
-		errors.AddError("data.login", "Login cannot be empty")
+	if data.Username == "" {
+		errors.AddError("data.username", "Username cannot be empty")
 	}
 
 	if data.Email != "" && !v.IsEmail(data.Email) {

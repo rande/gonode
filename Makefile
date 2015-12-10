@@ -2,6 +2,7 @@
 
 PID = .pid
 GO_FILES = $(shell find . -type f -name "*.go")
+GONODE_PLUGINS = $(shell find ./plugins -type d)
 
 default: clean test build
 
@@ -25,14 +26,14 @@ build:
 	rm -rf dist && mkdir dist
 	#cd explorer && webpack --progress --color
 	#cd commands && go build -o dist/gonode
-	cd commands && go build -o ../dist/gonode
+	cd commands && go build -a -o ../dist/gonode
 
 format:
 	gofmt -l -w -s .
 	go fix ./...
 
 test:
-	go test ./handlers ./test/api ./core ./vault ./commands/server
+	go test -v $(GONODE_PLUGINS) ./test/api ./core ./commands/server
 	go vet ./...
 	#cd explorer && npm test
 
