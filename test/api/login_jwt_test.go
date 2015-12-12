@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/commands/server"
+	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/plugins/user"
 	"github.com/rande/gonode/test"
@@ -24,7 +24,7 @@ import (
 func Test_Create_Username(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 
-		configuration := app.Get("gonode.configuration").(*server.ServerConfig)
+		configuration := app.Get("gonode.configuration").(*config.ServerConfig)
 
 		// WITH
 		// create a valid user into the database ...
