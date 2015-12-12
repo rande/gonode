@@ -7,8 +7,8 @@ package api
 
 import (
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/commands/server"
 	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/plugins/api"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
 	"net/http/httptest"
@@ -16,7 +16,7 @@ import (
 	"testing"
 )
 
-func CheckNoResults(t *testing.T, p *server.ApiPager) {
+func CheckNoResults(t *testing.T, p *api.ApiPager) {
 	assert.Equal(t, uint64(32), p.PerPage)
 	assert.Equal(t, uint64(1), p.Page)
 	assert.Equal(t, 0, len(p.Elements))

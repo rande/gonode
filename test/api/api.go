@@ -8,14 +8,14 @@ package api
 import (
 	"encoding/json"
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/commands/server"
 	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/plugins/api"
 	"github.com/rande/gonode/plugins/user"
 	"github.com/rande/gonode/test"
 )
 
-func GetPager(app *goapp.App, res *test.Response) *server.ApiPager {
-	p := &server.ApiPager{}
+func GetPager(app *goapp.App, res *test.Response) *api.ApiPager {
+	p := &api.ApiPager{}
 
 	serializer := app.Get("gonode.node.serializer").(*core.Serializer)
 	serializer.Deserialize(res.Body, p)

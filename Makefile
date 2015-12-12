@@ -33,7 +33,7 @@ format:
 	go fix ./...
 
 test:
-	go test -v $(GONODE_PLUGINS) ./test/api ./core ./commands/server
+	go test -v $(GONODE_PLUGINS) ./test/api ./core ./core/config ./commands/server
 	go vet ./...
 	#cd explorer && npm test
 

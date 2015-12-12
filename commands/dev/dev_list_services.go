@@ -11,9 +11,10 @@ import (
 	"github.com/rande/goapp"
 
 	"github.com/rande/gonode/commands/server"
-	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/plugins/api"
 
 	"fmt"
+	"github.com/rande/gonode/core/config"
 )
 
 type DevListServicesCommand struct {
@@ -40,14 +41,14 @@ func (c *DevListServicesCommand) Run(args []string) int {
 		return 1
 	}
 
-	config := server.NewServerConfig()
+	conf := config.NewServerConfig()
 
-	core.LoadConfiguration(c.ConfigFile, config)
+	config.LoadConfiguration(c.ConfigFile, conf)
 
 	l := goapp.NewLifecycle()
 
-	server.ConfigureServer(l, config)
-	server.ConfigureHttpApi(l)
+	server.ConfigureServer(l, conf)
+	api.ConfigureServer(l, conf)
 
 	c.Ui.Info("Listing services available for the server configuration")
 

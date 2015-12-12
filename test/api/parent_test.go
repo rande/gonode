@@ -8,8 +8,8 @@ package api
 import (
 	"fmt"
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/commands/server"
 	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/plugins/api"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
 	"net/http/httptest"
@@ -95,7 +95,7 @@ func Test_Create_Parents_With_Api(t *testing.T) {
 		assert.Equal(t, 200, res.StatusCode)
 
 		serializer := app.Get("gonode.node.serializer").(*core.Serializer)
-		op := &server.ApiOperation{}
+		op := &api.ApiOperation{}
 		serializer.Deserialize(res.Body, op)
 
 		assert.Equal(t, "OK", op.Status)
