@@ -12,6 +12,8 @@ import (
 
 	"github.com/rande/gonode/commands/server"
 	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/plugins/api"
 
 	"fmt"
 )
@@ -40,14 +42,14 @@ func (c *DevListNodeTypesCommand) Run(args []string) int {
 		return 1
 	}
 
-	config := server.NewServerConfig()
+	conf := config.NewServerConfig()
 
-	core.LoadConfiguration(c.ConfigFile, config)
+	config.LoadConfiguration(c.ConfigFile, conf)
 
 	l := goapp.NewLifecycle()
 
-	server.ConfigureServer(l, config)
-	server.ConfigureHttpApi(l)
+	server.ConfigureServer(l, conf)
+	api.ConfigureServer(l, conf)
 
 	c.Ui.Info("Node types available")
 

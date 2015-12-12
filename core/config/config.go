@@ -1,4 +1,4 @@
-package core
+package config
 
 import (
 	"github.com/BurntSushi/toml"

@@ -10,10 +10,11 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/rande/goapp"
 
-	"github.com/rande/gonode/core"
-
 	"net/http"
 
+	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/plugins/api"
+	"github.com/rande/gonode/plugins/setup"
 	"github.com/zenazn/goji/bind"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
@@ -44,20 +45,22 @@ func (c *ServerCommand) Run(args []string) int {
 		return 1
 	}
 
-	config := NewServerConfig()
+	conf := config.NewServerConfig()
 
-	core.LoadConfiguration(c.ConfigFile, config)
+	config.LoadConfiguration(c.ConfigFile, conf)
 
-	c.Ui.Info("Starting GoNode Server on: " + config.Bind)
+	c.Ui.Info("Starting GoNode Server on: " + conf.Bind)
 
 	l := goapp.NewLifecycle()
 
-	ConfigureServer(l, config)
-	ConfigureHttpApi(l)
+	ConfigureServer(l, conf)
+	// add plugins
+	setup.ConfigureServer(l, conf)
+	api.ConfigureServer(l, conf)
 
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 		mux := app.Get("goji.mux").(*web.Mux)
-		config := app.Get("gonode.configuration").(*ServerConfig)
+		conf := app.Get("gonode.configuration").(*config.ServerConfig)
 
 		mux.Compile()
 
@@ -65,7 +68,7 @@ func (c *ServerCommand) Run(args []string) int {
 		// This allows packages like expvar to continue working as expected.
 		http.Handle("/", mux)
 
-		listener := bind.Socket(config.Bind)
+		listener := bind.Socket(conf.Bind)
 		log.Println("Starting Goji on", listener.Addr())
 
 		graceful.HandleSignals()

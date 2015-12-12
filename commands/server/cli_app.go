@@ -8,14 +8,14 @@ package server
 import (
 	"github.com/rande/goapp"
 
-	"fmt"
 	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/plugins/api"
 	"github.com/rande/gonode/plugins/blog"
 	"github.com/rande/gonode/plugins/debug"
 	"github.com/rande/gonode/plugins/media"
 	"github.com/rande/gonode/plugins/user"
 	"github.com/rande/gonode/plugins/vault"
-	"github.com/rande/gonode/test/fixtures"
 	"net/http"
 
 	"database/sql"
@@ -31,11 +31,11 @@ import (
 	"os"
 )
 
-func ConfigureServer(l *goapp.Lifecycle, config *ServerConfig) {
+func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 	l.Config(func(app *goapp.App) error {
 		app.Set("gonode.configuration", func(app *goapp.App) interface{} {
-			return config
+			return conf
 		})
 
 		return nil
@@ -62,65 +62,13 @@ func ConfigureServer(l *goapp.Lifecycle, config *ServerConfig) {
 		return nil
 	})
 
-	l.Prepare(func(app *goapp.App) error {
-		if !config.Test {
-			return nil
-		}
-
-		mux := app.Get("goji.mux").(*web.Mux)
-
-		prefix := ""
-
-		mux.Put(prefix+"/data/purge", func(res http.ResponseWriter, req *http.Request) {
-
-			manager := app.Get("gonode.manager").(*core.PgNodeManager)
-			configuration := app.Get("gonode.configuration").(*ServerConfig)
-
-			prefix := configuration.Databases["master"].Prefix
-
-			tx, _ := manager.Db.Begin()
-			manager.Db.Exec(fmt.Sprintf(`DELETE FROM "%s_nodes"`, prefix))
-			manager.Db.Exec(fmt.Sprintf(`DELETE FROM "%s_nodes_audit"`, prefix))
-			err := tx.Commit()
-
-			if err != nil {
-				SendWithStatus("KO", err.Error(), res)
-			} else {
-				SendWithStatus("OK", "Data purged!", res)
-			}
-		})
-
-		mux.Put(prefix+"/data/load", func(res http.ResponseWriter, req *http.Request) {
-			manager := app.Get("gonode.manager").(*core.PgNodeManager)
-			nodes := manager.FindBy(manager.SelectBuilder(), 0, 10)
-
-			if nodes.Len() != 0 {
-				SendWithStatus("KO", "Table contains data, purge the data first!", res)
-
-				return
-			}
-
-			err := fixtures.LoadFixtures(manager, 100)
-
-			if err != nil {
-				SendWithStatus("KO", err.Error(), res)
-			} else {
-				SendWithStatus("OK", "Data loaded!", res)
-			}
-		})
-
-		return nil
-	})
-
 	l.Register(func(app *goapp.App) error {
 		app.Set("gonode.vault.fs", func(app *goapp.App) interface{} {
-			configuration := app.Get("gonode.configuration").(*ServerConfig)
-
 			return &vault.Vault{
 				BaseKey: []byte(""),
 				Algo:    "no_op",
 				Driver: &vault.DriverFs{
-					Root: configuration.Filesystem.Path,
+					Root: conf.Filesystem.Path,
 				},
 			}
 		})
@@ -142,22 +90,18 @@ func ConfigureServer(l *goapp.Lifecycle, config *ServerConfig) {
 		})
 
 		app.Set("gonode.manager", func(app *goapp.App) interface{} {
-			configuration := app.Get("gonode.configuration").(*ServerConfig)
-
 			return &core.PgNodeManager{
 				Logger:   app.Get("logger").(*log.Logger),
 				Db:       app.Get("gonode.postgres.connection").(*sql.DB),
 				ReadOnly: false,
 				Handlers: app.Get("gonode.handler_collection").(core.Handlers),
-				Prefix:   configuration.Databases["master"].Prefix,
+				Prefix:   conf.Databases["master"].Prefix,
 			}
 		})
 
 		app.Set("gonode.postgres.connection", func(app *goapp.App) interface{} {
-			configuration := app.Get("gonode.configuration").(*ServerConfig)
-
 			sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-			db, err := sql.Open("postgres", configuration.Databases["master"].DSN)
+			db, err := sql.Open("postgres", conf.Databases["master"].DSN)
 
 			db.SetMaxIdleConns(8)
 			db.SetMaxOpenConns(64)
@@ -175,7 +119,7 @@ func ConfigureServer(l *goapp.Lifecycle, config *ServerConfig) {
 		})
 
 		app.Set("gonode.api", func(app *goapp.App) interface{} {
-			return &Api{
+			return &api.Api{
 				Manager:    app.Get("gonode.manager").(*core.PgNodeManager),
 				Version:    "1.0.0",
 				Serializer: app.Get("gonode.node.serializer").(*core.Serializer),
@@ -191,10 +135,8 @@ func ConfigureServer(l *goapp.Lifecycle, config *ServerConfig) {
 		})
 
 		app.Set("gonode.postgres.subscriber", func(app *goapp.App) interface{} {
-			configuration := app.Get("gonode.configuration").(*ServerConfig)
-
 			return core.NewSubscriber(
-				configuration.Databases["master"].DSN,
+				conf.Databases["master"].DSN,
 				app.Get("logger").(*log.Logger),
 			)
 		})
