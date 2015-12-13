@@ -12,7 +12,6 @@ import (
 
 func GetGuardMiddleware(auths []GuardAuthenticator) func(c *web.C, h http.Handler) http.Handler {
 	return func(c *web.C, h http.Handler) http.Handler {
-
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			// handle security here
 			for _, authenticator := range auths {
@@ -51,13 +50,15 @@ func performAuthentication(a GuardAuthenticator, w http.ResponseWriter, r *http.
 	// ok get the current user for the current credentials
 	user, err := a.getUser(credentials)
 
-	if err != nil {
+	if err != nil || user == nil {
 		return true, err
 	}
 
 	// check if the request's credentials match user credentials
 	if err = a.checkCredentials(credentials, user); err != nil {
 		a.onAuthenticationFailure(r, w, err)
+
+		return true, err
 	}
 
 	// create a valid security token for the user

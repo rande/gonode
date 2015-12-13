@@ -25,6 +25,24 @@ type GuardUser interface {
 	GetRoles() []string
 }
 
+type DefaultGuardUser struct {
+	Username string
+	Password string
+	Roles    []string
+}
+
+func (u *DefaultGuardUser) GetUsername() string {
+	return u.Username
+}
+
+func (u *DefaultGuardUser) GetPassword() string {
+	return u.Password
+}
+
+func (u *DefaultGuardUser) GetRoles() []string {
+	return u.Roles
+}
+
 // Bare interface to used inside a request lifecycle
 type GuardToken interface {
 	// return the current username for the current token

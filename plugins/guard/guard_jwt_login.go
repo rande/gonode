@@ -59,7 +59,7 @@ func (a *JwtLoginGuardAuthenticator) getUser(credentials interface{}) (GuardUser
 }
 
 func (a *JwtLoginGuardAuthenticator) checkCredentials(credentials interface{}, user GuardUser) error {
-	c := credentials.(struct{ Username, Password string })
+	c := credentials.(*struct{ Username, Password string })
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.GetPassword()), []byte(c.Password)); err != nil { // equal
 		return InvalidCredentials
@@ -78,7 +78,6 @@ func (a *JwtLoginGuardAuthenticator) createAuthenticatedToken(user GuardUser) (G
 func (a *JwtLoginGuardAuthenticator) onAuthenticationFailure(req *http.Request, res http.ResponseWriter, err error) {
 	// nothing to do
 	res.Header().Set("Content-Type", "application/json")
-	res.Header().Set("Access-Control-Allow-Origin", "*")
 
 	res.WriteHeader(http.StatusForbidden)
 
@@ -106,6 +105,5 @@ func (a *JwtLoginGuardAuthenticator) onAuthenticationSuccess(req *http.Request, 
 	// Sign and get the complete encoded token as a string
 	tokenString, _ := jwtToken.SignedString([]byte(a.Key))
 
-	res.Header().Set("Access-Control-Allow-Origin", "*")
 	res.Write([]byte(tokenString))
 }

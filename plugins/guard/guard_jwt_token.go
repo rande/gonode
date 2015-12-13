@@ -15,14 +15,14 @@ import (
 )
 
 // this authenticator will create a JWT Token from a standard form
-type JwtGuardAuthenticator struct {
-	LoginPath   string
+type JwtGuardTokenAuthenticator struct {
+	Path        string
 	NodeManager core.NodeManager
 	Validity    int64
 	Key         []byte
 }
 
-func (a *JwtGuardAuthenticator) getCredentials(req *http.Request) (interface{}, error) {
+func (a *JwtGuardTokenAuthenticator) getCredentials(req *http.Request) (interface{}, error) {
 	// Authorization: Bearer <token>
 	auth := req.Header.Get("Authorization")
 
@@ -48,7 +48,7 @@ func (a *JwtGuardAuthenticator) getCredentials(req *http.Request) (interface{}, 
 	}
 }
 
-func (a *JwtGuardAuthenticator) getUser(credentials interface{}) (GuardUser, error) {
+func (a *JwtGuardTokenAuthenticator) getUser(credentials interface{}) (GuardUser, error) {
 	jwtToken := credentials.(*jwt.Token)
 
 	query := a.NodeManager.
@@ -62,23 +62,22 @@ func (a *JwtGuardAuthenticator) getUser(credentials interface{}) (GuardUser, err
 	return nil, UnableRetrieveUser
 }
 
-func (a *JwtGuardAuthenticator) checkCredentials(credentials interface{}, user GuardUser) error {
+func (a *JwtGuardTokenAuthenticator) checkCredentials(credentials interface{}, user GuardUser) error {
 	// nothing to do ...
 
 	return nil
 }
 
-func (a *JwtGuardAuthenticator) createAuthenticatedToken(user GuardUser) (GuardToken, error) {
+func (a *JwtGuardTokenAuthenticator) createAuthenticatedToken(user GuardUser) (GuardToken, error) {
 	return &DefaultGuardToken{
 		Username: user.GetUsername(),
 		Roles:    user.GetRoles(),
 	}, nil
 }
 
-func (a *JwtGuardAuthenticator) onAuthenticationFailure(req *http.Request, res http.ResponseWriter, err error) {
+func (a *JwtGuardTokenAuthenticator) onAuthenticationFailure(req *http.Request, res http.ResponseWriter, err error) {
 	// nothing to do
 	res.Header().Set("Content-Type", "application/json")
-	res.Header().Set("Access-Control-Allow-Origin", "*")
 
 	res.WriteHeader(http.StatusForbidden)
 
@@ -90,6 +89,6 @@ func (a *JwtGuardAuthenticator) onAuthenticationFailure(req *http.Request, res h
 	res.Write(data)
 }
 
-func (a *JwtGuardAuthenticator) onAuthenticationSuccess(req *http.Request, res http.ResponseWriter, token GuardToken) {
+func (a *JwtGuardTokenAuthenticator) onAuthenticationSuccess(req *http.Request, res http.ResponseWriter, token GuardToken) {
 	// nothing to do
 }
