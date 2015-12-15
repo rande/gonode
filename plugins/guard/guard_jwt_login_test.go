@@ -42,7 +42,7 @@ func Test_JwtLoginGuardAuthenticator_getCredentials_Valid_Request(t *testing.T) 
 	assert.NotNil(t, c)
 	assert.Nil(t, err)
 
-	cs := c.((struct{ Username, Password string }))
+	cs := c.(*struct{ Username, Password string })
 
 	assert.Equal(t, cs.Username, "thomas")
 	assert.Equal(t, cs.Password, "ZePassword")

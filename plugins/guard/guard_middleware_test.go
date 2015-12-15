@@ -7,6 +7,7 @@ package guard
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/zenazn/goji/web"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -20,7 +21,9 @@ func Test_Perform_Authentification_With_Not_Found_Credentials(t *testing.T) {
 	a := &MockedAuthenticator{}
 	a.On("getCredentials", r).Return(nil, nil)
 
-	performed, err := performAuthentication(a, w, r)
+	cw := &web.C{Env: make(map[interface{}]interface{})}
+
+	performed, err := performAuthentication(cw, a, w, r)
 
 	assert.False(t, performed)
 	assert.Nil(t, err)
@@ -38,8 +41,11 @@ func Test_Perform_Authentification_With_Not_User_Found(t *testing.T) {
 	a := &MockedAuthenticator{}
 	a.On("getCredentials", r).Return(c, nil)
 	a.On("getUser", c).Return(nil, nil)
+	a.On("onAuthenticationFailure", r, w, nil).Return(nil, nil)
 
-	performed, err := performAuthentication(a, w, r)
+	cw := &web.C{Env: make(map[interface{}]interface{})}
+
+	performed, err := performAuthentication(cw, a, w, r)
 
 	assert.True(t, performed)
 	assert.Nil(t, err)
@@ -65,7 +71,9 @@ func Test_Perform_Authentification_With_Invalid_Credentials(t *testing.T) {
 	a.On("checkCredentials", c, u).Return(InvalidCredentials)
 	a.On("onAuthenticationFailure", r, w, InvalidCredentials)
 
-	performed, err := performAuthentication(a, w, r)
+	cw := &web.C{Env: make(map[interface{}]interface{})}
+
+	performed, err := performAuthentication(cw, a, w, r)
 
 	assert.True(t, performed)
 	assert.Equal(t, InvalidCredentials, err)
@@ -96,8 +104,11 @@ func Test_Perform_Authentification_With_Valid_User(t *testing.T) {
 	a.On("createAuthenticatedToken", u).Return(token, nil)
 	a.On("onAuthenticationSuccess", r, w, token)
 
-	performed, err := performAuthentication(a, w, r)
+	cw := &web.C{Env: make(map[interface{}]interface{})}
+
+	performed, err := performAuthentication(cw, a, w, r)
 
 	assert.True(t, performed)
 	assert.Nil(t, err)
+	assert.Equal(t, token, cw.Env["guard_token"])
 }

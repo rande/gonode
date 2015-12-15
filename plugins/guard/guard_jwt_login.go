@@ -41,11 +41,11 @@ func (a *JwtLoginGuardAuthenticator) getCredentials(req *http.Request) (interfac
 		return nil, err
 	}
 
-	return struct{ Username, Password string }{loginForm.Username, loginForm.Password}, nil
+	return &struct{ Username, Password string }{loginForm.Username, loginForm.Password}, nil
 }
 
 func (a *JwtLoginGuardAuthenticator) getUser(credentials interface{}) (GuardUser, error) {
-	c := credentials.(struct{ Username, Password string })
+	c := credentials.(*struct{ Username, Password string })
 
 	query := a.NodeManager.
 		SelectBuilder().

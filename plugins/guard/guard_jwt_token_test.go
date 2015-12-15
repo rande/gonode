@@ -8,15 +8,16 @@ package guard
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/rande/gonode/core"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"time"
+	"regexp"
 	"testing"
-	"github.com/dgrijalva/jwt-go"
-	"fmt"
+	"time"
 )
 
 func GetToken() *jwt.Token {
@@ -35,9 +36,9 @@ func GetToken() *jwt.Token {
 	return jwtToken
 }
 
-func Test_JwtGuardTokenAuthenticator_getCredentials_NoHeader_Request(t *testing.T) {
-	a := &JwtGuardTokenAuthenticator{
-		Path:        "/",
+func Test_JwtTokenGuardAuthenticator_getCredentials_NoMatch(t *testing.T) {
+	a := &JwtTokenGuardAuthenticator{
+		Path:        regexp.MustCompile("/api/*"),
 		NodeManager: &core.MockedManager{},
 		Validity:    12,
 		Key:         []byte("ZeKey"),
@@ -51,9 +52,25 @@ func Test_JwtGuardTokenAuthenticator_getCredentials_NoHeader_Request(t *testing.
 	assert.Nil(t, err)
 }
 
-func Test_JwtGuardTokenAuthenticator_getCredentials_Invalid_Token(t *testing.T) {
-	a := &JwtGuardTokenAuthenticator{
-		Path:        "/",
+func Test_JwtTokenGuardAuthenticator_getCredentials_NoHeader_Request(t *testing.T) {
+	a := &JwtTokenGuardAuthenticator{
+		Path:        regexp.MustCompile("/*"),
+		NodeManager: &core.MockedManager{},
+		Validity:    12,
+		Key:         []byte("ZeKey"),
+	}
+
+	req, _ := http.NewRequest("GET", "/ressource", nil)
+
+	c, err := a.getCredentials(req)
+
+	assert.Nil(t, c)
+	assert.NotNil(t, err)
+}
+
+func Test_JwtTokenGuardAuthenticator_getCredentials_Invalid_Token(t *testing.T) {
+	a := &JwtTokenGuardAuthenticator{
+		Path:        regexp.MustCompile("/*"),
 		NodeManager: &core.MockedManager{},
 		Validity:    12,
 		Key:         []byte("ZeKey"),
@@ -68,9 +85,9 @@ func Test_JwtGuardTokenAuthenticator_getCredentials_Invalid_Token(t *testing.T) 
 	assert.NotNil(t, err)
 }
 
-func Test_JwtGuardTokenAuthenticator_getCredentials_Valid_Token(t *testing.T) {
-	a := &JwtGuardTokenAuthenticator{
-		Path:        "/",
+func Test_JwtTokenGuardAuthenticator_getCredentials_Valid_Token(t *testing.T) {
+	a := &JwtTokenGuardAuthenticator{
+		Path:        regexp.MustCompile("/*"),
 		NodeManager: &core.MockedManager{},
 		Validity:    12,
 		Key:         []byte("ZeKey"),
@@ -89,9 +106,9 @@ func Test_JwtGuardTokenAuthenticator_getCredentials_Valid_Token(t *testing.T) {
 	assert.Equal(t, "thomas", c.(*jwt.Token).Claims["usr"].(string))
 }
 
-func Test_JwtGuardTokenAuthenticator_checkCredentials(t *testing.T) {
-	a := &JwtGuardTokenAuthenticator{
-		Path:        "/",
+func Test_JwtTokenGuardAuthenticator_checkCredentials(t *testing.T) {
+	a := &JwtTokenGuardAuthenticator{
+		Path:        regexp.MustCompile("/*"),
 		NodeManager: &core.MockedManager{},
 		Validity:    12,
 		Key:         []byte("ZeKey"),
@@ -106,9 +123,9 @@ func Test_JwtGuardTokenAuthenticator_checkCredentials(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func Test_JwtGuardTokenAuthenticator_createAuthenticatedToken(t *testing.T) {
-	a := &JwtGuardTokenAuthenticator{
-		Path:        "/",
+func Test_JwtTokenGuardAuthenticator_createAuthenticatedToken(t *testing.T) {
+	a := &JwtTokenGuardAuthenticator{
+		Path:        regexp.MustCompile("/*"),
 		NodeManager: &core.MockedManager{},
 		Validity:    12,
 		Key:         []byte("ZeKey"),
@@ -127,9 +144,9 @@ func Test_JwtGuardTokenAuthenticator_createAuthenticatedToken(t *testing.T) {
 	assert.Equal(t, token.GetRoles(), []string{"ADMIN"})
 }
 
-func Test_JwtGuardTokenAuthenticator_onAuthenticationSuccess(t *testing.T) {
-	a := &JwtGuardTokenAuthenticator{
-		Path:        "/",
+func Test_JwtTokenGuardAuthenticator_onAuthenticationSuccess(t *testing.T) {
+	a := &JwtTokenGuardAuthenticator{
+		Path:        regexp.MustCompile("/*"),
 		NodeManager: &core.MockedManager{},
 		Validity:    12,
 		Key:         []byte("ZeKey"),
@@ -150,9 +167,9 @@ func Test_JwtGuardTokenAuthenticator_onAuthenticationSuccess(t *testing.T) {
 	assert.Equal(t, b.Len(), 0)
 }
 
-func Test_JwtGuardTokenAuthenticator_onAuthenticationFailure(t *testing.T) {
-	a := &JwtGuardTokenAuthenticator{
-		Path:        "/",
+func Test_JwtTokenGuardAuthenticator_onAuthenticationFailure(t *testing.T) {
+	a := &JwtTokenGuardAuthenticator{
+		Path:        regexp.MustCompile("/*"),
 		NodeManager: &core.MockedManager{},
 		Validity:    12,
 		Key:         []byte("ZeKey"),
