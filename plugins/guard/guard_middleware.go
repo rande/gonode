@@ -16,21 +16,12 @@ func GetGuardMiddleware(auths []GuardAuthenticator) func(c *web.C, h http.Handle
 
 			// handle security here
 			for _, authenticator := range auths {
+				performed, output := performAuthentication(c, authenticator, w, r)
 
-				performed, err := performAuthentication(c, authenticator, w, r)
-
-				if performed && err != nil {
-					// continue ???
-					// an issue occured while the authenticator can handle the authentication
-					// move to the next one for now ...
-
+				if performed && output {
 					return
-				} else if performed && err == nil {
-					// nothing to do, auth end (login, or content sent ...)
-					return
-				} else {
-					// nothing to do move to the next authenticator
-					continue
+				} else if performed {
+					break
 				}
 			}
 
@@ -42,35 +33,37 @@ func GetGuardMiddleware(auths []GuardAuthenticator) func(c *web.C, h http.Handle
 }
 
 // false means, no authentification has been done
-func performAuthentication(c *web.C, a GuardAuthenticator, w http.ResponseWriter, r *http.Request) (bool, error) {
+func performAuthentication(c *web.C, a GuardAuthenticator, w http.ResponseWriter, r *http.Request) (bool, bool) {
+	var o bool
+
 	// get credentials from request
 	credentials, err := a.getCredentials(r)
 
 	if err == InvalidCredentialsFormat {
-		a.onAuthenticationFailure(r, w, err)
+		o = a.onAuthenticationFailure(r, w, err)
 
-		return true, err
+		return true, o
 	}
 
 	// no credentials, return
 	if credentials == nil { // nothing to do, next one
-		return false, err
+		return false, false
 	}
 
 	// ok get the current user for the current credentials
 	user, err := a.getUser(credentials)
 
 	if err != nil || user == nil {
-		a.onAuthenticationFailure(r, w, err)
+		o = a.onAuthenticationFailure(r, w, err)
 
-		return true, err
+		return true, o
 	}
 
 	// check if the request's credentials match user credentials
 	if err = a.checkCredentials(credentials, user); err != nil {
-		a.onAuthenticationFailure(r, w, err)
+		o = a.onAuthenticationFailure(r, w, err)
 
-		return true, err
+		return true, o
 	}
 
 	// create a valid security token for the user
@@ -79,7 +72,7 @@ func performAuthentication(c *web.C, a GuardAuthenticator, w http.ResponseWriter
 	c.Env["guard_token"] = token
 
 	// complete the process
-	a.onAuthenticationSuccess(r, w, token)
+	o = a.onAuthenticationSuccess(r, w, token)
 
-	return true, nil
+	return true, o
 }

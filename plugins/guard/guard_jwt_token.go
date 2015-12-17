@@ -69,7 +69,7 @@ func (a *JwtTokenGuardAuthenticator) createAuthenticatedToken(user GuardUser) (G
 	}, nil
 }
 
-func (a *JwtTokenGuardAuthenticator) onAuthenticationFailure(req *http.Request, res http.ResponseWriter, err error) {
+func (a *JwtTokenGuardAuthenticator) onAuthenticationFailure(req *http.Request, res http.ResponseWriter, err error) bool {
 	// nothing to do
 	res.Header().Set("Content-Type", "application/json")
 
@@ -81,8 +81,12 @@ func (a *JwtTokenGuardAuthenticator) onAuthenticationFailure(req *http.Request, 
 	})
 
 	res.Write(data)
+
+	return true
 }
 
-func (a *JwtTokenGuardAuthenticator) onAuthenticationSuccess(req *http.Request, res http.ResponseWriter, token GuardToken) {
+func (a *JwtTokenGuardAuthenticator) onAuthenticationSuccess(req *http.Request, res http.ResponseWriter, token GuardToken) bool {
 	// nothing to do
+
+	return false
 }

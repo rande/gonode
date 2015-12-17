@@ -46,10 +46,14 @@ func (m *MockedAuthenticator) createAuthenticatedToken(u GuardUser) (GuardToken,
 
 	return args.Get(0).(GuardToken), args.Error(1)
 }
-func (m *MockedAuthenticator) onAuthenticationFailure(req *http.Request, res http.ResponseWriter, err error) {
-	m.Mock.Called(req, res, err)
+func (m *MockedAuthenticator) onAuthenticationFailure(req *http.Request, res http.ResponseWriter, err error) bool {
+	args := m.Mock.Called(req, res, err)
+
+	return args.Bool(0)
 }
 
-func (m *MockedAuthenticator) onAuthenticationSuccess(req *http.Request, res http.ResponseWriter, token GuardToken) {
-	m.Mock.Called(req, res, token)
+func (m *MockedAuthenticator) onAuthenticationSuccess(req *http.Request, res http.ResponseWriter, token GuardToken) bool {
+	args := m.Mock.Called(req, res, token)
+
+	return args.Bool(0)
 }

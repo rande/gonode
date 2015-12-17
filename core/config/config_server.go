@@ -7,6 +7,15 @@ package config
 
 type ServerAuth struct {
 	Key string `toml:"key"`
+	Jwt struct {
+		Validity int64 `toml:"validity"`
+		Login    struct {
+			Path string `toml:"path"`
+		} `toml:"login"`
+		Token struct {
+			Path string `toml:"path"`
+		} `toml:"token"`
+	} `toml:"jwt"`
 }
 
 type ServerDatabase struct {

@@ -83,10 +83,14 @@ type GuardAuthenticator interface {
 
 	// Action when the authentication fail.
 	// On a default form login, it can be used to redirect the user to login page
-	onAuthenticationFailure(req *http.Request, res http.ResponseWriter, err error)
+	// return true if the workflows must be stopped (ie, the authenticator was written
+	// bytes on the response. false if not.
+	onAuthenticationFailure(req *http.Request, res http.ResponseWriter, err error) bool
 
 	// Action when the authentication success
 	// On a default form login, it can be used to redirect the user to protected page
 	// or the homepage
-	onAuthenticationSuccess(req *http.Request, res http.ResponseWriter, token GuardToken)
+	// return true if the workflows must be stopped (ie, the authenticator was written
+	// bytes on the response. false if not.
+	onAuthenticationSuccess(req *http.Request, res http.ResponseWriter, token GuardToken) bool
 }

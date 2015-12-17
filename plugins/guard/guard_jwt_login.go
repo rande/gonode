@@ -75,7 +75,7 @@ func (a *JwtLoginGuardAuthenticator) createAuthenticatedToken(user GuardUser) (G
 	}, nil
 }
 
-func (a *JwtLoginGuardAuthenticator) onAuthenticationFailure(req *http.Request, res http.ResponseWriter, err error) {
+func (a *JwtLoginGuardAuthenticator) onAuthenticationFailure(req *http.Request, res http.ResponseWriter, err error) bool {
 	// nothing to do
 	res.Header().Set("Content-Type", "application/json")
 
@@ -87,9 +87,11 @@ func (a *JwtLoginGuardAuthenticator) onAuthenticationFailure(req *http.Request, 
 	})
 
 	res.Write(data)
+
+	return true
 }
 
-func (a *JwtLoginGuardAuthenticator) onAuthenticationSuccess(req *http.Request, res http.ResponseWriter, token GuardToken) {
+func (a *JwtLoginGuardAuthenticator) onAuthenticationSuccess(req *http.Request, res http.ResponseWriter, token GuardToken) bool {
 	jwtToken := jwt.New(jwt.SigningMethodHS256)
 
 	// @todo: add support for referenced token on database
@@ -106,4 +108,6 @@ func (a *JwtLoginGuardAuthenticator) onAuthenticationSuccess(req *http.Request, 
 	tokenString, _ := jwtToken.SignedString([]byte(a.Key))
 
 	res.Write([]byte(tokenString))
+
+	return true
 }

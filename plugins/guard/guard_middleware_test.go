@@ -23,10 +23,10 @@ func Test_Perform_Authentification_With_Not_Found_Credentials(t *testing.T) {
 
 	cw := &web.C{Env: make(map[interface{}]interface{})}
 
-	performed, err := performAuthentication(cw, a, w, r)
+	performed, output := performAuthentication(cw, a, w, r)
 
 	assert.False(t, performed)
-	assert.Nil(t, err)
+	assert.False(t, output)
 }
 
 func Test_Perform_Authentification_With_Not_User_Found(t *testing.T) {
@@ -41,14 +41,14 @@ func Test_Perform_Authentification_With_Not_User_Found(t *testing.T) {
 	a := &MockedAuthenticator{}
 	a.On("getCredentials", r).Return(c, nil)
 	a.On("getUser", c).Return(nil, nil)
-	a.On("onAuthenticationFailure", r, w, nil).Return(nil, nil)
+	a.On("onAuthenticationFailure", r, w, nil).Return(true)
 
 	cw := &web.C{Env: make(map[interface{}]interface{})}
 
-	performed, err := performAuthentication(cw, a, w, r)
+	performed, output := performAuthentication(cw, a, w, r)
 
 	assert.True(t, performed)
-	assert.Nil(t, err)
+	assert.True(t, output)
 }
 
 func Test_Perform_Authentification_With_Invalid_Credentials(t *testing.T) {
@@ -69,14 +69,14 @@ func Test_Perform_Authentification_With_Invalid_Credentials(t *testing.T) {
 	a.On("getCredentials", r).Return(c, nil)
 	a.On("getUser", c).Return(u, nil)
 	a.On("checkCredentials", c, u).Return(InvalidCredentials)
-	a.On("onAuthenticationFailure", r, w, InvalidCredentials)
+	a.On("onAuthenticationFailure", r, w, InvalidCredentials).Return(true)
 
 	cw := &web.C{Env: make(map[interface{}]interface{})}
 
-	performed, err := performAuthentication(cw, a, w, r)
+	performed, output := performAuthentication(cw, a, w, r)
 
 	assert.True(t, performed)
-	assert.Equal(t, InvalidCredentials, err)
+	assert.True(t, output)
 }
 
 func Test_Perform_Authentification_With_Valid_User(t *testing.T) {
@@ -102,13 +102,13 @@ func Test_Perform_Authentification_With_Valid_User(t *testing.T) {
 	a.On("getUser", c).Return(u, nil)
 	a.On("checkCredentials", c, u).Return(nil)
 	a.On("createAuthenticatedToken", u).Return(token, nil)
-	a.On("onAuthenticationSuccess", r, w, token)
+	a.On("onAuthenticationSuccess", r, w, token).Return(true)
 
 	cw := &web.C{Env: make(map[interface{}]interface{})}
 
-	performed, err := performAuthentication(cw, a, w, r)
+	performed, output := performAuthentication(cw, a, w, r)
 
 	assert.True(t, performed)
-	assert.Nil(t, err)
+	assert.True(t, output)
 	assert.Equal(t, token, cw.Env["guard_token"])
 }

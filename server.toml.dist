@@ -1,5 +1,6 @@
 name= "GoNode - poc"
 bind= ":2405"
+test= true
 
 [databases.master]
 type    = "master"
@@ -12,3 +13,10 @@ path = "/tmp/gnode"
 
 [auth]
 key = "ZeSecretKey0oo"
+
+    [auth.jwt]
+        [auth.jwt.login]
+        path = "/login"
+
+        [auth.jwt.token]
+        path = "^\\/nodes\\/(.*)$"

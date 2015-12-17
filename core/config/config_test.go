@@ -6,6 +6,8 @@
 package config
 
 import (
+	"bytes"
+	"github.com/BurntSushi/toml"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
@@ -33,4 +35,15 @@ func Test_Server_LoadConfiguration(t *testing.T) {
 	assert.Equal(t, config.Databases["master"].Prefix, "test")
 	assert.Equal(t, config.Filesystem.Type, "") // not used for now
 	assert.Equal(t, config.Filesystem.Path, "/tmp/gnode")
+
+	assert.Equal(t, config.Auth.Jwt.Login.Path, "/login")
+	assert.Equal(t, config.Auth.Jwt.Token.Path, `^\/nodes\/(.*)$`)
+
+	config.Auth.Jwt.Login.Path = `^\/nodes\/(.*)$`
+
+	w := bytes.NewBufferString("")
+	e := toml.NewEncoder(w)
+
+	e.Encode(config)
+
 }

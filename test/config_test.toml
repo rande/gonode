@@ -13,3 +13,10 @@ path = "/tmp/gnode"
 
 [auth]
 key = "ZeSecretKey0oo"
+
+    [auth.jwt]
+        [auth.jwt.login]
+        path = "/login"
+
+        [auth.jwt.token]
+        path = "^\\/nodes\\/(.*)$"
