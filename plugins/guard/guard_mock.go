@@ -41,7 +41,7 @@ func (m *MockedAuthenticator) createAuthenticatedToken(u GuardUser) (GuardToken,
 	args := m.Mock.Called(u)
 
 	if args.Get(0) == nil {
-		return nil, args.Error(0)
+		return nil, args.Error(1)
 	}
 
 	return args.Get(0).(GuardToken), args.Error(1)
