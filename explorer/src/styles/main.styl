@@ -1,0 +1,135 @@
+@require 'settings/colors.styl'
+@require 'settings/dimensions.styl'
+@require 'fonts.styl'
+@require 'button.styl'
+@require 'loader.styl'
+@require 'side-panel.styl'
+@require 'header.styl'
+@require 'breadcrumbs.styl'
+@require 'footer.styl'
+@require 'user-card.styl'
+@require 'react-select.styl'
+@require 'react-slick.styl'
+@require 'form.styl'
+@require 'navigation.styl'
+@require 'nodes-list.styl'
+@require 'pager.styl'
+
+*
+  -webkit-box-sizing: border-box
+  -moz-box-sizing:    border-box
+  box-sizing:         border-box
+
+a
+  color: inherit
+  text-decoration: none
+
+.icon
+  width: 16px
+  height: 16px
+
+html, body
+  font-size: 16px
+  font-family: 'Raleway', sans-serif;
+  line-height: 22px
+  margin: 0
+  background: $color-main-background
+  color:      $color-main-text
+  overflow: none
+  height: 100%
+  width:  100%
+  overflow: hidden
+
+.content
+  position: absolute
+  top:    0
+  right:  0
+  bottom: 0
+  left:   $navigation-width
+  overflow-y: auto
+
+.content-overlay
+  opacity: 0.75
+  position: absolute
+  background: darken($color-main-background, 10)
+  top:    0
+  right:  0
+  bottom: 0
+  left:   0
+  cursor: pointer
+  display: none
+
+  &:hover
+    opacity: 0.5
+
+  &._is-opened
+    display: block
+
+.page-header
+  position: relative
+  border-bottom: 1px solid darken($color-main-background, 10)
+  padding: 17px 20px
+
+  &_title
+    vertical-align: middle
+    font-weight: 500
+    margin:  0
+    padding: 0
+    display: inline-block
+
+  &_button
+    margin-left: 12px
+    vertical-align: middle
+    display: inline-block
+    background: #2e72aa
+    color: darken($color-main-background, 10)
+    font-weight: 500
+    padding: 7px 9px
+    font-size: 14px
+    line-height: 1em
+    border-radius: 2px
+
+
+.panel-title
+  padding: 20px
+  margin: 0
+  background: lighten($color-second-panel-background, 4)
+  font-weight: 300
+  text-transform: uppercase
+  font-size: 24px
+  color: #fff
+
+.panel-body
+  padding: 0 20px
+
+.second-panel
+  position: absolute
+  top:    0
+  left:   100%
+  bottom: 0
+  background: $color-second-panel-background
+  width: 80%
+  transition: left 200ms
+  box-shadow: -3px 0 3px rgba(0, 0, 0, 0.15)
+
+  &._is-opened
+    left: 20%
+
+.node-raw
+  background-color: darken($color-second-panel-background, 7)
+  margin: 0 -20px
+  padding: 10px 20px
+  font-size: 14px
+  line-height: 20px
+  border-top:    1px solid darken($color-second-panel-background, 12)
+  border-bottom: 1px solid darken($color-second-panel-background, 12)
+
+.node-properties
+  margin: 20px 0
+  padding: 0
+  list-style: none
+  &_item
+    &_key
+      color: darken($color-main-text, 20)
+    &_value
+      font-weight: 500

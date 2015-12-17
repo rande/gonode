@@ -1,0 +1,74 @@
+.side-panel
+  position: absolute
+  background: $color-panel-background
+  color:      #fff
+  top:    $header-height
+  right:  ($panel-width * -1)
+  bottom: $footer-height
+  width: $panel-width
+  z-index: 15
+  border-left: 1px solid darken($color-panel-background, 10)
+  overflow-x: hidden
+  overflow-y: auto
+
+  &._is-opened
+    right: 0
+
+  &_close
+    font-size: 36px
+    cursor: pointer
+    display: block
+    width:  $panel-close-size
+    height: $panel-close-size
+    line-height: $panel-close-size
+    top:   10px
+    right: 10px
+    position: absolute
+    text-align: center
+    z-index: 16
+    opacity: .5
+    background-image: url('../imgs/close-icon.svg')
+    background-size: $panel-close-size panel-close-size
+
+    &:hover
+      opacity: 1
+
+.csstransforms3d
+  .side-panel
+    right: 0
+    transform: translate3d($panel-width, 0, 0)
+    &._is-opened
+      right: 0
+      transform: translate3d(0, 0, 0)
+
+  &.csstransitions
+    .side-panel
+      transition: transform 200ms
+
+    // animations for panel content
+    .panel-content
+      &-enter,
+      &-enter-active,
+      &-leave,
+      &-leave-active
+        position: absolute
+        width: $panel-width
+        transform: translate3d(0, 0, 0)
+
+      &-enter
+        transform: translate3d(0, 100px, 0)
+        opacity: .01
+
+      &-enter.panel-content-enter-active
+        transform: translate3d(0, 0, 0)
+        z-index: 10
+        opacity: 1
+        transition: opacity 400ms ease-in, transform 400ms ease-in
+
+      &-leave
+        opacity: 1
+
+      &-leave.panel-content-leave-active
+        z-index: 9
+        opacity: .01
+        transition: opacity 200ms ease-in

@@ -1,0 +1,25 @@
+.breadcrumbs
+  float: left
+  margin-left: 30px
+
+  &_item
+    cursor: pointer
+    float: left
+    height: $header-height
+    line-height: $header-height
+    padding: 0 15px 0 0
+    text-transform: uppercase
+    font-weight: 700
+
+    &:hover
+      text-decoration: underline
+
+    &:before
+      content: '>'
+      display: block
+      float: left
+      margin-right: 15px
+
+    &:first-child
+      &:before
+        display: none

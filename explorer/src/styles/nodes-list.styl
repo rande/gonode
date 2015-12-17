@@ -1,0 +1,45 @@
+.nodes-list
+  &_item
+    display: block
+    padding: 9px 20px
+    border-bottom: 1px solid $color-nodes-list-border
+    cursor: pointer
+    position: relative
+
+    &_title
+      margin: 0
+      padding: 0
+      font-weight: 400
+      font-size: 16px
+      color: lighten($color-main-text, 10)
+
+    &_meta
+      font-size: 12px
+      color: darken($color-main-text, 15)
+      .fa
+        margin-right: 5px
+        color: #2e72aa
+
+
+    &_type
+      display: inline-block
+      font-weight: 500
+      text-transform: uppercase
+      font-size: 10px
+      margin-right: 9px
+
+    &:before
+      content: ' '
+      display: block
+      position: absolute
+      background: $color-nodes-list-marker
+      width: $nodes-list-marker-width
+      top: 0
+      bottom: 0
+      left: 0
+      opacity: 0
+      transition: opacity 200ms
+
+    &:hover
+      &:before
+        opacity: 1
