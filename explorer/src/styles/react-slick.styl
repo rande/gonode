@@ -1,0 +1,181 @@
+/* Slick slider styles */
+.slick-slider
+  position: relative
+  display: block
+  -webkit-touch-callout: none
+  -webkit-user-select: none
+  -khtml-user-select: none
+  -moz-user-select: none
+  -ms-user-select: none
+  user-select: none
+  -ms-touch-action: pan-y
+  touch-action: pan-y
+  -webkit-tap-highlight-color: transparent
+
+  .slick-track
+    -webkit-transform: translate3d(0, 0, 0)
+    -moz-transform: translate3d(0, 0, 0)
+    -ms-transform: translate3d(0, 0, 0)
+    -o-transform: translate3d(0, 0, 0)
+    transform: translate3d(0, 0, 0)
+
+.slick-list
+  position: relative
+  overflow: hidden
+  display: block
+  margin: 0
+  padding: 0
+
+  &:focus
+    outline: none
+
+  &.dragging
+    cursor: hand
+
+//.slick-loading .slick-list { background: #fff url("./ajax-loader.gif") center center no-repeat; }
+
+.slick-track
+  position: relative
+  left: 0
+  top: 0
+  display: block
+  &:before,
+  &:after
+    content: ""
+    display: table
+  &:after
+    clear: both
+
+.slick-loading .slick-track
+  visibility: hidden
+
+.slick-slide
+  float: left
+  height: 100%
+  min-height: 1px
+  display: none
+
+  img
+    display: block
+
+.slick-slide.slick-loading img
+  display: none
+.slick-slide.dragging img
+  pointer-events: none
+.slick-initialized .slick-slide
+  display: block
+.slick-loading .slick-slide
+  visibility: hidden
+.slick-vertical .slick-slide
+  display: block
+  height: auto
+  border: 1px solid transparent
+
+/* Arrows */
+.slick-prev,
+.slick-next
+  position: absolute
+  display: block
+  height: $initiatives-carousel-arrow-size
+  width:  $initiatives-carousel-arrow-size
+  line-height: 0
+  font-size: 0
+  cursor: pointer
+  background: transparent
+  color: transparent
+  top: 50%
+  margin-top: -10px
+  padding: 0
+  border: none
+  outline: none
+
+  &:hover,
+  &:focus
+    outline: none
+    background: transparent
+    color: transparent
+
+    &:before
+      opacity: 1
+
+  &.slick-disabled
+    opacity: 0
+
+  &:before
+    content: ' '
+    display: block
+    width:  $initiatives-carousel-arrow-size
+    height: $initiatives-carousel-arrow-size
+    background-repeat: no-repeat
+    background-position: center center
+    background-size: ($initiatives-carousel-arrow-size * .8) ($initiatives-carousel-arrow-size * .8)
+
+.slick-prev
+  left ($initiatives-carousel-arrow-size * -1)
+  &:before
+    background-image: url('../imgs/arrow-left-icon.svg')
+
+.slick-next
+  right ($initiatives-carousel-arrow-size * -1)
+  &:before
+    background-image: url('../imgs/arrow-right-icon.svg')
+
+/* Dots */
+.slick-slider
+  margin-bottom: 50px
+
+.slick-dots
+  position: absolute
+  bottom: -50px
+  list-style: none
+  display: block
+  text-align: center
+  padding: 0
+  width: 100%
+
+  li
+    position: relative
+    display: inline-block
+    height: $carousel-dot-item-size
+    width:  $carousel-dot-item-size
+    margin:  0
+    padding: 0
+    cursor: pointer
+
+    button
+      border: 0
+      background: transparent
+      display: block
+      height: $carousel-dot-item-size
+      width:  $carousel-dot-item-size
+      outline: none
+      line-height: 0
+      font-size:   0
+      color: transparent
+      padding: 5px
+      cursor: pointer
+
+      &:hover,
+      &:focus
+        outline: none
+
+      &:hover:before,
+      &:focus:before
+        background: $color-carousel-dot-over
+
+      &:before
+        position: absolute
+        top:  (($carousel-dot-item-size - $carousel-dot-size) / 2)
+        left: (($carousel-dot-item-size - $carousel-dot-size) / 2)
+        content: ' '
+        width:  $carousel-dot-size
+        height: $carousel-dot-size
+        border-radius: ($carousel-dot-size / 2)
+        display: block
+        font-size: 6px
+        line-height: 20px
+        background: $color-carousel-dot
+
+    &.slick-active
+      button:before
+        background: $color-carousel-dot-active

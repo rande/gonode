@@ -1,5 +1,34 @@
-# GoNode Explorer
+# GONODE explorer
 
-This folder contains the frontend explorer to navigate into the datastore.
+## Technology stack
 
+- React
+- React Router
+- React Intl
+- Redux
+- Redux Simple Router
+- lodash
+- Webpack
+- Babel
+- eslint
+- Stylus
+- Stylint
+- …
 
+## Requirements
+
+- nodejs
+
+## Installation
+
+### Install **Node.js** packages through **npm**
+
+```
+make install
+```
+
+## Run webpack dev server for local development
+
+```
+npm start
+```
