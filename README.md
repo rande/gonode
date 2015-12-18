@@ -8,6 +8,7 @@ A prototype to store dynamic node inside a PostgreSQL database with the JSONb st
 Documentation
 -------------
  
+ * [Install](docs/install.md)
  * [Node](docs/node.md)
  * [Plugins](docs/plugins)
     * [Vault](docs/plugins/vault.md)

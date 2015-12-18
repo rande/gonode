@@ -1,71 +1,21 @@
+Installation
+============
 
+Please note, this is a work in progress. There is no real installation for a custom project. For now, you have to work
+from wihin the current repository.
 
-SQL requirements
-================
+Requirements
+------------
 
-Nodes Tables
+- Backend: You must have GO 1.4+ installed, and a running instance of PostgreSQL running.
+- Frontend: You must have ``nodejs`` and ``npm`` installed
 
-```sql
+Installation steps
+------------------
 
-    CREATE SEQUENCE "public"."nodes_id_seq" INCREMENT 1 MINVALUE 0 MAXVALUE 2147483647 START 0 CACHE 1;
-
-    CREATE TABLE "public"."nodes" ( 
-        "id" INTEGER DEFAULT nextval('nodes_id_seq'::regclass) NOT NULL UNIQUE, 
-        "uuid" UUid NOT NULL, 
-        "type" CHARACTER VARYING( 64 ) COLLATE "pg_catalog"."default" NOT NULL, 
-        "name" CHARACTER VARYING( 2044 ) COLLATE "pg_catalog"."default" DEFAULT ''::CHARACTER VARYING NOT NULL, 
-        "enabled" BOOLEAN DEFAULT 'true' NOT NULL, 
-        "current" BOOLEAN DEFAULT 'false' NOT NULL, 
-        "revision" INTEGER DEFAULT '1' NOT NULL,
-        "status" INTEGER DEFAULT '0' NOT NULL, 
-        "deleted" BOOLEAN DEFAULT 'false' NOT NULL, 
-        "data" jsonb DEFAULT '{}'::jsonb NOT NULL, 
-        "meta" jsonb DEFAULT '{}'::jsonb NOT NULL, 
-        "slug" CHARACTER VARYING( 256 ) COLLATE "pg_catalog"."default" NOT NULL, 
-        "source" UUid,
-        "set_uuid" UUid, 
-        "parent_uuid" UUid, 
-        "created_at" TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
-        "created_by" UUid NOT NULL, 
-        "updated_at" TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
-        "updated_by" UUid NOT NULL,
-        "weight" INTEGER DEFAULT '0' NOT NULL,
-     PRIMARY KEY ( "id" )
-    , CONSTRAINT "slug" UNIQUE( "parent_uuid","slug","revision" ), CONSTRAINT "uuid" UNIQUE( "revision","uuid" ) );
-    
-    CREATE INDEX "uuid_idx" ON "public"."nodes" USING btree( "uuid" ASC NULLS LAST );
-    CREATE INDEX "uuid_current_idx" ON "public"."nodes" USING btree( "uuid" ASC NULLS LAST, "current" ASC NULLS LAST );
-    -- CREATE INDEX "nodes_expr_idx" ON "public"."nodes" USING btree( "(data ->> 'Username'::text)" ASC NULLS LAST );
-    -- CREATE INDEX "node_username_index" ON "public"."nodes" USING btree( "(data ->> 'Username'::text)" ASC NULLS LAST );    
-    -- CREATE INDEX "node_media_size_index" ON "public"."nodes" USING btree( "(data ->> 'Width'::text)" ASC NULLS LAST, "(data ->> 'Height'::text)" ASC NULLS LAST );
-
-
-Audit Log node table
-
-    ```sql
-    CREATE SEQUENCE "public"."nodes_audit_id_seq" INCREMENT 1 MINVALUE 0 MAXVALUE 2147483647 START 0 CACHE 1;
-    CREATE TABLE "public"."nodes_audit" ( 
-        "id" INTEGER DEFAULT nextval('nodes_id_seq'::regclass) NOT NULL UNIQUE, 
-        "uuid" UUid NOT NULL, 
-        "type" CHARACTER VARYING( 64 ) COLLATE "pg_catalog"."default" NOT NULL, 
-        "name" CHARACTER VARYING( 2044 ) COLLATE "pg_catalog"."default" DEFAULT ''::CHARACTER VARYING NOT NULL, 
-        "enabled" BOOLEAN DEFAULT 'true' NOT NULL, 
-        "current" BOOLEAN DEFAULT 'false' NOT NULL, 
-        "revision" INTEGER DEFAULT '1' NOT NULL, 
-        "status" INTEGER DEFAULT '0' NOT NULL,
-        "deleted" BOOLEAN DEFAULT 'false' NOT NULL, 
-        "data" jsonb DEFAULT '{}'::jsonb NOT NULL, 
-        "meta" jsonb DEFAULT '{}'::jsonb NOT NULL, 
-        "slug" CHARACTER VARYING( 256 ) COLLATE "pg_catalog"."default" NOT NULL, 
-        "source" UUid,
-        "set_uuid" UUid, 
-        "parent_uuid" UUid, 
-        "created_at" TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
-        "created_by" UUid NOT NULL, 
-        "updated_at" TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
-        "updated_by" UUid NOT NULL,
-        "weight" INTEGER DEFAULT '0' NOT NULL,
-     PRIMARY KEY ( "id" )
-    );
-    
-
+1. Retrieve the code source: ``go get github.com/rande/gonode/core``
+2. Configure the ``server.toml`` configuration file
+3. Start the webserver: ``make run``
+4. Create a valid schema: ``curl -XPUT http://localhost:2405/setup/install`` 
+5. Load some fixtures: ``curl -XPUT http://localhost:2405/setup/data/load`` 
+ 
