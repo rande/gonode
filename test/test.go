@@ -7,6 +7,7 @@ package test
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/commands/server"
@@ -115,7 +116,15 @@ func GetAuthToken(t *testing.T, ts *httptest.Server) string {
 	b := bytes.NewBuffer([]byte(""))
 	io.Copy(b, res.Body)
 
-	return b.String()
+	v := &struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+		Token   string `json:"token"`
+	}{}
+
+	json.Unmarshal(b.Bytes(), v)
+
+	return v.Token
 }
 
 func RunRequest(method string, path string, options ...interface{}) (*Response, error) {

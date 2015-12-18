@@ -85,7 +85,7 @@ func Test_JwtTokenGuardAuthenticator_getCredentials_Invalid_Token(t *testing.T) 
 	assert.NotNil(t, err)
 }
 
-func Test_JwtTokenGuardAuthenticator_getCredentials_Valid_Token(t *testing.T) {
+func Test_JwtTokenGuardAuthenticator_getCredentials_Valid_Token_Header(t *testing.T) {
 	a := &JwtTokenGuardAuthenticator{
 		Path:        regexp.MustCompile("/*"),
 		NodeManager: &core.MockedManager{},
@@ -98,6 +98,26 @@ func Test_JwtTokenGuardAuthenticator_getCredentials_Valid_Token(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/ressource", nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tokenString))
+
+	c, err := a.getCredentials(req)
+
+	assert.NotNil(t, c)
+	assert.Nil(t, err)
+	assert.Equal(t, "thomas", c.(*jwt.Token).Claims["usr"].(string))
+}
+
+func Test_JwtTokenGuardAuthenticator_getCredentials_Valid_Token_QueryString(t *testing.T) {
+	a := &JwtTokenGuardAuthenticator{
+		Path:        regexp.MustCompile("/*"),
+		NodeManager: &core.MockedManager{},
+		Validity:    12,
+		Key:         []byte("ZeKey"),
+	}
+
+	jwtToken := GetToken()
+	tokenString, _ := jwtToken.SignedString(a.Key)
+
+	req, _ := http.NewRequest("GET", "/ressource?access_token="+tokenString, nil)
 
 	c, err := a.getCredentials(req)
 

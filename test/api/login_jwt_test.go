@@ -7,6 +7,7 @@ package api
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/rande/goapp"
@@ -54,7 +55,15 @@ func Test_Create_Username(t *testing.T) {
 		b := bytes.NewBuffer([]byte(""))
 		io.Copy(b, res.Body)
 
-		token, err := jwt.Parse(b.String(), func(token *jwt.Token) (interface{}, error) {
+		v := &struct {
+			Status  string `json:"status"`
+			Message string `json:"message"`
+			Token   string `json:"token"`
+		}{}
+
+		json.Unmarshal(b.Bytes(), v)
+
+		token, err := jwt.Parse(v.Token, func(token *jwt.Token) (interface{}, error) {
 			// Don't forget to validate the alg is what you expect:
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])

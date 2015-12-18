@@ -107,7 +107,16 @@ func (a *JwtLoginGuardAuthenticator) onAuthenticationSuccess(req *http.Request, 
 	// Sign and get the complete encoded token as a string
 	tokenString, _ := jwtToken.SignedString([]byte(a.Key))
 
-	res.Write([]byte(tokenString))
+	res.Header().Set("Content-Type", "application/json")
+	res.Header().Set("X-Token", tokenString)
+
+	data, _ := json.Marshal(map[string]string{
+		"status":  "KO",
+		"message": "Unable to authenticate request",
+		"token":   tokenString,
+	})
+
+	res.Write(data)
 
 	return true
 }

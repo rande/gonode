@@ -108,7 +108,15 @@ func Test_JwtLoginGuardAuthenticator_onAuthenticationSuccess(t *testing.T) {
 	b := bytes.NewBuffer([]byte(""))
 	io.Copy(b, res.Body)
 
-	jwtToken, err := jwt.Parse(b.String(), func(token *jwt.Token) (interface{}, error) {
+	v := &struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+		Token   string `json:"token"`
+	}{}
+
+	json.Unmarshal(b.Bytes(), v)
+
+	jwtToken, err := jwt.Parse(v.Token, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
@@ -119,6 +127,8 @@ func Test_JwtLoginGuardAuthenticator_onAuthenticationSuccess(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, token.Username, jwtToken.Claims["usr"])
+	assert.Equal(t, "application/json", res.Header().Get("Content-Type"))
+	assert.Equal(t, v.Token, res.Header().Get("X-Token"))
 
 	// @todo: I fail on basic golang conversion here ... from []interface{} to []string
 	//assert.Equal(t, token.Roles, jwtToken.Claims["rls"].([]string))
@@ -150,4 +160,5 @@ func Test_JwtLoginGuardAuthenticator_onAuthenticationFailure(t *testing.T) {
 
 	assert.Equal(t, "KO", v.Status)
 	assert.Equal(t, "Unable to authenticate request", v.Message)
+	assert.Equal(t, "application/json", res.Header().Get("Content-Type"))
 }
