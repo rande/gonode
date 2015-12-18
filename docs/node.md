@@ -14,6 +14,7 @@ A node is a data stored in PostgreSQL engine. A node has a set of properties mai
     - 3 - Validated: The node is validated and ready for production usage
  - Weight: The weight of the node versus other node, can be used to reorder a list
  - Revision: The current revision of the node, a new revision is created on updated
+ - Version: The current data and meta structure version, this can be used to run migrations.
  - CreatedAt
  - UpdatedAt
  - Enabled: The node is enabled and can be used in production.
