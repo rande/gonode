@@ -129,6 +129,8 @@ func Test_JwtLoginGuardAuthenticator_onAuthenticationSuccess(t *testing.T) {
 	assert.Equal(t, token.Username, jwtToken.Claims["usr"])
 	assert.Equal(t, "application/json", res.Header().Get("Content-Type"))
 	assert.Equal(t, v.Token, res.Header().Get("X-Token"))
+	assert.Equal(t, "Request is authenticated", v.Message)
+	assert.Equal(t, "OK", v.Status)
 
 	// @todo: I fail on basic golang conversion here ... from []interface{} to []string
 	//assert.Equal(t, token.Roles, jwtToken.Claims["rls"].([]string))

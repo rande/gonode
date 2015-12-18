@@ -36,10 +36,10 @@ func Test_Server_LoadConfiguration(t *testing.T) {
 	assert.Equal(t, config.Filesystem.Type, "") // not used for now
 	assert.Equal(t, config.Filesystem.Path, "/tmp/gnode")
 
-	assert.Equal(t, config.Auth.Jwt.Login.Path, "/login")
-	assert.Equal(t, config.Auth.Jwt.Token.Path, `^\/nodes\/(.*)$`)
+	assert.Equal(t, config.Guard.Jwt.Login.Path, "/login")
+	assert.Equal(t, config.Guard.Jwt.Token.Path, `^\/nodes\/(.*)$`)
 
-	config.Auth.Jwt.Login.Path = `^\/nodes\/(.*)$`
+	config.Guard.Jwt.Login.Path = `^\/nodes\/(.*)$`
 
 	w := bytes.NewBufferString("")
 	e := toml.NewEncoder(w)

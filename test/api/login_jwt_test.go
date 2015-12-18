@@ -69,11 +69,11 @@ func Test_Create_Username(t *testing.T) {
 				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 			}
 
-			return []byte(configuration.Auth.Key), nil
+			return []byte(configuration.Guard.Key), nil
 		})
 
-		assert.NotNil(t, configuration.Auth.Key)
-		assert.True(t, len(configuration.Auth.Key) > 0)
+		assert.NotNil(t, configuration.Guard.Key)
+		assert.True(t, len(configuration.Guard.Key) > 0)
 		assert.Nil(t, err)
 		assert.True(t, token.Valid)
 

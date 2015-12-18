@@ -11,12 +11,12 @@ prefix  = "test"
 [filesystem]
 path = "/tmp/gnode"
 
-[auth]
+[guard]
 key = "ZeSecretKey0oo"
 
-    [auth.jwt]
-        [auth.jwt.login]
+    [guard.jwt]
+        [guard.jwt.login]
         path = "/login"
 
-        [auth.jwt.token]
+        [guard.jwt.token]
         path = "^\\/nodes\\/(.*)$"

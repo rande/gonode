@@ -22,15 +22,15 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 		auths := []GuardAuthenticator{
 			&JwtTokenGuardAuthenticator{
-				Path:        regexp.MustCompile(conf.Auth.Jwt.Token.Path),
-				Key:         []byte(conf.Auth.Key),
-				Validity:    conf.Auth.Jwt.Validity,
+				Path:        regexp.MustCompile(conf.Guard.Jwt.Token.Path),
+				Key:         []byte(conf.Guard.Key),
+				Validity:    conf.Guard.Jwt.Validity,
 				NodeManager: manager,
 			},
 			&JwtLoginGuardAuthenticator{
-				LoginPath:   conf.Auth.Jwt.Login.Path,
-				Key:         []byte(conf.Auth.Key),
-				Validity:    conf.Auth.Jwt.Validity,
+				LoginPath:   conf.Guard.Jwt.Login.Path,
+				Key:         []byte(conf.Guard.Key),
+				Validity:    conf.Guard.Jwt.Validity,
 				NodeManager: manager,
 			},
 		}

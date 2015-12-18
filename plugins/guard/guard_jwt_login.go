@@ -111,8 +111,8 @@ func (a *JwtLoginGuardAuthenticator) onAuthenticationSuccess(req *http.Request, 
 	res.Header().Set("X-Token", tokenString)
 
 	data, _ := json.Marshal(map[string]string{
-		"status":  "KO",
-		"message": "Unable to authenticate request",
+		"status":  "OK",
+		"message": "Request is authenticated",
 		"token":   tokenString,
 	})
 

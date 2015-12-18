@@ -5,7 +5,7 @@
 
 package config
 
-type ServerAuth struct {
+type ServerGuard struct {
 	Key string `toml:"key"`
 	Jwt struct {
 		Validity int64 `toml:"validity"`
@@ -42,7 +42,7 @@ type ServerConfig struct {
 	Filesystem ServerFilesystem           `toml:"filesystem"`
 	Test       bool                       `toml:"test"`
 	Bind       string                     `toml:"bind"`
-	Auth       ServerAuth                 `toml:"auth"`
+	Guard      ServerGuard                `toml:"guard"`
 }
 
 func NewServerConfig() *ServerConfig {

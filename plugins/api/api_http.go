@@ -186,7 +186,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 				// Set some claims
 				token.Claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
 				// Sign and get the complete encoded token as a string
-				tokenString, err := token.SignedString([]byte(conf.Auth.Key))
+				tokenString, err := token.SignedString([]byte(conf.Guard.Key))
 
 				if err != nil {
 					helper.SendWithHttpCode(res, http.StatusInternalServerError, "Unable to sign the token")
