@@ -14,6 +14,7 @@ import (
 
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/plugins/api"
+	"github.com/rande/gonode/plugins/guard"
 	"github.com/rande/gonode/plugins/setup"
 	"github.com/zenazn/goji/bind"
 	"github.com/zenazn/goji/graceful"
@@ -54,9 +55,11 @@ func (c *ServerCommand) Run(args []string) int {
 	l := goapp.NewLifecycle()
 
 	ConfigureServer(l, conf)
+
 	// add plugins
 	setup.ConfigureServer(l, conf)
 	api.ConfigureServer(l, conf)
+	guard.ConfigureServer(l, conf)
 
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 		mux := app.Get("goji.mux").(*web.Mux)

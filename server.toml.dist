@@ -1,5 +1,6 @@
 name= "GoNode - poc"
 bind= ":2405"
+test= true
 
 [databases.master]
 type    = "master"
@@ -9,3 +10,13 @@ prefix  = "prod"
 
 [filesystem]
 path = "/tmp/gnode"
+
+[guard]
+key = "ZeSecretKey0oo"
+
+    [guard.jwt]
+        [guard.jwt.login]
+        path = "/login"
+
+        [guard.jwt.token]
+        path = "^\\/nodes\\/(.*)$"

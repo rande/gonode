@@ -14,12 +14,16 @@ import (
 func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 	l.Prepare(func(app *goapp.App) error {
+		if !conf.Test {
+			return nil
+		}
+
 		mux := app.Get("goji.mux").(*web.Mux)
 		manager := app.Get("gonode.manager").(*core.PgNodeManager)
 
 		prefix := ""
 
-		mux.Put(prefix+"/uninstall", func(res http.ResponseWriter, req *http.Request) {
+		mux.Put(prefix+"/setup/uninstall", func(res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
 			res.Header().Set("Access-Control-Allow-Origin", "*")
 
@@ -35,7 +39,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 			helper.SendWithHttpCode(res, http.StatusOK, "Successfully delete tables!")
 		})
 
-		mux.Put(prefix+"/install", func(res http.ResponseWriter, req *http.Request) {
+		mux.Put(prefix+"/setup/install", func(res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
 			res.Header().Set("Access-Control-Allow-Origin", "*")
 
@@ -112,19 +116,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 			}
 		})
 
-		return nil
-	})
-
-	l.Prepare(func(app *goapp.App) error {
-		if !conf.Test {
-			return nil
-		}
-
-		mux := app.Get("goji.mux").(*web.Mux)
-
-		prefix := ""
-
-		mux.Put(prefix+"/data/purge", func(res http.ResponseWriter, req *http.Request) {
+		mux.Put(prefix+"/setup/data/purge", func(res http.ResponseWriter, req *http.Request) {
 
 			manager := app.Get("gonode.manager").(*core.PgNodeManager)
 
@@ -142,7 +134,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 			}
 		})
 
-		mux.Put(prefix+"/data/load", func(res http.ResponseWriter, req *http.Request) {
+		mux.Put(prefix+"/setup/data/load", func(res http.ResponseWriter, req *http.Request) {
 			manager := app.Get("gonode.manager").(*core.PgNodeManager)
 			nodes := manager.FindBy(manager.SelectBuilder(), 0, 10)
 

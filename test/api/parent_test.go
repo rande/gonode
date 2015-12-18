@@ -67,6 +67,8 @@ func Test_Create_Parents_With_Manager(t *testing.T) {
 func Test_Create_Parents_With_Api(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		// WITH
+		auth := test.GetAuthHeader(t, ts)
+
 		handlers := app.Get("gonode.handler_collection").(core.HandlerCollection)
 		manager := app.Get("gonode.manager").(*core.PgNodeManager)
 
@@ -82,16 +84,16 @@ func Test_Create_Parents_With_Api(t *testing.T) {
 		node4 := handlers.NewNode("default")
 		manager.Save(node4, false)
 
-		res, _ := test.RunRequest("PUT", fmt.Sprintf("%s/nodes/move/%s/%s", ts.URL, node2.Uuid, node1.Uuid), nil)
+		res, _ := test.RunRequest("PUT", fmt.Sprintf("%s/nodes/move/%s/%s", ts.URL, node2.Uuid, node1.Uuid), nil, auth)
 		assert.Equal(t, 200, res.StatusCode)
 
-		res, _ = test.RunRequest("PUT", fmt.Sprintf("%s/nodes/move/%s/%s", ts.URL, node3.Uuid, node2.Uuid), nil)
+		res, _ = test.RunRequest("PUT", fmt.Sprintf("%s/nodes/move/%s/%s", ts.URL, node3.Uuid, node2.Uuid), nil, auth)
 		assert.Equal(t, 200, res.StatusCode)
 
-		res, _ = test.RunRequest("PUT", fmt.Sprintf("%s/nodes/move/%s/%s", ts.URL, node4.Uuid, node3.Uuid), nil)
+		res, _ = test.RunRequest("PUT", fmt.Sprintf("%s/nodes/move/%s/%s", ts.URL, node4.Uuid, node3.Uuid), nil, auth)
 		assert.Equal(t, 200, res.StatusCode)
 
-		res, _ = test.RunRequest("PUT", fmt.Sprintf("%s/nodes/move/%s/%s", ts.URL, node1.Uuid, node4.Uuid), nil)
+		res, _ = test.RunRequest("PUT", fmt.Sprintf("%s/nodes/move/%s/%s", ts.URL, node1.Uuid, node4.Uuid), nil, auth)
 		assert.Equal(t, 200, res.StatusCode)
 
 		serializer := app.Get("gonode.node.serializer").(*core.Serializer)

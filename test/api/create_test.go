@@ -20,9 +20,11 @@ import (
 
 func Test_Create_User(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
+		auth := test.GetAuthHeader(t, ts)
+
 		// WITH
 		file, _ := os.Open("../fixtures/new_user.json")
-		res, _ := test.RunRequest("POST", ts.URL+"/nodes", file)
+		res, _ := test.RunRequest("POST", ts.URL+"/nodes", file, auth)
 
 		assert.Equal(t, 201, res.StatusCode)
 
@@ -43,9 +45,11 @@ func Test_Create_User(t *testing.T) {
 
 func Test_Create_Media_With_Binary_Upload(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
+		auth := test.GetAuthHeader(t, ts)
+
 		// WITH
 		file, _ := os.Open("../fixtures/new_image.json")
-		res, _ := test.RunRequest("POST", ts.URL+"/nodes", file)
+		res, _ := test.RunRequest("POST", ts.URL+"/nodes", file, auth)
 
 		assert.Equal(t, 201, res.StatusCode)
 
@@ -55,15 +59,15 @@ func Test_Create_Media_With_Binary_Upload(t *testing.T) {
 
 		var message = "The content of the file, yep it is not an image"
 
-		res, _ = test.RunRequest("PUT", ts.URL+"/nodes/"+node.Uuid.CleanString()+"?raw", strings.NewReader(message))
+		res, _ = test.RunRequest("PUT", ts.URL+"/nodes/"+node.Uuid.CleanString()+"?raw", strings.NewReader(message), auth)
 
 		assert.Equal(t, 200, res.StatusCode)
 
-		res, _ = test.RunRequest("GET", ts.URL+"/nodes/"+node.Uuid.CleanString()+"?raw", nil)
+		res, _ = test.RunRequest("GET", ts.URL+"/nodes/"+node.Uuid.CleanString()+"?raw", nil, auth)
 
 		assert.Equal(t, message, string(res.GetBody()[:]))
 
-		res, _ = test.RunRequest("GET", ts.URL+"/nodes/"+node.Uuid.CleanString(), nil)
+		res, _ = test.RunRequest("GET", ts.URL+"/nodes/"+node.Uuid.CleanString(), nil, auth)
 		assert.Equal(t, 200, res.StatusCode)
 
 		node = core.NewNode()

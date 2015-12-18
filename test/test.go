@@ -6,13 +6,17 @@
 package test
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/commands/server"
 	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/plugins/api"
+	"github.com/rande/gonode/plugins/guard"
 	"github.com/rande/gonode/plugins/setup"
+	"github.com/rande/gonode/plugins/user"
 	"github.com/stretchr/testify/assert"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
@@ -54,10 +58,8 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 		app.Set("goji.mux", func(app *goapp.App) interface{} {
 			mux := web.New()
 
-			//		mux.Use(middleware.RequestID)
 			mux.Use(middleware.Logger)
 			mux.Use(middleware.Recoverer)
-			//		mux.Use(middleware.AutomaticOptions)
 
 			return mux
 		})
@@ -66,8 +68,11 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 	})
 
 	server.ConfigureServer(l, conf)
+
+	// configure plugin
 	api.ConfigureServer(l, conf)
 	setup.ConfigureServer(l, conf)
+	guard.ConfigureServer(l, conf)
 
 	return l
 }
@@ -94,7 +99,46 @@ func (r Response) GetBody() []byte {
 	return r.RawBody
 }
 
-func RunRequest(method string, path string, body interface{}) (*Response, error) {
+func GetAuthHeader(t *testing.T, ts *httptest.Server) map[string]string {
+	return map[string]string{
+		"Authorization": fmt.Sprintf("Bearer %s", GetAuthToken(t, ts)),
+	}
+}
+
+func GetAuthToken(t *testing.T, ts *httptest.Server) string {
+	res, _ := RunRequest("POST", fmt.Sprintf("%s/login", ts.URL), url.Values{
+		"username": {"test-admin"},
+		"password": {"admin"},
+	})
+
+	assert.Equal(t, 200, res.StatusCode)
+
+	b := bytes.NewBuffer([]byte(""))
+	io.Copy(b, res.Body)
+
+	v := &struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+		Token   string `json:"token"`
+	}{}
+
+	json.Unmarshal(b.Bytes(), v)
+
+	return v.Token
+}
+
+func RunRequest(method string, path string, options ...interface{}) (*Response, error) {
+	var body interface{}
+	var headers map[string]string
+
+	if len(options) > 0 {
+		body = options[0]
+	}
+
+	if len(options) > 1 {
+		headers = options[1].(map[string]string)
+	}
+
 	client := &http.Client{}
 	var req *http.Request
 	var err error
@@ -113,6 +157,12 @@ func RunRequest(method string, path string, body interface{}) (*Response, error)
 
 	default:
 		panic(fmt.Sprintf("please add a new test case for %T", body))
+	}
+
+	if headers != nil {
+		for name, value := range headers {
+			req.Header.Set(name, value)
+		}
 	}
 
 	core.PanicOnError(err)
@@ -142,13 +192,30 @@ func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *go
 			}
 		}()
 
-		res, err = RunRequest("PUT", ts.URL+"/uninstall", nil)
+		res, err = RunRequest("PUT", ts.URL+"/setup/uninstall", nil)
 		core.PanicIf(res.StatusCode != http.StatusOK, fmt.Sprintf("Expected code 200, get %d\n%s", res.StatusCode, string(res.GetBody()[:])))
 		core.PanicOnError(err)
 
-		res, err = RunRequest("PUT", ts.URL+"/install", nil)
+		res, err = RunRequest("PUT", ts.URL+"/setup/install", nil)
 		core.PanicIf(res.StatusCode != http.StatusOK, fmt.Sprintf("Expected code 200, get %d\n%s", res.StatusCode, string(res.GetBody()[:])))
 		core.PanicOnError(err)
+
+		// create a valid user
+		manager := app.Get("gonode.manager").(*core.PgNodeManager)
+
+		u := app.Get("gonode.handler_collection").(core.HandlerCollection).NewNode("core.user")
+		u.Name = "User ZZ"
+		data := u.Data.(*user.User)
+		data.Email = "test-admin@example.org"
+		data.Enabled = true
+		data.NewPassword = "admin"
+		data.Username = "test-admin"
+		data.Roles = []string{"ADMIN"}
+
+		meta := u.Meta.(*user.UserMeta)
+		meta.PasswordCost = 1 // save test time
+
+		manager.Save(u, false)
 
 		f(t, ts, app)
 
