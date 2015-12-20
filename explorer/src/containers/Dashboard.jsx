@@ -6,15 +6,25 @@ import Navigation                      from '../components/Navigation.jsx';
 import Footer                          from '../components/layout/Footer.jsx';
 
 
-class App extends Component {
+class Dashboard extends Component {
     render() {
-        const { content } = this.props;
+        const {
+            routes,
+            content
+        } = this.props;
 
-        return content;
+        return (
+            <div>
+                <Navigation/>
+                <div className="content">
+                    {content}
+                </div>
+            </div>
+        );
     }
 }
 
-App.propTypes = {
+Dashboard.propTypes = {
     routes:   PropTypes.array.isRequired,
     dispatch: PropTypes.func.isRequired
 };
@@ -22,4 +32,4 @@ App.propTypes = {
 
 export default connect(state => {
     return {};
-})(App);
+})(Dashboard);

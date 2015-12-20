@@ -31,6 +31,7 @@
     "webpack-dev-server": "^1.12.1"
   },
   "dependencies": {
+    "browser-cookies": "^1.0.8",
     "classnames": "^2.2.1",
     "d3": "^3.5.8",
     "font-awesome": "^4.5.0",
@@ -51,7 +52,8 @@
     "redux-logger": "^2.0.4",
     "redux-simple-router": "0.0.10",
     "redux-thunk": "^1.0.0",
-    "whatwg-fetch": "^0.10.1"
+    "superagent": "^1.6.1",
+    "superagent-promise": "^1.0.3"
   },
   "scripts": {
     "start": "NODE_ENV=development node webpack.config.js"

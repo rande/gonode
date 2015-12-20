@@ -20,9 +20,9 @@ function requestNode(nodeUuid) {
 }
 
 function fetchNode(nodeUuid) {
-    return dispatch => {
+    return (dispatch, getState) => {
         dispatch(requestNode(nodeUuid));
-        Api.node(nodeUuid)
+        Api.node(nodeUuid, getState().security.token)
             .then(node => {
                 return dispatch(receiveNode(node));
             })
@@ -64,7 +64,7 @@ function receiveNodeCreation(node) {
 export function createNode(nodeData) {
     return (dispatch, getState) => {
         dispatch(requestNodeCreation(nodeData));
-        Api.createNode(nodeData)
+        Api.createNode(nodeData, getState().security.token)
             .then(node => {
                 dispatch(receiveNodeCreation(node));
                 fetchNodesIfNeeded()(dispatch, getState);

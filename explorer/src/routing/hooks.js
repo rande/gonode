@@ -1,24 +1,44 @@
 import {
     fetchNodesIfNeeded,
     selectNode,
-    fetchNodeIfNeeded
+    fetchNodeIfNeeded,
+    logout
 } from '../actions';
+import history from './history';
 
 
-export function onEnterApp() {
+export function ensureAuthenticated(store, execIfAuthenticated = null) {
+    return function (nextState, replaceState) {
+        const { security: { token }} = store.getState();
+        if (!token) {
+            replaceState(null, '/login');
+        } else {
+            execIfAuthenticated && execIfAuthenticated(nextState, replaceState);
+        }
+    };
+}
+
+export function onEnterLogout(store) {
+    return function () {
+        store.dispatch(logout());
+    };
+}
+
+export function onEnterApp(store) {
+    return function () {};
 }
 
 export function onEnterNodes(store) {
-    return () => {
+    return ensureAuthenticated(store, function () {
         store.dispatch(fetchNodesIfNeeded());
-    };
+    });
 }
 
 export function onEnterNode(store) {
-    return (routing) => {
-        const { node_uuid } = routing.params;
+    return ensureAuthenticated(store, function (nextState) {
+        const { node_uuid } = nextState.params;
 
         store.dispatch(selectNode(node_uuid));
         store.dispatch(fetchNodeIfNeeded(node_uuid));
-    };
+    });
 }

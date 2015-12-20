@@ -29,11 +29,10 @@ function fetchNodes() {
         const { nodes: {
             itemsPerPage
         } } = getState();
-        console.log(itemsPerPage);
 
         Api.nodes({
             perPage: itemsPerPage
-        })
+        }, getState().security.token)
             .then(nodes => {
                 dispatch(receiveNodes(nodes));
             })
@@ -42,7 +41,6 @@ function fetchNodes() {
 }
 
 function shouldFetchNodes(state) {
-    console.log('shouldFetchNodes', state.nodes);
     const { nodes } = state;
     if (nodes.isFetching) {
         return false;
