@@ -13,7 +13,7 @@ import (
 	"testing"
 )
 
-func Test_Server_LoadConfiguration(t *testing.T) {
+func Test_Server_LoadConfigurationFromFile(t *testing.T) {
 	os.Setenv("PG_USER", "foo")
 	os.Setenv("PG_PASSWORD", "bar")
 
@@ -26,7 +26,37 @@ func Test_Server_LoadConfiguration(t *testing.T) {
 		Databases: make(map[string]*ServerDatabase),
 	}
 
-	LoadConfiguration("../../test/config_codeship.toml", config)
+	LoadConfigurationFromString(`
+name= "GoNode - Codeship"
+bind= ":2508"
+
+[databases.master]
+type    = "master"
+dsn     = "postgres://{{ env "PG_USER" }}:{{ env "PG_PASSWORD" }}@localhost:5434/test"
+enabled = true
+prefix  = "test"
+
+
+[filesystem]
+path = "/tmp/gnode"
+
+[guard]
+key = "ZeSecretKey0oo"
+
+    [guard.jwt]
+        [guard.jwt.login]
+        path = "/login"
+
+        [guard.jwt.token]
+        path = "^\\/nodes\\/(.*)$"
+
+[security]
+    [security.cors]
+    allowed_origins = ["*"]
+    allowed_methods = ["GET", "PUT", "POST"]
+    allowed_headers = ["Origin", "Accept", "Content-Type", "Authorization"]
+
+`, config)
 
 	assert.Equal(t, config.Name, "GoNode - Codeship")
 	assert.Equal(t, config.Databases["master"].Type, "master")
@@ -39,11 +69,14 @@ func Test_Server_LoadConfiguration(t *testing.T) {
 	assert.Equal(t, config.Guard.Jwt.Login.Path, "/login")
 	assert.Equal(t, config.Guard.Jwt.Token.Path, `^\/nodes\/(.*)$`)
 
+	assert.False(t, config.Security.Cors.AllowCredentials)
+	assert.Equal(t, config.Security.Cors.AllowedHeaders, []string{"Origin", "Accept", "Content-Type", "Authorization"})
+	assert.Equal(t, config.Security.Cors.AllowedMethods, []string{"GET", "PUT", "POST"})
+
 	config.Guard.Jwt.Login.Path = `^\/nodes\/(.*)$`
 
 	w := bytes.NewBufferString("")
 	e := toml.NewEncoder(w)
 
 	e.Encode(config)
-
 }

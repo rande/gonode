@@ -44,7 +44,7 @@ func (c *DevListNodeTypesCommand) Run(args []string) int {
 
 	conf := config.NewServerConfig()
 
-	config.LoadConfiguration(c.ConfigFile, conf)
+	config.LoadConfigurationFromFile(c.ConfigFile, conf)
 
 	l := goapp.NewLifecycle()
 
