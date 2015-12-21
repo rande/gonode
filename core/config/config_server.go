@@ -18,6 +18,18 @@ type ServerGuard struct {
 	} `toml:"jwt"`
 }
 
+type ServerSecurity struct {
+	Cors struct {
+		AllowedOrigins     []string `toml:"allowed_origins"`
+		AllowedMethods     []string `toml:"allowed_methods"`
+		AllowedHeaders     []string `toml:"allowed_headers"`
+		ExposedHeaders     []string `toml:"exposes_headers"`
+		AllowCredentials   bool     `toml:"allow_credentials"`
+		MaxAge             int      `toml:"max_age"`
+		OptionsPassthrough bool     `toml:"options_passthrough"`
+	} `toml:"cors"`
+}
+
 type ServerDatabase struct {
 	Name    string `toml:"name"`
 	DSN     string `toml:"dsn"`
@@ -42,7 +54,8 @@ type ServerConfig struct {
 	Filesystem ServerFilesystem           `toml:"filesystem"`
 	Test       bool                       `toml:"test"`
 	Bind       string                     `toml:"bind"`
-	Guard      ServerGuard                `toml:"guard"`
+	Guard      *ServerGuard               `toml:"guard"`
+	Security   *ServerSecurity            `toml:"security"`
 }
 
 func NewServerConfig() *ServerConfig {

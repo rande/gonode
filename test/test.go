@@ -15,6 +15,7 @@ import (
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/plugins/api"
 	"github.com/rande/gonode/plugins/guard"
+	"github.com/rande/gonode/plugins/security"
 	"github.com/rande/gonode/plugins/setup"
 	"github.com/rande/gonode/plugins/user"
 	"github.com/stretchr/testify/assert"
@@ -39,7 +40,7 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 	conf := config.NewServerConfig()
 	conf.Test = true
 
-	config.LoadConfiguration(file, conf)
+	config.LoadConfigurationFromFile(file, conf)
 
 	l.Config(func(app *goapp.App) error {
 		app.Set("gonode.configuration", func(app *goapp.App) interface{} {
@@ -73,6 +74,7 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 	api.ConfigureServer(l, conf)
 	setup.ConfigureServer(l, conf)
 	guard.ConfigureServer(l, conf)
+	security.ConfigureServer(l, conf)
 
 	return l
 }

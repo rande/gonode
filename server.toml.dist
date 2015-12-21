@@ -20,3 +20,9 @@ key = "ZeSecretKey0oo"
 
         [guard.jwt.token]
         path = "^\\/nodes\\/(.*)$"
+
+[security]
+    [security.cors]
+    allowed_origins = ["*"]
+    allowed_methods = ["GET", "PUT", "POST"]
+    allowed_headers = ["Origin", "Accept", "Content-Type", "Authorization"]

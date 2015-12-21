@@ -15,6 +15,7 @@ import (
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/plugins/api"
 	"github.com/rande/gonode/plugins/guard"
+	"github.com/rande/gonode/plugins/security"
 	"github.com/rande/gonode/plugins/setup"
 	"github.com/zenazn/goji/bind"
 	"github.com/zenazn/goji/graceful"
@@ -48,7 +49,7 @@ func (c *ServerCommand) Run(args []string) int {
 
 	conf := config.NewServerConfig()
 
-	config.LoadConfiguration(c.ConfigFile, conf)
+	config.LoadConfigurationFromFile(c.ConfigFile, conf)
 
 	c.Ui.Info("Starting GoNode Server on: " + conf.Bind)
 
@@ -60,6 +61,7 @@ func (c *ServerCommand) Run(args []string) int {
 	setup.ConfigureServer(l, conf)
 	api.ConfigureServer(l, conf)
 	guard.ConfigureServer(l, conf)
+	security.ConfigureServer(l, conf)
 
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 		mux := app.Get("goji.mux").(*web.Mux)
