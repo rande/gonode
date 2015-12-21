@@ -30,7 +30,6 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 		mux.Put(prefix+"/setup/uninstall", func(res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
-			res.Header().Set("Access-Control-Allow-Origin", "*")
 
 			prefix := conf.Databases["master"].Prefix
 
@@ -46,7 +45,6 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 		mux.Put(prefix+"/setup/install", func(res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
-			res.Header().Set("Access-Control-Allow-Origin", "*")
 
 			prefix := conf.Databases["master"].Prefix
 			tx, _ := manager.Db.Begin()

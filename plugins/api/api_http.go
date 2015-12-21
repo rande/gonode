@@ -145,14 +145,11 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 		prefix := ""
 
 		mux.Get(prefix+"/hello", func(c web.C, res http.ResponseWriter, req *http.Request) {
-			res.Header().Set("Access-Control-Allow-Origin", "*")
 			res.Write([]byte("Hello!"))
 		})
 
 		mux.Post(prefix+"/login", func(c web.C, res http.ResponseWriter, req *http.Request) {
-
 			res.Header().Set("Content-Type", "application/json")
-			res.Header().Set("Access-Control-Allow-Origin", "*")
 
 			req.ParseForm()
 
@@ -232,8 +229,6 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 		})
 
 		mux.Get(prefix+"/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
-			res.Header().Set("Access-Control-Allow-Origin", "*")
-
 			values := req.URL.Query()
 
 			if _, raw := values["raw"]; raw { // ask for binary content
@@ -279,7 +274,6 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 		mux.Post(prefix+"/nodes", func(res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
-			res.Header().Set("Access-Control-Allow-Origin", "*")
 
 			w := bufio.NewWriter(res)
 
@@ -300,7 +294,6 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 		mux.Put(prefix+"/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
-			res.Header().Set("Access-Control-Allow-Origin", "*")
 
 			values := req.URL.Query()
 
@@ -349,7 +342,6 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 		mux.Put(prefix+"/nodes/move/:uuid/:parentUuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
-			res.Header().Set("Access-Control-Allow-Origin", "*")
 
 			err := apiHandler.Move(c.URLParams["uuid"], c.URLParams["parentUuid"], res)
 
@@ -384,7 +376,6 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 		mux.Get(prefix+"/nodes", func(res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
-			res.Header().Set("Access-Control-Allow-Origin", "*")
 
 			query := apiHandler.SelectBuilder()
 
