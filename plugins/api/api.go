@@ -93,12 +93,20 @@ func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uin
 		pager.Previous = page - 1
 	}
 
+	counter := uint64(0)
 	for e := list.Front(); e != nil; e = e.Next() {
+		if counter == perPage {
+			pager.Next = page + 1
+			break
+		}
+
 		b := bytes.NewBuffer([]byte{})
 		a.Serializer.Serialize(b, e.Value.(*core.Node))
 
 		message := json.RawMessage(b.Bytes())
 		pager.Elements = append(pager.Elements, &message)
+
+		counter++
 	}
 
 	core.Serialize(w, pager)
