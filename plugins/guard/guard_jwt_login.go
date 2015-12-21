@@ -48,7 +48,7 @@ func (a *JwtLoginGuardAuthenticator) getUser(credentials interface{}) (GuardUser
 	c := credentials.(*struct{ Username, Password string })
 
 	query := a.NodeManager.
-		SelectBuilder().
+		SelectBuilder(core.NewSelectOptions()).
 		Where("type = 'core.user' AND data->>'username' = ?", c.Username)
 
 	if node := a.NodeManager.FindOneBy(query); node != nil {

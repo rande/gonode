@@ -75,8 +75,8 @@ type ApiOperation struct {
 	Message string `json:"message"`
 }
 
-func (a *Api) SelectBuilder() sq.SelectBuilder {
-	return a.Manager.SelectBuilder()
+func (a *Api) SelectBuilder(options *core.SelectOptions) sq.SelectBuilder {
+	return a.Manager.SelectBuilder(options)
 }
 
 func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uint64) error {
@@ -193,7 +193,6 @@ func (a *Api) Move(nodeUuid, parentUuid string, w io.Writer) error {
 }
 
 func (a *Api) FindOne(uuid string, w io.Writer) error {
-
 	reference, err := core.GetReferenceFromString(uuid)
 
 	if err != nil {
@@ -201,6 +200,19 @@ func (a *Api) FindOne(uuid string, w io.Writer) error {
 	}
 
 	node := a.Manager.Find(reference)
+
+	if node == nil {
+		return core.NotFoundError
+	}
+
+	a.Serializer.Serialize(w, node)
+
+	return nil
+}
+
+func (a *Api) FindOneBy(query sq.SelectBuilder, w io.Writer) error {
+
+	node := a.Manager.FindOneBy(query)
 
 	if node == nil {
 		return core.NotFoundError

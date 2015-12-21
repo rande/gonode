@@ -34,7 +34,7 @@ func GetRootReference() Reference {
 }
 
 type NodeManager interface {
-	SelectBuilder() sq.SelectBuilder
+	SelectBuilder(option *SelectOptions) sq.SelectBuilder
 	FindBy(query sq.SelectBuilder, offset uint64, limit uint64) *list.List
 	FindOneBy(query sq.SelectBuilder) *Node
 	Find(uuid Reference) *Node

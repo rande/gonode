@@ -65,8 +65,8 @@ func (m *MockedManager) NewNode(t string) *Node {
 	return args.Get(0).(*Node)
 }
 
-func (m *MockedManager) SelectBuilder() sq.SelectBuilder {
-	args := m.Mock.Called()
+func (m *MockedManager) SelectBuilder(options *SelectOptions) sq.SelectBuilder {
+	args := m.Mock.Called(options)
 
 	return args.Get(0).(sq.SelectBuilder)
 }
