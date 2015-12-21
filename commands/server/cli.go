@@ -59,9 +59,9 @@ func (c *ServerCommand) Run(args []string) int {
 
 	// add plugins
 	setup.ConfigureServer(l, conf)
+	security.ConfigureServer(l, conf)
 	api.ConfigureServer(l, conf)
 	guard.ConfigureServer(l, conf)
-	security.ConfigureServer(l, conf)
 
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 		mux := app.Get("goji.mux").(*web.Mux)
