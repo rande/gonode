@@ -34,6 +34,15 @@ func GetPager(app *goapp.App, res *test.Response) *api.ApiPager {
 	return p
 }
 
+func GetNode(app *goapp.App, res *test.Response) *core.Node {
+	n := core.NewNode()
+
+	serializer := app.Get("gonode.node.serializer").(*core.Serializer)
+	serializer.Deserialize(res.Body, n)
+
+	return n
+}
+
 func InitSearchFixture(app *goapp.App) []*core.Node {
 	manager := app.Get("gonode.manager").(*core.PgNodeManager)
 	collection := app.Get("gonode.handler_collection").(core.Handlers)

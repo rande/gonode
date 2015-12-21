@@ -46,7 +46,7 @@ func (a *JwtTokenGuardAuthenticator) getUser(credentials interface{}) (GuardUser
 	jwtToken := credentials.(*jwt.Token)
 
 	query := a.NodeManager.
-		SelectBuilder().
+		SelectBuilder(core.NewSelectOptions()).
 		Where("type = 'core.user' AND data->>'username' = ?", jwtToken.Claims["usr"].(string))
 
 	if node := a.NodeManager.FindOneBy(query); node != nil {

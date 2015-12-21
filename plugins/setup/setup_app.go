@@ -85,7 +85,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 			// Create Index
 			tx.Exec(fmt.Sprintf(`CREATE SEQUENCE "%s_nodes_audit_id_seq" INCREMENT 1 MINVALUE 0 MAXVALUE 2147483647 START 1 CACHE 1`, prefix))
 			tx.Exec(fmt.Sprintf(`CREATE TABLE "%s_nodes_audit" (
-				"id" INTEGER DEFAULT nextval('%s_nodes_id_seq'::regclass) NOT NULL UNIQUE,
+				"id" INTEGER DEFAULT nextval('%s_nodes_audit_id_seq'::regclass) NOT NULL UNIQUE,
 				"uuid" UUid NOT NULL,
 				"type" CHARACTER VARYING( 64 ) COLLATE "pg_catalog"."default" NOT NULL,
 				"name" CHARACTER VARYING( 2044 ) COLLATE "pg_catalog"."default" DEFAULT ''::CHARACTER VARYING NOT NULL,
@@ -139,7 +139,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 		mux.Put(prefix+"/setup/data/load", func(res http.ResponseWriter, req *http.Request) {
 			manager := app.Get("gonode.manager").(*core.PgNodeManager)
-			nodes := manager.FindBy(manager.SelectBuilder(), 0, 10)
+			nodes := manager.FindBy(manager.SelectBuilder(core.NewSelectOptions()), 0, 10)
 
 			if nodes.Len() != 0 {
 				helper.SendWithStatus("KO", "Table contains data, purge the data first!", res)

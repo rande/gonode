@@ -9,6 +9,7 @@ import (
 	"container/list"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	sq "github.com/lann/squirrel"
 	_ "github.com/lib/pq"
@@ -26,15 +27,27 @@ type PgNodeManager struct {
 	Prefix   string
 }
 
-func (m *PgNodeManager) SelectBuilder() sq.SelectBuilder {
+type SelectOptions struct {
+	TableSuffix  string
+	SelectClause string
+}
+
+func NewSelectOptions() *SelectOptions {
+	return &SelectOptions{
+		TableSuffix:  "nodes",
+		SelectClause: "id, uuid, type, name, revision, version, created_at, updated_at, set_uuid, parent_uuid, parents, slug, created_by, updated_by, data, meta, deleted, enabled, source, status, weight",
+	}
+}
+
+func (m *PgNodeManager) SelectBuilder(options *SelectOptions) sq.SelectBuilder {
 	return sq.
-		Select("id, uuid, type, name, revision, version, created_at, updated_at, set_uuid, parent_uuid, parents, slug, created_by, updated_by, data, meta, deleted, enabled, source, status, weight").
-		From(m.Prefix + "_nodes").
+		Select(options.SelectClause).
+		From(m.Prefix + "_" + options.TableSuffix).
 		PlaceholderFormat(sq.Dollar)
 }
 
 func (m *PgNodeManager) Notify(channel string, payload string) {
-	m.Logger.Printf("[PgNode] NOTIFY %s, %s ", channel, payload)
+	//	m.Logger.Printf("[PgNode] NOTIFY %s, %s ", channel, payload)
 
 	_, err := m.Db.Exec(fmt.Sprintf("NOTIFY %s, '%s'", channel, strings.Replace(payload, "'", "''", -1)))
 
@@ -47,11 +60,6 @@ func (m *PgNodeManager) NewNode(t string) *Node {
 
 func (m *PgNodeManager) FindBy(query sq.SelectBuilder, offset uint64, limit uint64) *list.List {
 	query = query.Limit(limit).Offset(offset)
-
-	if m.Logger != nil {
-		rawSql, _, _ := query.ToSql()
-		m.Logger.Print("[PgNode] FindBy: ", rawSql)
-	}
 
 	rows, err := query.
 		RunWith(m.Db).
@@ -88,7 +96,7 @@ func (m *PgNodeManager) FindOneBy(query sq.SelectBuilder) *Node {
 }
 
 func (m *PgNodeManager) Find(uuid Reference) *Node {
-	return m.FindOneBy(m.SelectBuilder().Where(sq.Eq{"uuid": uuid.String()}))
+	return m.FindOneBy(m.SelectBuilder(NewSelectOptions()).Where(sq.Eq{"uuid": uuid.String()}))
 }
 
 func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
@@ -321,7 +329,8 @@ func (m *PgNodeManager) Move(uuid, parentUuid Reference) (int64, error) {
 }
 
 func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
-	var err error
+
+	PanicIf(node.Id == 0, "Cannot update node without id")
 
 	query := sq.Update(m.Prefix+"_nodes").RunWith(m.Db).PlaceholderFormat(sq.Dollar).
 		Set("uuid", node.Uuid.CleanString()).
@@ -344,19 +353,25 @@ func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 		Set("weight", node.Weight).
 		Where("id = ?", node.Id)
 
-	_, err = query.Exec()
+	result, err := query.Exec()
 
 	PanicOnError(err)
 
-	if m.Logger != nil {
-		strQuery, _, _ := query.ToSql()
-		m.Logger.Printf("[PgNode] Update: %s", strQuery)
+	affected, err := result.RowsAffected()
+
+	PanicOnError(err)
+
+	if affected == 0 {
+		return node, errors.New("Zero affected rows for current node")
 	}
 
 	return node, err
 }
 
 func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
+	if m.Logger != nil {
+		m.Logger.Printf("[PgNode] Saving uuid: %s, id: %d, type: %s, revision: %d", node.Uuid, node.Id, node.Type, node.Revision)
+	}
 
 	PanicIf(m.ReadOnly, "The manager is readonly, cannot alter the datastore")
 
@@ -367,23 +382,28 @@ func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 	if node.Id == 0 {
 		handler.PreInsert(node, m)
 
-		node, err = m.insertNode(node, m.Prefix+"_nodes")
-		PanicOnError(err)
 		node, err = m.insertNode(node, m.Prefix+"_nodes_audit")
 		PanicOnError(err)
 
+		node.Id = 0
+
+		node, err = m.insertNode(node, m.Prefix+"_nodes")
+		PanicOnError(err)
+
 		if m.Logger != nil {
-			m.Logger.Printf("[PgNode] Creating node uuid: %s, id: %d, type: %s", node.Uuid, node.Id, node.Type)
+			m.Logger.Printf("[PgNode] Creating node uuid: %s, id: %d, type: %s, revision: %d", node.Uuid, node.Id, node.Type, node.Revision)
 		}
 
 		handler.PostInsert(node, m)
 
 		m.sendNotification(m.Prefix+"_manager_action", &ModelEvent{
-			Type:    node.Type,
-			Action:  "Create",
-			Subject: node.Uuid.CleanString(),
-			Date:    node.CreatedAt,
-			Name:    node.Name,
+			Type:        node.Type,
+			Action:      "Create",
+			Subject:     node.Uuid.CleanString(),
+			Date:        node.CreatedAt,
+			Name:        node.Name,
+			Revision:    node.Revision,
+			NewRevision: revision,
 		})
 
 		return node, err
@@ -391,35 +411,40 @@ func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 
 	handler.PreUpdate(node, m)
 
-	if m.Logger != nil {
-		m.Logger.Printf("[PgNode] Updating node uuid: %s with id: %d, type: %s", node.Uuid, node.Id, node.Type)
-	}
-
 	// 1. check if the one in the datastore is older
-	saved := m.FindOneBy(m.SelectBuilder().Where(sq.Eq{"uuid": node.Uuid.String()}))
+	saved := m.FindOneBy(m.SelectBuilder(NewSelectOptions()).Where(sq.Eq{"uuid": node.Uuid.String()}))
 
 	if saved != nil && node.Revision != saved.Revision {
-		return node, NewRevisionError(fmt.Sprintf("Invalid revision for node:%s, current rev: %d", node.Uuid, node.Revision))
+		m.Logger.Printf("[PgNode] Invalid revision for node: %s, saved rev: %d, current rev: %d", node.Uuid, saved.Revision, node.Revision)
+
+		return node, NewRevisionError(fmt.Sprintf("Invalid revision for node: %s, saved rev: %d, current rev: %d", node.Uuid, saved.Revision, node.Revision))
+	}
+
+	if m.Logger != nil {
+		m.Logger.Printf("[PgNode] Updating uuid: %s, id: %d, type: %s, revision: %d", node.Uuid, node.Id, node.Type, node.Revision)
 	}
 
 	if revision {
-		// 2. Flag the current node as deprecated
-		saved.UpdatedAt = time.Now()
-		saved, err = m.insertNode(saved, m.Prefix+"_nodes_audit")
-
-		PanicOnError(err)
-
 		// 3. Update the revision number
 		node.Revision++
 		node.CreatedAt = saved.CreatedAt
 		node.UpdatedAt = saved.UpdatedAt
+
+		m.Logger.Printf("[PgNode] Increment revision - uuid: %s, id: %d, type: %s, revision: %d", node.Uuid, node.Id, node.Type, node.Revision)
 	}
 
 	node, err = m.updateNode(node, m.Prefix+"_nodes")
+	PanicOnError(err)
 
 	handler.PostUpdate(node, m)
 
-	PanicOnError(err)
+	if revision {
+		id := node.Id
+		_, err = m.insertNode(node, m.Prefix+"_nodes_audit")
+
+		node.Id = id
+		PanicOnError(err)
+	}
 
 	m.sendNotification(m.Prefix+"_manager_action", &ModelEvent{
 		Type:        node.Type,

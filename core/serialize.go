@@ -60,7 +60,10 @@ func (s *Serializer) Deserialize(r io.Reader, o interface{}) error {
 		node := o.(*Node)
 		if node.Type == "" {
 			// we need to deserialize twice to load the correct Meta/Data structure
-			Deserialize(reader, node)
+			err := Deserialize(reader, node)
+
+			PanicOnError(err)
+
 			reader.Seek(0, 0)
 			node.Data, node.Meta = s.Handlers.Get(node).GetStruct()
 		}
