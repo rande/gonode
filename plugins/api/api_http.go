@@ -12,12 +12,12 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/schema"
 	"github.com/gorilla/websocket"
-	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/helper"
+	"github.com/rande/gonode/plugins/search"
 	"github.com/rande/gonode/plugins/user"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
@@ -25,15 +25,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"regexp"
-	"strings"
 	"time"
-)
-
-var (
-	rexOrderBy = regexp.MustCompile(`(^[a-z,_.A-Z]*),(DESC|ASC|desc|asc)$`)
-	rexMeta    = regexp.MustCompile(`meta\.([a-zA-Z]*)`)
-	rexData    = regexp.MustCompile(`data\.([a-zA-Z]*)`)
 )
 
 var upgrader = websocket.Upgrader{
@@ -47,39 +39,6 @@ func readLoop(c *websocket.Conn) {
 			return
 		}
 	}
-}
-
-func GetJsonQuery(left string, sep string) string {
-	fields := strings.Split(left, ".")
-
-	c := ""
-	for p, f := range fields {
-		if p == 0 {
-			c += f
-		} else {
-			c += fmt.Sprintf(sep+"'%s'", f)
-		}
-	}
-
-	return c
-}
-
-func GetJsonSearchQuery(query sq.SelectBuilder, data map[string][]string, field string) sq.SelectBuilder {
-	//-- SELECT uuid, "data" #> '{tags,1}' as tags FROM nodes WHERE  "data" @> '{"tags": ["sport"]}'
-	//-- SELECT uuid, "data" #> '{tags}' AS tags FROM nodes WHERE  "data" -> 'tags' ?| array['sport'];
-	for name, value := range data {
-		if len(value) > 1 {
-			name = GetJsonQuery(field+"."+name, "->")
-			query = query.Where(core.NewExprSlice(fmt.Sprintf("%s ??| array["+sq.Placeholders(len(value))+"]", name), value))
-		}
-
-		if len(value) == 1 {
-			name = GetJsonQuery(field+"."+name, "->>")
-			query = query.Where(sq.Expr(fmt.Sprintf("%s = ?", name), value[0]))
-		}
-	}
-
-	return query
 }
 
 func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
@@ -141,7 +100,8 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 		manager := app.Get("gonode.manager").(*core.PgNodeManager)
 		apiHandler := app.Get("gonode.api").(*Api)
 		handler_collection := app.Get("gonode.handler_collection").(core.Handlers)
-
+		searchBuilder := app.Get("gonode.search.pgsql").(*search.SearchPGSQL)
+		searchParser := app.Get("gonode.search.parser.http").(*search.HttpSearchParser)
 		prefix := ""
 
 		mux.Get(prefix+"/hello", func(c web.C, res http.ResponseWriter, req *http.Request) {
@@ -275,13 +235,15 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 		mux.Get(prefix+"/nodes/:uuid/revisions", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
 
+			searchForm := searchParser.HandleSearch(res, req)
+
 			options := core.NewSelectOptions()
 			options.TableSuffix = "nodes_audit"
 
 			query := apiHandler.SelectBuilder(options).
 				Where("uuid = ?", c.URLParams["uuid"])
 
-			HandleSearch(apiHandler, query, c, res, req)
+			apiHandler.Find(res, searchBuilder.BuildQuery(searchForm, query), searchForm.Page, searchForm.PerPage)
 		})
 
 		mux.Get(prefix+"/nodes/:uuid/revisions/:rev", func(c web.C, res http.ResponseWriter, req *http.Request) {
@@ -410,7 +372,15 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 		mux.Get(prefix+"/nodes", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
 
-			HandleSearch(apiHandler, apiHandler.SelectBuilder(core.NewSelectOptions()), c, res, req)
+			searchForm := searchParser.HandleSearch(res, req)
+
+			if searchForm == nil {
+				return
+			}
+
+			query := searchBuilder.BuildQuery(searchForm, manager.SelectBuilder(core.NewSelectOptions()))
+
+			apiHandler.Find(res, query, searchForm.Page, searchForm.PerPage)
 		})
 
 		return nil

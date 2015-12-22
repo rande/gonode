@@ -5,6 +5,10 @@
 
 package config
 
+type ServerSearch struct {
+	MaxResult uint64 `toml:"max_result"`
+}
+
 type ServerGuard struct {
 	Key string `toml:"key"`
 	Jwt struct {
@@ -56,6 +60,7 @@ type ServerConfig struct {
 	Bind       string                     `toml:"bind"`
 	Guard      *ServerGuard               `toml:"guard"`
 	Security   *ServerSecurity            `toml:"security"`
+	Search     *ServerSearch              `toml:"search"`
 }
 
 func NewServerConfig() *ServerConfig {
@@ -63,5 +68,8 @@ func NewServerConfig() *ServerConfig {
 		Databases: make(map[string]*ServerDatabase),
 		Bind:      ":2408",
 		Test:      false,
+		Search: &ServerSearch{
+			MaxResult: 128,
+		},
 	}
 }

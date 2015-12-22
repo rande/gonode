@@ -56,8 +56,12 @@ key = "ZeSecretKey0oo"
     allowed_methods = ["GET", "PUT", "POST"]
     allowed_headers = ["Origin", "Accept", "Content-Type", "Authorization"]
 
+[search]
+    max_result = 256
+
 `, config)
 
+	// test general configuration
 	assert.Equal(t, config.Name, "GoNode - Codeship")
 	assert.Equal(t, config.Databases["master"].Type, "master")
 	assert.Equal(t, config.Databases["master"].DSN, "postgres://foo:bar@localhost:5434/test")
@@ -66,13 +70,19 @@ key = "ZeSecretKey0oo"
 	assert.Equal(t, config.Filesystem.Type, "") // not used for now
 	assert.Equal(t, config.Filesystem.Path, "/tmp/gnode")
 
+	// test guard
 	assert.Equal(t, config.Guard.Jwt.Login.Path, "/login")
 	assert.Equal(t, config.Guard.Jwt.Token.Path, `^\/nodes\/(.*)$`)
 
+	// test security
 	assert.False(t, config.Security.Cors.AllowCredentials)
 	assert.Equal(t, config.Security.Cors.AllowedHeaders, []string{"Origin", "Accept", "Content-Type", "Authorization"})
 	assert.Equal(t, config.Security.Cors.AllowedMethods, []string{"GET", "PUT", "POST"})
 
+	// test search
+	assert.Equal(t, uint64(256), config.Search.MaxResult)
+
+	// debug
 	config.Guard.Jwt.Login.Path = `^\/nodes\/(.*)$`
 
 	w := bytes.NewBufferString("")

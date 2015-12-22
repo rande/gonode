@@ -61,6 +61,8 @@ func (m *PgNodeManager) NewNode(t string) *Node {
 func (m *PgNodeManager) FindBy(query sq.SelectBuilder, offset uint64, limit uint64) *list.List {
 	query = query.Limit(limit).Offset(offset)
 
+	rawSql, _, _ := query.ToSql()
+
 	rows, err := query.
 		RunWith(m.Db).
 		Query()
@@ -69,11 +71,10 @@ func (m *PgNodeManager) FindBy(query sq.SelectBuilder, offset uint64, limit uint
 
 	if err != nil {
 		if m.Logger != nil {
-			rawSql, _, _ := query.ToSql()
-			m.Logger.Printf("[PgNode] Error while runing the request %s, %s ", rawSql, err)
+			m.Logger.Printf("[PgNode] Error while runing the request: `%s`, %s ", rawSql, err)
 		}
 
-		return list
+		PanicOnError(err)
 	}
 
 	for rows.Next() {
