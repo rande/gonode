@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/schema"
 	sq "github.com/lann/squirrel"
 	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/plugins/search"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"testing"
@@ -89,8 +90,7 @@ func Test_ApiPager_Deserialization(t *testing.T) {
 }
 
 func Test_OrderBy_Form(t *testing.T) {
-
-	form := GetSearchForm()
+	form := search.GetHttpSearchForm()
 
 	values := map[string][]string{
 		"order_by": {

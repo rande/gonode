@@ -15,6 +15,7 @@ import (
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/plugins/api"
 	"github.com/rande/gonode/plugins/guard"
+	"github.com/rande/gonode/plugins/search"
 	"github.com/rande/gonode/plugins/security"
 	"github.com/rande/gonode/plugins/setup"
 	"github.com/zenazn/goji/bind"
@@ -60,6 +61,7 @@ func (c *ServerCommand) Run(args []string) int {
 	// add plugins
 	setup.ConfigureServer(l, conf)
 	security.ConfigureServer(l, conf)
+	search.ConfigureServer(l, conf)
 	api.ConfigureServer(l, conf)
 	guard.ConfigureServer(l, conf)
 

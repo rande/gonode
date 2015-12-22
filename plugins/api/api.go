@@ -20,40 +20,6 @@ const (
 	OPERATION_KO = "KO"
 )
 
-type SearchForm struct {
-	Page     int64               `schema:"page"`
-	PerPage  int64               `schema:"per_page"`
-	OrderBy  []string            `schema:"order_by"`
-	Uuid     string              `schema:"uuid"`
-	Type     []string            `schema:"type"`
-	Name     string              `schema:"name"`
-	Slug     string              `schema:"slug"`
-	Data     map[string][]string `schema:"data"`
-	Meta     map[string][]string `schema:"meta"`
-	Status   []string            `schema:"status"`
-	Weight   []string            `schema:"weight"`
-	Revision string              `schema:"revision"`
-	//	CreatedAt  time.Time          `schema:"created_at"`
-	//	UpdatedAt  time.Time          `schema:"updated_at"`
-	Enabled string `schema:"enabled"`
-	Deleted string `schema:"deleted"`
-	Current string `schema:"current"`
-	//	Parents    []Reference        `schema:"parents"`
-	UpdatedBy  []string `schema:"updated_by"`
-	CreatedBy  []string `schema:"created_by"`
-	ParentUuid []string `schema:"parent_uuid"`
-	SetUuid    []string `schema:"set_uuid"`
-	Source     []string `schema:"source"`
-}
-
-func GetSearchForm() *SearchForm {
-	return &SearchForm{
-		Data:    make(map[string][]string),
-		Meta:    make(map[string][]string),
-		OrderBy: []string{"updated_at,ASC"},
-	}
-}
-
 type ApiPager struct {
 	Elements []interface{} `json:"elements"`
 	Page     uint64        `json:"page"`

@@ -72,6 +72,7 @@ func Test_Delete_Find_Filter(t *testing.T) {
 
 		p = GetPager(app, res)
 
+		assert.Equal(t, 200, res.StatusCode)
 		assert.Equal(t, 3, len(p.Elements))
 	})
 }

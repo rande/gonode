@@ -14,4 +14,5 @@ Documentation
     * [Vault](docs/plugins/vault.md): Binary storage with secure option
     * [Guard](docs/plugins/guard.md): Authentification
     * [Security](docs/plugins/security.md): CORS
+    * [Search](docs/plugins/search.md): Search filters
  * [Contributing](docs/contributing.md)
