@@ -3,3 +3,4 @@ explorer/node_modules
 explorer/dist
 .idea
 dist/*
+assets/bindata.go

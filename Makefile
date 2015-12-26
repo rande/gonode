@@ -4,6 +4,12 @@ PID = .pid
 GO_FILES = $(shell find . -type f -name "*.go")
 GONODE_PLUGINS = $(shell find ./plugins -type d)
 
+GO_PATH = $(shell go env GOPATH)
+GO_BINDATA_PATHS = $(GO_PATH)/src/github.com/rande/gonode/plugins/... $(GO_PATH)/src/github.com/rande/gonode/explorer/dist/...
+GO_BINDATA_IGNORE = "(.*)\.(go|DS_Store)"
+GO_BINDATA_OUTPUT = $(GO_PATH)/src/github.com/rande/gonode/assets/bindata.go
+GO_BINDATA_PACKAGE = assets
+
 default: clean test build
 
 clean:
@@ -23,13 +29,17 @@ update:
 	go get -u all
 	cd explorer && npm update
 
-run:
+run: bin
 	cd commands && go run main.go server -config=../server.toml.dist
+
+bin:
+	cd $(GO_PATH)/src && go-bindata -debug -o $(GO_BINDATA_OUTPUT) -pkg $(GO_BINDATA_PACKAGE) -ignore $(GO_BINDATA_IGNORE) $(GO_BINDATA_PATHS)
 
 build:
 	rm -rf dist && mkdir dist
 	#cd explorer && webpack --progress --color
 	#cd commands && go build -o dist/gonode
+	cd $(GO_PATH)/src && go-bindata -o $(GO_BINDATA_OUTPUT) -pkg $(GO_BINDATA_PACKAGE) -ignore $(GO_BINDATA_IGNORE)  $(GO_BINDATA_PATHS)
 	cd commands && go build -a -o ../dist/gonode
 
 format:
