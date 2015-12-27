@@ -1,4 +1,9 @@
 export {
+    login,
+    logout
+} from './security-actions';
+
+export {
     fetchNodesIfNeeded,
     selectNode,
     setNodesPagerOptions

@@ -19,6 +19,10 @@ class Navigation extends Component {
                     <i className="fa fa-folder-o"/>
                     <FormattedMessage id="nav.nodes"/>
                 </Link>
+                <Link to="/logout" className="navigation_item">
+                    <i className="fa fa-sign-out"/>
+                    <FormattedMessage id="logout.link"/>
+                </Link>
             </div>
         );
     }

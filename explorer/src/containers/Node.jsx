@@ -30,6 +30,14 @@ class Node extends Component {
                         </li>
                         <li>
                             <span className="node-properties_item_key">
+                                <FormattedMessage id="node.status"/>
+                            </span>&nbsp;
+                            <span className="node-properties_item_value">
+                                <FormattedMessage id={`node.status.${node.status}`}/>
+                            </span>
+                        </li>
+                        <li>
+                            <span className="node-properties_item_key">
                                 <FormattedMessage id="node.revision"/>
                             </span>&nbsp;
                             <span className="node-properties_item_value">{node.revision}</span>

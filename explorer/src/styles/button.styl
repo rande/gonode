@@ -1,29 +1,22 @@
 .button
-  display: block
+  display: inline-block
   text-align: center
-  padding: 15px 0
-  text-transform: uppercase
+  padding: 7px 12px
+  line-height: 1em
   cursor: pointer
   background: $color-button-background
   color:      $color-button-text
+  border-radius: 2px
+  border-width: 0
+  font-size: inherit
+
+  &:focus
+    outline: none
 
   &:hover
-    background: $color-button-background-over
-    color:      $color-button-text-over
+    background-color: $color-button-background-over
+    color:            $color-button-text-over
 
-  &-panel,
-  &-contact
-    margin-top: 15px
-
-  &-contact
-    padding: 10px 0
-    &_icon
-      display: inline-block
-      width:  32px
-      height: 32px
-      vertical-align: middle
-      background-image: url('../imgs/contact-icon.svg')
-      background-repeat: no-repeat
-      background-size: 32px 32px
-      background-position: center center
-      margin-right: 10px
+  &._is-disabled
+    background-color: $color-button-background-disabled
+    color:            $color-button-text-disabled
