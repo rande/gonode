@@ -3,25 +3,37 @@ import { connect }                     from 'react-redux';
 import { Link }                        from 'react-router';
 import classNames                      from 'classnames';
 import { FormattedMessage }            from 'react-intl';
-import Pager                           from '../components/Pager.jsx';
-import NodesList                       from '../components/nodes/NodesList.jsx';
-import { setNodesPagerOptions }        from '../actions';
+import Pager                           from '../Pager.jsx';
+import NodesList                       from './NodesList.jsx';
+import { fetchNodesIfNeeded }          from '../../actions';
+import { history }                     from '../../routing';
 
 
 class Nodes extends Component {
     handlePagerChange(pagerData) {
-        const { dispatch } = this.props;
-        const {
-            perPage
-        } = pagerData;
+        history.push(`/nodes?p=1&pp=${pagerData.perPage}`);
+    }
 
-        dispatch(setNodesPagerOptions({
-            itemsPerPage: perPage
+    fetchNodes() {
+        const { dispatch, location, itemsPerPage, currentPage } = this.props;
+        const { query } = location;
+
+        dispatch(fetchNodesIfNeeded({
+            page:    query.p ? parseInt(query.p) : currentPage,
+            perPage: query.pp ? parseInt(query.pp) : itemsPerPage
         }));
     }
 
+    componentDidMount() {
+        this.fetchNodes();
+    }
+
+    componentDidUpdate() {
+        this.fetchNodes();
+    }
+
     render() {
-        const { nodes, itemsPerPage, isFetching, content } = this.props;
+        const { nodes, itemsPerPage, currentPage, previousPage, nextPage, isFetching, content } = this.props;
 
         const panelClasses = classNames(
             'second-panel',
@@ -48,6 +60,9 @@ class Nodes extends Component {
                 <Pager
                     perPageOptions={[5, 10, 16, 32]}
                     perPage={itemsPerPage}
+                    page={currentPage}
+                    previousPage={previousPage}
+                    nextPage={nextPage}
                     onChange={this.handlePagerChange.bind(this)}
                 />
                 <NodesList nodes={nodes}/>
@@ -63,6 +78,7 @@ class Nodes extends Component {
 Nodes.propTypes = {
     nodes:        PropTypes.array.isRequired,
     itemsPerPage: PropTypes.number.isRequired,
+    currentPage:  PropTypes.number.isRequired,
     dispatch:     PropTypes.func.isRequired
 };
 
@@ -70,12 +86,18 @@ export default connect((state) => {
     const { nodes: {
         items,
         itemsPerPage,
+        currentPage,
+        previousPage,
+        nextPage,
         isFetching
     } } = state;
 
     return {
         nodes: items,
         itemsPerPage,
+        currentPage,
+        previousPage,
+        nextPage,
         isFetching
     };
 })(Nodes);

@@ -36,7 +36,7 @@ class NodeForm extends Component {
                             <input type="text" placeholder="node slug" {...slug}/>
                         </div>
                     </div>
-                    <button onClick={handleSubmit}>Submit</button>
+                    <button className="button" onClick={handleSubmit}>Submit</button>
                 </form>
             </div>
         );

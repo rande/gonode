@@ -13,7 +13,7 @@ install:
 	go list -f '{{range .Imports}}{{.}} {{end}}' ./... | xargs go get -v
 	go list -f '{{range .TestImports}}{{.}} {{end}}' ./... | xargs go get -v
 	go build -v ./...
-	#cd explorer && npm install && npm install react-admin
+	cd explorer && npm install
 
 update:
 	go get -u all
@@ -35,7 +35,7 @@ format:
 test:
 	go test $(GONODE_PLUGINS) ./test/api ./core ./core/config ./commands/server
 	go vet ./...
-	#cd explorer && npm test
+	cd explorer && npm test
 
 kill:
 	kill `cat $(PID)` || true

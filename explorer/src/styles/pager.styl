@@ -1,4 +1,29 @@
 .pager
-  padding: 12px 20px
-  border-bottom: 1px solid #000
+  background: $color-pager-background
+  height: $pager-height
+  line-height: $pager-height
   font-size: 14px
+  text-align: center
+  padding: 0 $pager-nav-width
+  position: relative
+
+  &_page
+    display: inline-block
+    margin-right: 12px
+
+  &_previous,
+  &_next
+    position: absolute
+    top: 0
+    display: block
+    border-radius: 0
+    height: $pager-height
+    line-height: $pager-height
+    padding: 0
+    width: $pager-nav-width
+
+  &_previous
+    left: 0
+
+  &_next
+    right: 0

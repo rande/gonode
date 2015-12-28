@@ -31,5 +31,6 @@ export default {
     'node.created_at': 'created at',
     'node.updated_at': 'latest update on',
 
-    'pager.per_page': 'items per page'
+    'pager.per_page': 'items per page',
+    'pager.page': 'page {page}'
 };

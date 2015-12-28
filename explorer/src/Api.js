@@ -12,6 +12,12 @@ const JSON_HEADERS = {
 const API_BASE_URL = 'http://localhost:2405';
 
 const Api = {
+    /**
+     * Authenticate user.
+     *
+     * @param {Object} credentials
+     * @returns {Promise}
+     */
     login(credentials) {
         const url = `${API_BASE_URL}/login`;
 
@@ -46,7 +52,10 @@ const Api = {
     nodes(options, token = null) {
         const searchParams = [];
         if (options.perPage) {
-            searchParams.push(`per_page=${options.perPage}`)
+            searchParams.push(`per_page=${options.perPage}`);
+        }
+        if (options.page) {
+            searchParams.push(`page=${options.page}`);
         }
 
         const url = `${API_BASE_URL}/nodes?${searchParams.join('&')}`;
@@ -58,9 +67,6 @@ const Api = {
 
         return req
             .then(response => response.body)
-            .then(json => {
-                return json.elements;
-            })
         ;
     },
 

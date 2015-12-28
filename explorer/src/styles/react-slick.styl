@@ -76,8 +76,8 @@
 .slick-next
   position: absolute
   display: block
-  height: $initiatives-carousel-arrow-size
-  width:  $initiatives-carousel-arrow-size
+  height: $carousel-arrow-size
+  width:  $carousel-arrow-size
   line-height: 0
   font-size: 0
   cursor: pointer
@@ -104,19 +104,19 @@
   &:before
     content: ' '
     display: block
-    width:  $initiatives-carousel-arrow-size
-    height: $initiatives-carousel-arrow-size
+    width:  $carousel-arrow-size
+    height: $carousel-arrow-size
     background-repeat: no-repeat
     background-position: center center
-    background-size: ($initiatives-carousel-arrow-size * .8) ($initiatives-carousel-arrow-size * .8)
+    background-size: ($carousel-arrow-size * .8) ($carousel-arrow-size * .8)
 
 .slick-prev
-  left ($initiatives-carousel-arrow-size * -1)
+  left ($carousel-arrow-size * -1)
   &:before
     background-image: url('../imgs/arrow-left-icon.svg')
 
 .slick-next
-  right ($initiatives-carousel-arrow-size * -1)
+  right ($carousel-arrow-size * -1)
   &:before
     background-image: url('../imgs/arrow-right-icon.svg')
 

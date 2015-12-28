@@ -1,7 +1,6 @@
-import * as types             from '../constants/ActionTypes';
-import Api                    from '../Api';
-import { fetchNodesIfNeeded } from './nodes-actions';
-import { history }            from '../routing';
+import * as types  from '../constants/ActionTypes';
+import Api         from '../Api';
+import { history } from '../routing';
 
 
 function receiveNode(node) {
@@ -67,7 +66,6 @@ export function createNode(nodeData) {
         Api.createNode(nodeData, getState().security.token)
             .then(node => {
                 dispatch(receiveNodeCreation(node));
-                fetchNodesIfNeeded()(dispatch, getState);
                 history.push('/nodes');
             })
         ;
