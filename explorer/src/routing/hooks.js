@@ -1,5 +1,4 @@
 import {
-    fetchNodesIfNeeded,
     selectNode,
     fetchNodeIfNeeded,
     logout
@@ -28,14 +27,8 @@ export function onEnterApp(store) {
     return function () {};
 }
 
-export function onEnterNodes(store) {
-    return ensureAuthenticated(store, function () {
-        store.dispatch(fetchNodesIfNeeded());
-    });
-}
-
 export function onEnterNode(store) {
-    return ensureAuthenticated(store, function (nextState) {
+    return ensureAuthenticated(store, nextState => {
         const { node_uuid } = nextState.params;
 
         store.dispatch(selectNode(node_uuid));

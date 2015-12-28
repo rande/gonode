@@ -2,16 +2,28 @@ import * as types from '../constants/ActionTypes';
 import Api        from '../Api';
 
 
-function receiveNodes(nodes) {
+function receiveNodes({
+    elements,
+    per_page,
+    page,
+    previous,
+    next
+}) {
     return {
-        type:  types.RECEIVE_NODES,
-        items: nodes
+        type:         types.RECEIVE_NODES,
+        items:        elements,
+        itemsPerPage: per_page,
+        page,
+        previous,
+        next
     };
 }
 
-function requestNodes() {
+function requestNodes({ perPage = 10, page = 1 }) {
     return {
-        type: types.REQUEST_NODES
+        type: types.REQUEST_NODES,
+        perPage,
+        page
     };
 }
 
@@ -22,16 +34,13 @@ export function selectNode(nodeUuid) {
     };
 }
 
-function fetchNodes() {
+function fetchNodes(params) {
     return (dispatch, getState) => {
-        dispatch(requestNodes());
-
-        const { nodes: {
-            itemsPerPage
-        } } = getState();
+        dispatch(requestNodes(params));
 
         Api.nodes({
-            perPage: itemsPerPage
+            perPage: params.perPage,
+            page:    params.page
         }, getState().security.token)
             .then(nodes => {
                 dispatch(receiveNodes(nodes));
@@ -40,29 +49,27 @@ function fetchNodes() {
     };
 }
 
-function shouldFetchNodes(state) {
+function shouldFetchNodes(params, state) {
     const { nodes } = state;
     if (nodes.isFetching) {
         return false;
     }
 
+    if (nodes.currentPage !== params.page) {
+        return true;
+    }
+
+    if (nodes.itemsPerPage !== params.perPage) {
+        return true;
+    }
+
     return nodes.didInvalidate;
 }
 
-export function setNodesPagerOptions({ itemsPerPage }) {
+export function fetchNodesIfNeeded(params) {
     return (dispatch, getState) => {
-        dispatch({
-            type: types.SET_NODES_PAGER_OPTIONS,
-            itemsPerPage
-        });
-        return fetchNodesIfNeeded()(dispatch, getState);
-    };
-}
-
-export function fetchNodesIfNeeded() {
-    return (dispatch, getState) => {
-        if (shouldFetchNodes(getState())) {
-            return dispatch(fetchNodes());
+        if (shouldFetchNodes(params, getState())) {
+            return dispatch(fetchNodes(params));
         }
     };
 }
