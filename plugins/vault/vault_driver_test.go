@@ -63,6 +63,12 @@ func getVaultS3(algo string, key []byte) *Vault {
 		},
 	})
 
+	_, err := creds.Get()
+
+	if err == credentials.ErrNoValidProvidersFoundInChain {
+		return nil
+	}
+
 	driver := &DriverS3{
 		Root:        root,
 		Region:      "eu-west-1",
@@ -108,6 +114,12 @@ func runTest(driver string, t *testing.T, f func(algo string, key []byte) *Vault
 	for algo, keys := range algos {
 		for _, key := range keys {
 			v := f(algo, key)
+
+			if v == nil {
+				t.Skip("Unable to get vault (missing credentials?)")
+
+				return
+			}
 
 			assert.False(t, v.Has("salut"), m+" - assert file does not exist")
 

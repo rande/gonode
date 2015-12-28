@@ -41,22 +41,30 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 		profile = "gonode-test"
 	}
 
+	chainProvider := credentials.NewChainCredentials([]credentials.Provider{
+		&credentials.EnvProvider{},
+		&credentials.SharedCredentialsProvider{
+			Filename: os.Getenv("HOME") + "/.aws/credentials",
+			Profile:  profile,
+		},
+		&credentials.SharedCredentialsProvider{
+			Filename: os.Getenv("GONODE_TEST_AWS_CREDENTIALS_FILE"),
+			Profile:  profile,
+		},
+	})
+
+	_, err = chainProvider.Get()
+
+	if err == credentials.ErrNoValidProvidersFoundInChain {
+		t.Skip("Unable to find credentials")
+	}
+
 	// init vault
 	v := &DriverS3{
 		Root:     root,
 		Region:   "eu-west-1",
 		EndPoint: "s3-eu-west-1.amazonaws.com",
-		Credentials: credentials.NewChainCredentials([]credentials.Provider{
-			&credentials.EnvProvider{},
-			&credentials.SharedCredentialsProvider{
-				Filename: os.Getenv("HOME") + "/.aws/credentials",
-				Profile:  profile,
-			},
-			&credentials.SharedCredentialsProvider{
-				Filename: os.Getenv("GONODE_TEST_AWS_CREDENTIALS_FILE"),
-				Profile:  profile,
-			},
-		}),
+		Credentials: chainProvider,
 	}
 
 	// init credentials information
