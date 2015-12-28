@@ -7,7 +7,10 @@ package core
 
 import (
 	"encoding/json"
+	"github.com/flosch/pongo2"
+	"github.com/zenazn/goji/web"
 	"io"
+	"net/http"
 )
 
 type NodeData interface{}
@@ -100,4 +103,66 @@ func HandlerLoad(handler Handler, data []byte, meta []byte, node *Node) error {
 
 func DefaultHandlerStoreStream(node *Node, r io.Reader) (int64, error) {
 	return 0, NoStreamHandler
+}
+
+type ViewHandlerCollection map[string]ViewHandler
+
+func (c ViewHandlerCollection) Get(node *Node) ViewHandler {
+	return c.GetByCode(node.Type)
+}
+
+func (c ViewHandlerCollection) GetByCode(code string) ViewHandler {
+	if handler, ok := c[code]; ok {
+		return handler.(ViewHandler)
+	}
+
+	return c["default"].(ViewHandler)
+}
+
+func (c ViewHandlerCollection) GetKeys() []string {
+	keys := make([]string, 0)
+
+	for k := range c {
+		keys = append(keys, k)
+	}
+
+	return keys
+}
+
+type ViewHandler interface {
+	Execute(node *Node, request *ViewRequest, response *ViewResponse) error
+}
+
+type ViewRequest struct {
+	Format      string
+	HttpRequest *http.Request
+	Context     web.C
+}
+
+func NewViewResponse(res http.ResponseWriter) *ViewResponse {
+	return &ViewResponse{
+		StatusCode:   200,
+		Context:      pongo2.Context{},
+		HttpResponse: res,
+	}
+}
+
+type ViewResponse struct {
+	StatusCode   int
+	Template     string
+	Context      pongo2.Context
+	HttpResponse http.ResponseWriter
+}
+
+func (r *ViewResponse) Set(code int, template string) *ViewResponse {
+	r.StatusCode = code
+	r.Template = template
+
+	return r
+}
+
+func (r *ViewResponse) Add(name string, v interface{}) *ViewResponse {
+	r.Context[name] = v
+
+	return r
 }

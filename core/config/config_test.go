@@ -26,7 +26,7 @@ func Test_Server_LoadConfigurationFromFile(t *testing.T) {
 		Databases: make(map[string]*ServerDatabase),
 	}
 
-	LoadConfigurationFromString(`
+	err := LoadConfigurationFromString(`
 name= "GoNode - Codeship"
 bind= ":2508"
 
@@ -61,11 +61,20 @@ key = "ZeSecretKey0oo"
 
 [bindata]
     base_path = "/var/go"
+    templates = [
+        "/path/post/templates",
+        "/path/media/templates",
+        #"/commented"
+    ]
+
     [bindata.assets]
         [bindata.assets.explorer]
         public = "/explorer"
         private = "github.com/rande/gonode/explorer/dist"
+
 `, config)
+
+	assert.NoError(t, err)
 
 	// test general configuration
 	assert.Equal(t, config.Name, "GoNode - Codeship")
@@ -92,6 +101,7 @@ key = "ZeSecretKey0oo"
 	assert.Equal(t, "/explorer", config.BinData.Assets["explorer"].Public)
 	assert.Equal(t, "github.com/rande/gonode/explorer/dist", config.BinData.Assets["explorer"].Private)
 	assert.Equal(t, "/var/go", config.BinData.BasePath)
+	assert.Equal(t, []string{"/path/post/templates", "/path/media/templates"}, config.BinData.Templates)
 
 	// debug
 	config.Guard.Jwt.Login.Path = `^\/nodes\/(.*)$`

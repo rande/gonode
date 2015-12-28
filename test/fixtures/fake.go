@@ -4,6 +4,7 @@ import (
 	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/plugins/blog"
 	"github.com/rande/gonode/plugins/media"
+	"github.com/rande/gonode/plugins/search"
 	"github.com/rande/gonode/plugins/user"
 	"strconv"
 )
@@ -52,7 +53,7 @@ func GetFakeUserNode(pos int) *core.Node {
 		NewPassword: "user" + strconv.Itoa(pos),
 	}
 	node.Meta = &user.UserMeta{
-		PasswordCost: 12,
+		PasswordCost: 1,
 		PasswordAlgo: "bcrypt",
 	}
 
@@ -110,6 +111,20 @@ func LoadFixtures(m *core.PgNodeManager, max int) error {
 
 		core.PanicOnError(err)
 	}
+
+	// create blog archives
+	archive := core.NewNode()
+	archive.Type = "core.index"
+	archive.Name = "Blog Archive"
+	archive.Slug = "blog"
+	archive.Data = &search.Index{
+		Type: search.NewParam([]string{"blog.post"}),
+	}
+	archive.Meta = &search.IndexMeta{}
+
+	_, err = m.Save(archive, false)
+
+	core.PanicOnError(err)
 
 	return nil
 }

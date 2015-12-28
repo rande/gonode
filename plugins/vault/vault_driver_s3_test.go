@@ -61,9 +61,9 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 
 	// init vault
 	v := &DriverS3{
-		Root:     root,
-		Region:   "eu-west-1",
-		EndPoint: "s3-eu-west-1.amazonaws.com",
+		Root:        root,
+		Region:      "eu-west-1",
+		EndPoint:    "s3-eu-west-1.amazonaws.com",
 		Credentials: chainProvider,
 	}
 

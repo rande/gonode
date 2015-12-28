@@ -29,6 +29,11 @@ update:
 	go get -u all
 	cd explorer && npm update
 
+load:
+	curl -XPOST http://localhost:2405/setup/uninstall && exit 0
+	curl -XPOST http://localhost:2405/setup/install
+	curl -XPOST http://localhost:2405/setup/data/load
+
 run: bin
 	cd commands && go run main.go server -config=../server.toml.dist
 

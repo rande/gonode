@@ -6,29 +6,27 @@
 package server
 
 import (
+	"database/sql"
+	"github.com/hypebeast/gojistatic"
+	sq "github.com/lann/squirrel"
+	pq "github.com/lib/pq"
 	"github.com/rande/goapp"
-
 	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/plugins/api"
 	"github.com/rande/gonode/plugins/blog"
 	"github.com/rande/gonode/plugins/debug"
+	"github.com/rande/gonode/plugins/feed"
 	"github.com/rande/gonode/plugins/media"
+	"github.com/rande/gonode/plugins/search"
 	"github.com/rande/gonode/plugins/user"
 	"github.com/rande/gonode/plugins/vault"
-	"net/http"
-
-	"database/sql"
-	sq "github.com/lann/squirrel"
-	pq "github.com/lib/pq"
-
-	"log"
-	"time"
-
-	"github.com/hypebeast/gojistatic"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
+	"log"
+	"net/http"
 	"os"
+	"time"
 )
 
 func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
@@ -86,6 +84,18 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 				"media.youtube": &media.YoutubeHandler{},
 				"blog.post":     &blog.PostHandler{},
 				"core.user":     &user.UserHandler{},
+				"core.index":    &search.IndexHandler{},
+			}
+		})
+
+		app.Set("gonode.view_handler_collection", func(app *goapp.App) interface{} {
+			return core.ViewHandlerCollection{
+				"default": &debug.DefaultViewHandler{},
+				"core.index": &search.IndexViewHandler{
+					Search:    app.Get("gonode.search.pgsql").(*search.SearchPGSQL),
+					Manager:   app.Get("gonode.manager").(*core.PgNodeManager),
+					MaxResult: 128,
+				},
 			}
 		})
 

@@ -5,6 +5,10 @@
 
 package search
 
+import (
+	"github.com/rande/gonode/core"
+)
+
 type Param struct {
 	SubField  string      `json:"sub_field"`
 	Operation string      `json:"operation"`
@@ -59,4 +63,60 @@ func NewSearchForm() *SearchForm {
 		Meta:    make([]*Param, 0),
 		Deleted: NewParam(false, "="),
 	}
+}
+
+func NewSearchFormFromIndex(index *Index) *SearchForm {
+	// we just copy over node to create search form
+	search := NewSearchForm()
+	search.OrderBy = index.OrderBy
+	search.Uuid = index.Uuid
+	search.Type = index.Type
+	search.Name = index.Name
+	search.Slug = index.Slug
+	search.Data = index.Data
+	search.Meta = index.Meta
+	search.Status = index.Status
+	search.Weight = index.Weight
+	search.Revision = index.Revision
+	search.Enabled = index.Enabled
+	search.Deleted = index.Deleted
+	search.Current = index.Current
+	search.UpdatedBy = index.UpdatedBy
+	search.CreatedBy = index.CreatedBy
+	search.ParentUuid = index.ParentUuid
+	search.SetUuid = index.SetUuid
+	search.Source = index.Source
+
+	return search
+}
+
+func GetPager(search *SearchForm, manager core.NodeManager, engine *SearchPGSQL) *SearchPager {
+	query := engine.BuildQuery(search, manager.SelectBuilder(core.NewSelectOptions()))
+
+	list := manager.FindBy(query, (search.Page-1)*search.PerPage, search.PerPage+1)
+
+	pager := &SearchPager{
+		Page:     search.Page,
+		PerPage:  search.PerPage,
+		Elements: make([]*core.Node, 0),
+		Previous: uint64(0),
+		Next:     uint64(0),
+	}
+
+	if search.Page > 1 {
+		pager.Previous = search.Page - 1
+	}
+
+	counter := uint64(0)
+	for e := list.Front(); e != nil; e = e.Next() {
+		if counter == search.PerPage {
+			pager.Next = search.Page + 1
+			break
+		}
+		pager.Elements = append(pager.Elements, e.Value.(*core.Node))
+
+		counter++
+	}
+
+	return pager
 }

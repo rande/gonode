@@ -196,11 +196,11 @@ func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *go
 			}
 		}()
 
-		res, err = RunRequest("PUT", ts.URL+"/setup/uninstall", nil)
+		res, err = RunRequest("POST", ts.URL+"/setup/uninstall", nil)
 		core.PanicIf(res.StatusCode != http.StatusOK, fmt.Sprintf("Expected code 200, get %d\n%s", res.StatusCode, string(res.GetBody()[:])))
 		core.PanicOnError(err)
 
-		res, err = RunRequest("PUT", ts.URL+"/setup/install", nil)
+		res, err = RunRequest("POST", ts.URL+"/setup/install", nil)
 		core.PanicIf(res.StatusCode != http.StatusOK, fmt.Sprintf("Expected code 200, get %d\n%s", res.StatusCode, string(res.GetBody()[:])))
 		core.PanicOnError(err)
 

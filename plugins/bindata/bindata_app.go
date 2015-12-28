@@ -6,6 +6,7 @@
 package bindata
 
 import (
+	"github.com/flosch/pongo2"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/assets"
 	"github.com/rande/gonode/core/config"
@@ -21,7 +22,20 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 		return nil
 	})
 
+	l.Register(func(app *goapp.App) error {
+		app.Set("gonode.pongo", func(app *goapp.App) interface{} {
+
+			return pongo2.NewSet("gonode.bindata", &PongoTemplateLoader{
+				Asset: assets.Asset,
+				Paths: conf.BinData.Templates,
+			})
+		})
+
+		return nil
+	})
+
 	l.Prepare(func(app *goapp.App) error {
+
 		if !app.Has("goji.mux") {
 			return nil
 		}

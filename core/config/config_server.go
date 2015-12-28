@@ -33,8 +33,9 @@ type ServerBinDataAsset struct {
 }
 
 type ServerBinData struct {
-	BasePath string                         `toml:"base_path"`
-	Assets   map[string]*ServerBinDataAsset `toml:"assets"`
+	BasePath  string                         `toml:"base_path"`
+	Assets    map[string]*ServerBinDataAsset `toml:"assets"`
+	Templates []string                       `toml:"templates"`
 }
 
 type ServerSecurity struct {
@@ -90,6 +91,7 @@ func NewServerConfig() *ServerConfig {
 		BinData: &ServerBinData{
 			BasePath: os.Getenv("GOPATH") + "/src",
 			Assets:   make(map[string]*ServerBinDataAsset, 0),
+			//			Templates: make([]string, 0),
 		},
 	}
 }

@@ -47,6 +47,14 @@ func GetJsonSearchQuery(query sq.SelectBuilder, params []*Param, field string) s
 	return query
 }
 
+type SearchPager struct {
+	Elements []*core.Node
+	Page     uint64
+	PerPage  uint64
+	Next     uint64
+	Previous uint64
+}
+
 type SearchPGSQL struct {
 }
 

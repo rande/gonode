@@ -28,7 +28,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 		prefix := ""
 
-		mux.Put(prefix+"/setup/uninstall", func(res http.ResponseWriter, req *http.Request) {
+		mux.Post(prefix+"/setup/uninstall", func(res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
 
 			prefix := conf.Databases["master"].Prefix
@@ -43,7 +43,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 			helper.SendWithHttpCode(res, http.StatusOK, "Successfully delete tables!")
 		})
 
-		mux.Put(prefix+"/setup/install", func(res http.ResponseWriter, req *http.Request) {
+		mux.Post(prefix+"/setup/install", func(res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
 
 			prefix := conf.Databases["master"].Prefix
@@ -64,6 +64,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 				"deleted" BOOLEAN DEFAULT 'false' NOT NULL,
 				"data" jsonb DEFAULT '{}'::jsonb NOT NULL,
 				"meta" jsonb DEFAULT '{}'::jsonb NOT NULL,
+				"plugins" jsonb DEFAULT '{}'::jsonb NOT NULL,
 				"slug" CHARACTER VARYING( 256 ) COLLATE "default" NOT NULL,
 				"source" UUid,
 				"set_uuid" UUid,
@@ -97,6 +98,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 				"deleted" BOOLEAN DEFAULT 'false' NOT NULL,
 				"data" jsonb DEFAULT '{}'::jsonb NOT NULL,
 				"meta" jsonb DEFAULT '{}'::jsonb NOT NULL,
+				"plugins" jsonb DEFAULT '{}'::jsonb NOT NULL,
 				"slug" CHARACTER VARYING( 256 ) COLLATE "default" NOT NULL,
 				"source" UUid,
 				"set_uuid" UUid,
@@ -119,7 +121,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 			}
 		})
 
-		mux.Put(prefix+"/setup/data/purge", func(res http.ResponseWriter, req *http.Request) {
+		mux.Post(prefix+"/setup/data/purge", func(res http.ResponseWriter, req *http.Request) {
 
 			manager := app.Get("gonode.manager").(*core.PgNodeManager)
 
@@ -137,7 +139,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 			}
 		})
 
-		mux.Put(prefix+"/setup/data/load", func(res http.ResponseWriter, req *http.Request) {
+		mux.Post(prefix+"/setup/data/load", func(res http.ResponseWriter, req *http.Request) {
 			manager := app.Get("gonode.manager").(*core.PgNodeManager)
 			nodes := manager.FindBy(manager.SelectBuilder(core.NewSelectOptions()), 0, 10)
 
