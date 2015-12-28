@@ -5,23 +5,28 @@ sudo: false
 addons:
   postgresql: "9.4"
 
+matrix:
+  fast_finish: true
+  include:
+    - go: 1.4
+      env: TEST_FRONTEND=off TEST_BACKEND=on
+    - go: 1.5
+      env: TEST_FRONTEND=off TEST_BACKEND=on
+    - go: 1.6
+      env: TEST_FRONTEND=off TEST_BACKEND=on
+    - go: 1.6
+      env: TEST_FRONTEND=on  TEST_BACKEND=off TRAVIS_NODE_VERSION="0.12"
+
 before_script:
-  - psql -c 'create database travis_ci_test;' -U postgres
-  - cp -f test/config_travis.toml test/config_test.toml
-
-go:
-  - 1.4
-  - 1.5
-  - 1.6
-  - tip
-
-env:
-  - TRAVIS_NODE_VERSION="0.12"
+  - if [ "$TEST_BACKEND" = "on" ]; then psql -c 'create database travis_ci_test;' -U postgres; fi;
+  - if [ "$TEST_BACKEND" = "on" ]; then cp -f test/config_travis.toml test/config_test.toml; fi;
 
 install:
   # from http://austinpray.com/ops/2015/09/20/change-travis-node-version.html
-  - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
-  - make install
+  - if [ "$TEST_FRONTEND" = "on" ]; then rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION; fi;
+  - if [ "$TEST_FRONTEND" = "on" ]; then make install-frontend; fi
+  - if [ "$TEST_BACKEND" = "on" ]; then make install-backend; fi
 
 script:
-  - make test
+  - if [ "$TEST_BACKEND" = "on" ]; then make test-backend; fi
+  - if [ "$TEST_FRONTEND" = "on" ]; then make test-frontend; fi

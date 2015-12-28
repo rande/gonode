@@ -9,15 +9,19 @@ default: clean test build
 clean:
 	rm -rf explorer/dist/*
 
-install:
+install-backend:
 	go list -f '{{range .Imports}}{{.}} {{end}}' ./... | xargs go get -v
 	go list -f '{{range .TestImports}}{{.}} {{end}}' ./... | xargs go get -v
 	go build -v ./...
+
+install-frontend:
 	cd explorer && npm install
+
+install: install-backend install-frontend
 
 update:
 	go get -u all
-	cd explorer && npm update && npm update react-admin
+	cd explorer && npm update
 
 run:
 	cd commands && go run main.go server -config=../server.toml.dist
@@ -32,10 +36,14 @@ format:
 	gofmt -l -w -s .
 	go fix ./...
 
-test:
+test-backend:
 	go test $(GONODE_PLUGINS) ./test/api ./core ./core/config ./commands/server
 	go vet ./...
+
+test-frontend:
 	cd explorer && npm test
+
+test: test-backend test-frontend
 
 kill:
 	kill `cat $(PID)` || true
