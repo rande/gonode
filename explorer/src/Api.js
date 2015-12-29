@@ -104,6 +104,23 @@ const Api = {
                 return node;
             })
         ;
+    },
+
+    updateNode(nodeData, token = null) {
+        const url = `${API_BASE_URL}/nodes/${nodeData.uuid}`;
+
+        const req = request.put(url);
+        if (token !== null) {
+            req.set('Authorization', `Bearer ${token}`);
+        }
+
+        return req
+            .send(nodeData)
+            .then(response => response.body)
+            .then(node => {
+                return node;
+            })
+        ;
     }
 };
 

@@ -4,6 +4,7 @@ import * as types      from '../constants/ActionTypes';
 
 const assign = Object.assign || require('object.assign');
 
+
 export default function nodes(state = {
     isFetching:    false,
     items:         [],
@@ -39,6 +40,7 @@ export default function nodes(state = {
             });
 
         case types.RECEIVE_NODE_CREATION:
+        case types.RECEIVE_NODE_UPDATE:
             return assign({}, state, {
                 didInvalidate: true
             });

@@ -15,6 +15,9 @@ export default {
     'node.create.button': 'new',
     'node.create.title': 'create new node',
 
+    'node.edit.link': 'edit',
+    'node.edit.title': 'edit node {name}',
+
     'node.status.0': 'new',       // 0 - New: The node has been created
     'node.status.1': 'draft',     // 1 - Draft: The node is currently being edited
     'node.status.2': 'completed', // 2 - Completed: The node is completed and can be reviewed

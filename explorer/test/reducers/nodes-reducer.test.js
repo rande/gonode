@@ -64,4 +64,26 @@ describe('nodes reducer', () => {
             })
         ;
     });
+
+    it('should handle the RECEIVE_NODE_CREATION action', () => {
+        expect(nodesReducer({}, {
+            type: types.RECEIVE_NODE_CREATION,
+            node: {}
+        }))
+            .toEqual({
+                didInvalidate: true
+            })
+        ;
+    });
+
+    it('should handle the RECEIVE_NODE_UPDATE action', () => {
+        expect(nodesReducer({}, {
+            type: types.RECEIVE_NODE_UPDATE,
+            node: {}
+        }))
+            .toEqual({
+                didInvalidate: true
+            })
+        ;
+    });
 });

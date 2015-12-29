@@ -5,7 +5,7 @@ import { history } from '../routing';
 
 function receiveNode(node) {
     return {
-        type: types.RECEIVE_NODE,
+        type:     types.RECEIVE_NODE,
         nodeUuid: node.uuid,
         node
     };
@@ -35,7 +35,7 @@ function shouldFetchNode(state, nodeUuid) {
         return true;
     }
 
-    return false;
+    return node.didInvalidate;
 }
 
 export function fetchNodeIfNeeded(nodeUuid) {
@@ -67,6 +67,33 @@ export function createNode(nodeData) {
             .then(node => {
                 dispatch(receiveNodeCreation(node));
                 history.push('/nodes');
+            })
+        ;
+    };
+}
+
+function requestNodeUpdate(nodeData) {
+    return {
+        type: types.REQUEST_NODE_UPDATE,
+        nodeData
+    };
+}
+
+function receiveNodeUpdate(node) {
+    return {
+        type:     types.RECEIVE_NODE_UPDATE,
+        nodeUuid: node.uuid,
+        node
+    };
+}
+
+export function updateNode(nodeData) {
+    return (dispatch, getState) => {
+        dispatch(requestNodeUpdate(nodeData));
+        Api.updateNode(nodeData, getState().security.token)
+            .then(node => {
+                dispatch(receiveNodeUpdate(node));
+                history.push(`/nodes/${node.uuid}`);
             })
         ;
     };

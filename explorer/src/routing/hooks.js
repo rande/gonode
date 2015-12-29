@@ -35,3 +35,10 @@ export function onEnterNode(store) {
         store.dispatch(fetchNodeIfNeeded(node_uuid));
     });
 }
+
+export function onEnterNodeEdit(store) {
+    return ensureAuthenticated(store, nextState => {
+        const { node_uuid } = nextState.params;
+        store.dispatch(selectNode(node_uuid));
+    });
+}

@@ -17,20 +17,20 @@ class NodeForm extends Component {
 
         return (
             <div>
-                <form onSubmit={handleSubmit}>
-                    <div className="form-group">
+                <form onSubmit={handleSubmit} className="form">
+                    <div className="form_group">
                         <label>Name</label>
                         <div>
                             <input type="text" placeholder="node name" {...name}/>
                         </div>
                     </div>
-                    <div className="form-group">
+                    <div className="form_group">
                         <label>Type</label>
                         <div>
                             <input type="text" placeholder="node type" {...type}/>
                         </div>
                     </div>
-                    <div className="form-group">
+                    <div className="form_group">
                         <label>Slug</label>
                         <div>
                             <input type="text" placeholder="node slug" {...slug}/>
