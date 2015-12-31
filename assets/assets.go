@@ -4,3 +4,14 @@
 // license that can be found in the LICENSE file.
 
 package assets
+
+var rootDir = ""
+
+func UpdateRootDir(path string) {
+
+	if len(path) == 0 {
+		return
+	}
+
+	rootDir = path
+}

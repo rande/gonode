@@ -26,3 +26,9 @@ key = "ZeSecretKey0oo"
     allowed_origins = ["*"]
     allowed_methods = ["GET", "PUT", "POST"]
     allowed_headers = ["Origin", "Accept", "Content-Type", "Authorization"]
+
+[bindata]
+    [bindata.assets]
+        [bindata.assets.explorer]
+        public = "/explorer"
+        private = "github.com/rande/gonode/explorer/dist"

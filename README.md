@@ -15,4 +15,5 @@ Documentation
     * [Guard](docs/plugins/guard.md): Authentification
     * [Security](docs/plugins/security.md): CORS
     * [Search](docs/plugins/search.md): Search filters
+    * [Bindata](docs/plugins/bindata.md): Provide http handler to server static file from ``go-bindata`` assets
  * [Contributing](docs/contributing.md)

@@ -14,6 +14,7 @@ import (
 	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/plugins/api"
+	"github.com/rande/gonode/plugins/bindata"
 	"github.com/rande/gonode/plugins/guard"
 	"github.com/rande/gonode/plugins/search"
 	"github.com/rande/gonode/plugins/security"
@@ -75,6 +76,7 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 	api.ConfigureServer(l, conf)
 	setup.ConfigureServer(l, conf)
 	guard.ConfigureServer(l, conf)
+	bindata.ConfigureServer(l, conf)
 
 	return l
 }

@@ -2,7 +2,7 @@
 
 PID = .pid
 GO_FILES = $(shell find . -type f -name "*.go")
-GONODE_PLUGINS = $(shell find ./plugins -type d)
+GONODE_PLUGINS = $(shell ls -d ./plugins/* | grep -v go)
 
 GO_PATH = $(shell go env GOPATH)
 GO_BINDATA_PATHS = $(GO_PATH)/src/github.com/rande/gonode/plugins/... $(GO_PATH)/src/github.com/rande/gonode/explorer/dist/...
@@ -33,13 +33,12 @@ run: bin
 	cd commands && go run main.go server -config=../server.toml.dist
 
 bin:
-	cd $(GO_PATH)/src && go-bindata -debug -o $(GO_BINDATA_OUTPUT) -pkg $(GO_BINDATA_PACKAGE) -ignore $(GO_BINDATA_IGNORE) $(GO_BINDATA_PATHS)
+	cd $(GO_PATH)/src && go-bindata -dev -prefix $(GO_PATH)/src -o $(GO_BINDATA_OUTPUT) -pkg $(GO_BINDATA_PACKAGE) -ignore $(GO_BINDATA_IGNORE) $(GO_BINDATA_PATHS)
 
 build:
 	rm -rf dist && mkdir dist
-	#cd explorer && webpack --progress --color
-	#cd commands && go build -o dist/gonode
-	cd $(GO_PATH)/src && go-bindata -o $(GO_BINDATA_OUTPUT) -pkg $(GO_BINDATA_PACKAGE) -ignore $(GO_BINDATA_IGNORE)  $(GO_BINDATA_PATHS)
+	cd explorer && npm run-script build
+	cd $(GO_PATH)/src && go-bindata -prefix $(GO_PATH)/src -o $(GO_BINDATA_OUTPUT) -pkg $(GO_BINDATA_PACKAGE) -ignore $(GO_BINDATA_IGNORE)  $(GO_BINDATA_PATHS)
 	cd commands && go build -a -o ../dist/gonode
 
 format:

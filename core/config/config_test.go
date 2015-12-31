@@ -59,6 +59,12 @@ key = "ZeSecretKey0oo"
 [search]
     max_result = 256
 
+[bindata]
+    base_path = "/var/go"
+    [bindata.assets]
+        [bindata.assets.explorer]
+        public = "/explorer"
+        private = "github.com/rande/gonode/explorer/dist"
 `, config)
 
 	// test general configuration
@@ -81,6 +87,11 @@ key = "ZeSecretKey0oo"
 
 	// test search
 	assert.Equal(t, uint64(256), config.Search.MaxResult)
+
+	// test bindata
+	assert.Equal(t, "/explorer", config.BinData.Assets["explorer"].Public)
+	assert.Equal(t, "github.com/rande/gonode/explorer/dist", config.BinData.Assets["explorer"].Private)
+	assert.Equal(t, "/var/go", config.BinData.BasePath)
 
 	// debug
 	config.Guard.Jwt.Login.Path = `^\/nodes\/(.*)$`
