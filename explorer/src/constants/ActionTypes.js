@@ -22,3 +22,9 @@ export const REQUEST_NODE_CREATION   = 'REQUEST_NODE_CREATION';
 export const RECEIVE_NODE_CREATION   = 'RECEIVE_NODE_CREATION';
 export const REQUEST_NODE_UPDATE     = 'REQUEST_NODE_UPDATE';
 export const RECEIVE_NODE_UPDATE     = 'RECEIVE_NODE_UPDATE';
+
+//--------------------------------------------------------------------------------
+// Node revisions
+//--------------------------------------------------------------------------------
+export const REQUEST_NODE_REVISIONS  = 'REQUEST_NODE_REVISIONS';
+export const RECEIVE_NODE_REVISIONS  = 'RECEIVE_NODE_REVISIONS';

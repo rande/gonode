@@ -89,6 +89,28 @@ const Api = {
         ;
     },
 
+    /**
+     * Fetch node revisions by node uuid
+     *
+     * @returns {Promise}
+     */
+    nodeRevisions(uuid, token = null) {
+        const searchParams = [
+            'per_page=10'
+        ];
+
+        const url = `${API_BASE_URL}/nodes/${uuid}/revisions?${searchParams.join('&')}`;
+
+        const req = request.get(url);
+        if (token !== null) {
+            req.set('Authorization', `Bearer ${token}`);
+        }
+
+        return req
+            .then(response => response.body)
+        ;
+    },
+
     createNode(nodeData, token = null) {
         const url = `${API_BASE_URL}/nodes`;
 

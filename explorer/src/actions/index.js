@@ -12,5 +12,6 @@ export {
 export {
     fetchNodeIfNeeded,
     createNode,
-    updateNode
+    updateNode,
+    fetchNodeRevisionsIfNeeded
 } from './node-actions';

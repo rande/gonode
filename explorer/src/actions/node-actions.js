@@ -46,6 +46,8 @@ export function fetchNodeIfNeeded(nodeUuid) {
     };
 }
 
+
+
 function requestNodeCreation(nodeData) {
     return {
         type: types.REQUEST_NODE_CREATION,
@@ -72,6 +74,8 @@ export function createNode(nodeData) {
     };
 }
 
+
+
 function requestNodeUpdate(nodeData) {
     return {
         type: types.REQUEST_NODE_UPDATE,
@@ -96,5 +100,52 @@ export function updateNode(nodeData) {
                 history.push(`/nodes/${node.uuid}`);
             })
         ;
+    };
+}
+
+
+
+function requestNodeRevisions(uuid) {
+    return {
+        type: types.REQUEST_NODE_REVISIONS,
+        uuid
+    };
+}
+
+function receiveNodeRevisions(uuid, {
+    elements
+}) {
+    return {
+        type: types.RECEIVE_NODE_REVISIONS,
+        uuid,
+        items: elements
+    };
+}
+
+function fetchNodeRevisions(uuid) {
+    return (dispatch, getState) => {
+        dispatch(requestNodeRevisions(uuid));
+        Api.nodeRevisions(uuid, getState().security.token)
+            .then(response => {
+                return dispatch(receiveNodeRevisions(uuid, response));
+            })
+        ;
+    };
+}
+
+function shouldFetchNodeRevisions(state, uuid) {
+    const revisions = state.nodesRevisionsByUuid[uuid];
+    if (!revisions) {
+        return true;
+    }
+
+    return revisions.didInvalidate;
+}
+
+export function fetchNodeRevisionsIfNeeded(uuid) {
+    return (dispatch, getState) => {
+        if (shouldFetchNodeRevisions(getState(), uuid)) {
+            return dispatch(fetchNodeRevisions(uuid));
+        }
     };
 }

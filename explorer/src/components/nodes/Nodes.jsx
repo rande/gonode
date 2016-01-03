@@ -47,25 +47,27 @@ class Nodes extends Component {
 
         return (
             <div>
-                <div className="page-header">
-                    <h2 className="page-header_title">
-                        <FormattedMessage id="nodes.title"/>
-                    </h2>
-                    <Link to="/nodes/create" className="page-header_button">
-                        <i className="fa fa-plus"/>&nbsp;
-                        <FormattedMessage id="node.create.button"/>
-                    </Link>
-                    {isFetching && <span className="loader"/>}
+                <div className="nodes-wrapper">
+                    <div className="page-header">
+                        <h2 className="page-header_title">
+                            <FormattedMessage id="nodes.title"/>
+                        </h2>
+                        <Link to="/nodes/create" className="page-header_button">
+                            <i className="fa fa-plus"/>&nbsp;
+                            <FormattedMessage id="node.create.button"/>
+                        </Link>
+                        {isFetching && <span className="loader"/>}
+                    </div>
+                    <Pager
+                        perPageOptions={[5, 10, 16, 32]}
+                        perPage={itemsPerPage}
+                        page={currentPage}
+                        previousPage={previousPage}
+                        nextPage={nextPage}
+                        onChange={this.handlePagerChange.bind(this)}
+                    />
+                    <NodesList nodes={nodes}/>
                 </div>
-                <Pager
-                    perPageOptions={[5, 10, 16, 32]}
-                    perPage={itemsPerPage}
-                    page={currentPage}
-                    previousPage={previousPage}
-                    nextPage={nextPage}
-                    onChange={this.handlePagerChange.bind(this)}
-                />
-                <NodesList nodes={nodes}/>
                 <Link to="/nodes" className={overlayClasses}/>
                 <div className={panelClasses}>
                     {content}

@@ -12,6 +12,7 @@
 @require 'form.styl'
 @require 'navigation.styl'
 @require 'nodes-list.styl'
+@require 'node-revisions.styl'
 @require 'pager.styl'
 @require 'login.styl'
 
@@ -50,7 +51,7 @@ html, body
   right:  0
   bottom: 0
   left:   $navigation-width
-  overflow-y: auto
+  overflow: hidden
 
 .content-overlay
   opacity: 0.75
@@ -118,6 +119,17 @@ html, body
 
   &._is-opened
     left: 20%
+
+.node-main
+  position: absolute
+  top:    0
+  right:  $node-revision-size
+  left:   0
+  bottom: 0
+  overflow-y: auto
+
+.nodes-wrapper
+  display: block
 
 .node-raw
   background-color: darken($color-second-panel-background, 7)

@@ -6,8 +6,7 @@ import Home                  from '../components/Home.jsx';
 import Login                 from '../components/security/Login.jsx';
 import Logout                from '../components/security/Logout.jsx';
 import Nodes                 from '../components/nodes/Nodes.jsx';
-import Node                  from '../containers/Node.jsx';
-import NodeShow              from '../components/nodes/NodeShow.jsx';
+import Node                  from '../components/nodes/Node.jsx';
 import NodeCreate            from '../components/nodes/NodeCreate.jsx';
 import NodeEdit              from '../components/nodes/NodeEdit.jsx';
 
