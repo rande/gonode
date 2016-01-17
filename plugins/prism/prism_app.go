@@ -10,6 +10,7 @@ import (
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/plugins/router"
 	"github.com/zenazn/goji/web"
 	"net/http"
 )
@@ -39,7 +40,11 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 
 		response := core.NewViewResponse(res)
 
-		response.Add("request", request)
+		if _, ok := c.Env["request_context"]; ok {
+			response.Add("request_context", c.Env["request_context"])
+		} else {
+			response.Add("request_context", nil)
+		}
 
 		if node != nil {
 			response.Add("node", node)
@@ -80,11 +85,11 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 	l.Prepare(func(app *goapp.App) error {
-		mux := app.Get("goji.mux").(*web.Mux)
+		r := app.Get("gonode.router").(*router.Router)
 		prefix := ""
 
-		mux.Get(prefix+"/prism/:uuid.:format", RenderPrism(app))
-		mux.Get(prefix+"/prism/:uuid", RenderPrism(app))
+		r.Handle("prism_format", prefix+"/prism/:uuid.:format", RenderPrism(app))
+		r.Handle("prism", prefix+"/prism/:uuid", RenderPrism(app))
 
 		return nil
 	})

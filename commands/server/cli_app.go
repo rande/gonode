@@ -7,7 +7,6 @@ package server
 
 import (
 	"database/sql"
-	"github.com/hypebeast/gojistatic"
 	sq "github.com/lann/squirrel"
 	pq "github.com/lib/pq"
 	"github.com/rande/goapp"
@@ -52,7 +51,6 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 			mux.Use(middleware.Logger)
 			mux.Use(middleware.Recoverer)
 			mux.Use(middleware.AutomaticOptions)
-			mux.Use(gojistatic.Static("dist", gojistatic.StaticOptions{SkipLogging: true, Prefix: "dist"}))
 
 			return mux
 		})
