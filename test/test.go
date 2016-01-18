@@ -13,16 +13,16 @@ import (
 	"github.com/rande/gonode/commands/server"
 	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/core/config"
-	"github.com/rande/gonode/plugins/api"
-	"github.com/rande/gonode/plugins/bindata"
-	"github.com/rande/gonode/plugins/guard"
-	"github.com/rande/gonode/plugins/node"
-	"github.com/rande/gonode/plugins/prism"
-	"github.com/rande/gonode/plugins/router"
-	"github.com/rande/gonode/plugins/search"
-	"github.com/rande/gonode/plugins/security"
-	"github.com/rande/gonode/plugins/setup"
-	"github.com/rande/gonode/plugins/user"
+	"github.com/rande/gonode/modules/api"
+	"github.com/rande/gonode/modules/bindata"
+	"github.com/rande/gonode/modules/guard"
+	"github.com/rande/gonode/modules/node"
+	"github.com/rande/gonode/modules/prism"
+	"github.com/rande/gonode/modules/router"
+	"github.com/rande/gonode/modules/search"
+	"github.com/rande/gonode/modules/security"
+	"github.com/rande/gonode/modules/setup"
+	"github.com/rande/gonode/modules/user"
 	"github.com/stretchr/testify/assert"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
@@ -184,7 +184,7 @@ func RunRequest(method string, path string, options ...interface{}) (*Response, 
 
 func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *goapp.App)) {
 
-	l := GetLifecycle("../config_test.toml")
+	l := GetLifecycle("../../config_test.toml")
 
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 		var err error

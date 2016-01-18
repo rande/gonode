@@ -67,13 +67,13 @@ func GetReference(uuid uuid.UUID) Reference {
 	return Reference{uuid}
 }
 
-type Plugins map[string]interface{}
+type Modules map[string]interface{}
 
-func (p Plugins) Set(name string, v interface{}) {
+func (p Modules) Set(name string, v interface{}) {
 	p[name] = v
 }
 
-func (p Plugins) Has(name string) bool {
+func (p Modules) Has(name string) bool {
 	if _, ok := p[name]; ok {
 		return true
 	}
@@ -81,12 +81,12 @@ func (p Plugins) Has(name string) bool {
 	return false
 }
 
-func (p Plugins) Get(name string) (interface{}, error) {
+func (p Modules) Get(name string) (interface{}, error) {
 	if p.Has(name) {
 		return p[name], nil
 	}
 
-	return nil, errors.New("No plugins")
+	return nil, errors.New("No modules")
 }
 
 type Node struct {
@@ -111,7 +111,7 @@ type Node struct {
 	ParentUuid Reference   `json:"parent_uuid"`
 	SetUuid    Reference   `json:"set_uuid"`
 	Source     Reference   `json:"source"`
-	Plugins    Plugins     `json:"plugins"`
+	Modules    Modules     `json:"modules"`
 }
 
 func (node *Node) UniqueId() string {
@@ -134,7 +134,7 @@ func NewNode() *Node {
 		Deleted:    false,
 		Enabled:    true,
 		Status:     StatusNew,
-		Plugins:    make(map[string]interface{}),
+		Modules:    make(map[string]interface{}),
 	}
 }
 
@@ -156,7 +156,7 @@ func DumpNode(node *Node) {
 	fmt.Printf(" Slug:       %s\n", node.Slug)
 	fmt.Printf(" Data:       %T => %+v\n", node.Data, node.Data)
 	fmt.Printf(" Meta:       %T => %+v\n", node.Meta, node.Meta)
-	fmt.Printf(" Plugins:    %T => %+v\n", node.Plugins, node.Plugins)
+	fmt.Printf(" Modules:    %T => %+v\n", node.Modules, node.Modules)
 	fmt.Printf(" CreatedBy:  %s\n", node.CreatedBy)
 	fmt.Printf(" UpdatedBy:  %s\n", node.UpdatedBy)
 	fmt.Printf(" ParentUuid: %s\n", node.ParentUuid)

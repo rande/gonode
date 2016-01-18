@@ -2,10 +2,11 @@
 
 PID = .pid
 GO_FILES = $(shell find . -type f -name "*.go")
-GONODE_PLUGINS = $(shell ls -d ./plugins/* | grep -v go)
+GONODE_MODULES = $(shell ls -d ./modules/* | grep -v go)
+GONODE_FUNC_TESTS = $(shell ls -d ./test/modules/* | grep -v go)
 
 GO_PATH = $(shell go env GOPATH)
-GO_BINDATA_PATHS = $(GO_PATH)/src/github.com/rande/gonode/plugins/... $(GO_PATH)/src/github.com/rande/gonode/explorer/dist/...
+GO_BINDATA_PATHS = $(GO_PATH)/src/github.com/rande/gonode/modules/... $(GO_PATH)/src/github.com/rande/gonode/explorer/dist/...
 GO_BINDATA_IGNORE = "(.*)\.(go|DS_Store)"
 GO_BINDATA_OUTPUT = $(GO_PATH)/src/github.com/rande/gonode/assets/bindata.go
 GO_BINDATA_PACKAGE = assets
@@ -52,7 +53,7 @@ format:
 	go fix ./...
 
 test-backend: bin
-	go test $(GONODE_PLUGINS) ./test/api ./test/plugins ./core ./core/config ./commands/server
+	go test $(GONODE_MODULES) $(GONODE_FUNC_TESTS) ./core ./core/config ./commands/server
 	go vet ./...
 
 test-frontend:

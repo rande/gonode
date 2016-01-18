@@ -13,7 +13,7 @@ import (
 	"github.com/rande/gonode/commands/server"
 	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/core/config"
-	"github.com/rande/gonode/plugins/api"
+	"github.com/rande/gonode/modules/api"
 
 	"fmt"
 )
