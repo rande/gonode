@@ -16,7 +16,7 @@ import (
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/core/config"
-	"github.com/rande/gonode/helper"
+	"github.com/rande/gonode/modules/helper"
 	"github.com/rande/gonode/modules/search"
 	"github.com/rande/gonode/modules/user"
 	"github.com/zenazn/goji/graceful"

@@ -8,7 +8,7 @@ package media
 import (
 	"github.com/lib/pq"
 	"github.com/rande/gonode/core"
-	"github.com/rande/gonode/test/mock"
+	"github.com/rande/gonode/modules/helper"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
@@ -131,7 +131,7 @@ func Test_YoutubeHandler_PostInsert(t *testing.T) {
 }
 
 func Test_YoutubeListener_NodeNotFound(t *testing.T) {
-	client := &mock.MockedHttpClient{}
+	client := &helper.MockedHttpClient{}
 
 	l := &YoutubeListener{
 		HttpClient: client,
@@ -161,10 +161,10 @@ func Test_YoutubeListener_Found(t *testing.T) {
 	node.Data.(*Youtube).Status = core.ProcessStatusUpdate
 	node.Data.(*Youtube).Vid = "MyVideoId"
 
-	client := &mock.MockedHttpClient{}
+	client := &helper.MockedHttpClient{}
 	client.
 		On("Get", "https://www.youtube.com/oembed?url=http://www.youtube.com/watch?v=MyVideoId&format=json").
-		Return(&http.Response{Body: mock.NewTestCloserReader(`{
+		Return(&http.Response{Body: helper.NewTestCloserReader(`{
 "provider_url": "http://www.youtube.com/",
 "thumbnail_height": 360,
 "thumbnail_url": "http://i.ytimg.com/vi/k72S8XYqi0c/hqdefault.jpg",

@@ -7,7 +7,7 @@ package search
 
 import (
 	"github.com/gorilla/schema"
-	"github.com/rande/gonode/helper"
+	"github.com/rande/gonode/modules/helper"
 	"net/http"
 	"regexp"
 )

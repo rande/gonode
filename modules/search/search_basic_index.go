@@ -8,7 +8,7 @@ package search
 import (
 	"fmt"
 	"github.com/rande/gonode/core"
-	"github.com/rande/gonode/helper"
+	"github.com/rande/gonode/modules/helper"
 	"io"
 	"net/http"
 	"strconv"
