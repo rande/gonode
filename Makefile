@@ -16,6 +16,7 @@ clean:
 	rm -rf explorer/dist/*
 
 install-backend:
+	go get -u github.com/jteeuwen/go-bindata/...
 	go list -f '{{range .Imports}}{{.}} {{end}}' ./... | xargs go get -v
 	go list -f '{{range .TestImports}}{{.}} {{end}}' ./... | xargs go get -v
 	go build -v ./...
@@ -50,7 +51,7 @@ format:
 	gofmt -l -w -s .
 	go fix ./...
 
-test-backend:
+test-backend: bin
 	go test $(GONODE_PLUGINS) ./test/api ./test/plugins ./core ./core/config ./commands/server
 	go vet ./...
 
