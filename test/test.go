@@ -14,7 +14,11 @@ import (
 	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/plugins/api"
+	"github.com/rande/gonode/plugins/bindata"
 	"github.com/rande/gonode/plugins/guard"
+	"github.com/rande/gonode/plugins/node"
+	"github.com/rande/gonode/plugins/prism"
+	"github.com/rande/gonode/plugins/router"
 	"github.com/rande/gonode/plugins/search"
 	"github.com/rande/gonode/plugins/security"
 	"github.com/rande/gonode/plugins/setup"
@@ -75,6 +79,10 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 	api.ConfigureServer(l, conf)
 	setup.ConfigureServer(l, conf)
 	guard.ConfigureServer(l, conf)
+	prism.ConfigureServer(l, conf)
+	bindata.ConfigureServer(l, conf)
+	router.ConfigureServer(l, conf)
+	node.ConfigureServer(l, conf)
 
 	return l
 }
@@ -194,11 +202,11 @@ func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *go
 			}
 		}()
 
-		res, err = RunRequest("PUT", ts.URL+"/setup/uninstall", nil)
+		res, err = RunRequest("POST", ts.URL+"/setup/uninstall", nil)
 		core.PanicIf(res.StatusCode != http.StatusOK, fmt.Sprintf("Expected code 200, get %d\n%s", res.StatusCode, string(res.GetBody()[:])))
 		core.PanicOnError(err)
 
-		res, err = RunRequest("PUT", ts.URL+"/setup/install", nil)
+		res, err = RunRequest("POST", ts.URL+"/setup/install", nil)
 		core.PanicIf(res.StatusCode != http.StatusOK, fmt.Sprintf("Expected code 200, get %d\n%s", res.StatusCode, string(res.GetBody()[:])))
 		core.PanicOnError(err)
 

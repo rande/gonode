@@ -45,7 +45,7 @@ The user's ``Data` might look like:
         Locked      bool     `json:"locked"`
         Enabled     bool     `json:"enabled"`
         Expired     bool     `json:"expired"`
-        Username       string   `json:"username"`
+        Username    string   `json:"username"`
         Password    string   `json:"password"`
         NewPassword string   `json:"newpassword,omitempty"`
     }

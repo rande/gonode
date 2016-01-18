@@ -6,8 +6,12 @@
 package search
 
 import (
+	"fmt"
 	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/helper"
 	"io"
+	"net/http"
+	"strconv"
 )
 
 type IndexMeta struct {
@@ -15,26 +19,26 @@ type IndexMeta struct {
 }
 
 type Index struct {
-	Page       int64               `jsonjson:"page"`
-	PerPage    int64               `json:"per_page"`
-	OrderBy    []string            `json:"order_by"`
-	Uuid       string              `json:"uuid"`
-	Type       []string            `json:"type"`
-	Name       string              `json:"name"`
-	Slug       string              `json:"slug"`
-	Data       map[string][]string `json:"data"`
-	Meta       map[string][]string `json:"meta"`
-	Status     []string            `json:"status"`
-	Weight     []string            `json:"weight"`
-	Revision   string              `json:"revision"`
-	Enabled    string              `json:"enabled"`
-	Deleted    bool                `json:"deleted"`
-	Current    string              `json:"current"`
-	UpdatedBy  []string            `json:"updated_by"`
-	CreatedBy  []string            `json:"created_by"`
-	ParentUuid []string            `json:"parent_uuid"`
-	SetUuid    []string            `json:"set_uuid"`
-	Source     []string            `json:"source"`
+	Page       int64    `json:"page"`
+	PerPage    int64    `json:"per_page"`
+	OrderBy    []*Param `json:"order_by"`
+	Uuid       *Param   `json:"uuid"`
+	Type       *Param   `json:"type"`
+	Name       *Param   `json:"name"`
+	Slug       *Param   `json:"slug"`
+	Data       []*Param `json:"data"`
+	Meta       []*Param `json:"meta"`
+	Status     *Param   `json:"status"`
+	Weight     *Param   `json:"weight"`
+	Revision   *Param   `json:"revision"`
+	Enabled    *Param   `json:"enabled"`
+	Deleted    *Param   `json:"deleted"`
+	Current    *Param   `json:"current"`
+	UpdatedBy  *Param   `json:"updated_by"`
+	CreatedBy  *Param   `json:"created_by"`
+	ParentUuid *Param   `json:"parent_uuid"`
+	SetUuid    *Param   `json:"set_uuid"`
+	Source     *Param   `json:"source"`
 }
 
 type IndexHandler struct {
@@ -42,7 +46,7 @@ type IndexHandler struct {
 
 func (h *IndexHandler) GetStruct() (core.NodeData, core.NodeMeta) {
 	return &Index{
-		Deleted: false,
+		Deleted: NewParam(false, "="),
 	}, &IndexMeta{}
 }
 
@@ -76,4 +80,53 @@ func (h *IndexHandler) Load(data []byte, meta []byte, node *core.Node) error {
 
 func (h *IndexHandler) StoreStream(node *core.Node, r io.Reader) (int64, error) {
 	return core.DefaultHandlerStoreStream(node, r)
+}
+
+type IndexViewHandler struct {
+	Search    *SearchPGSQL
+	Manager   core.NodeManager
+	MaxResult uint64
+}
+
+func (v *IndexViewHandler) Execute(node *core.Node, request *core.ViewRequest, response *core.ViewResponse) error {
+	var err error
+
+	index := node.Data.(*Index)
+
+	// we just copy over node to create search form
+	search := NewSearchFormFromIndex(index)
+
+	if v := request.HttpRequest.URL.Query().Get("per_page"); len(v) > 0 {
+		if search.PerPage, err = strconv.ParseUint(v, 10, 32); err != nil {
+			return err
+		}
+	}
+
+	if v := request.HttpRequest.URL.Query().Get("page"); len(v) > 0 {
+		if search.Page, err = strconv.ParseUint(v, 10, 32); err != nil {
+			return err
+		}
+	}
+	// check page range
+	if uint64(search.PerPage) > v.MaxResult {
+		helper.SendWithHttpCode(response.HttpResponse, http.StatusPreconditionFailed, "Invalid `pagination` range")
+
+		return nil
+	}
+
+	if search.Page == 0 {
+		search.Page = uint64(1)
+	}
+
+	if search.PerPage == 0 {
+		search.PerPage = uint64(32)
+	}
+
+	pager := GetPager(search, v.Manager, v.Search)
+
+	response.
+		Set(200, fmt.Sprintf("nodes/%s.tpl", node.Type)).
+		Add("pager", pager)
+
+	return nil
 }

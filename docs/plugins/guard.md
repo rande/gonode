@@ -2,7 +2,6 @@ Guard
 =====
 
 Introduction
-------------
 
 Guard plugin handle request authentification. The plugins comes with a dedicated middleware and request authenticators.
 For now there is only 2 authenticators implemented:

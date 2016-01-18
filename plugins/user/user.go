@@ -15,7 +15,7 @@ import (
 
 var (
 	validPassword, _  = regexp.Compile("{([a-zA-Z0-9]*)}(.*)")
-	validPasswordAlgo = []string{"plain", "md5", "bcrypt"}
+	validPasswordAlgo = []string{"plain", "bcrypt"}
 )
 
 const (

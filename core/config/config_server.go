@@ -5,6 +5,10 @@
 
 package config
 
+import (
+	"os"
+)
+
 type ServerSearch struct {
 	MaxResult uint64 `toml:"max_result"`
 }
@@ -20,6 +24,18 @@ type ServerGuard struct {
 			Path string `toml:"path"`
 		} `toml:"token"`
 	} `toml:"jwt"`
+}
+
+type ServerBinDataAsset struct {
+	Index   string `toml:"index"`
+	Public  string `toml:"public"`
+	Private string `toml:"private"`
+}
+
+type ServerBinData struct {
+	BasePath  string                         `toml:"base_path"`
+	Assets    map[string]*ServerBinDataAsset `toml:"assets"`
+	Templates []string                       `toml:"templates"`
 }
 
 type ServerSecurity struct {
@@ -61,6 +77,7 @@ type ServerConfig struct {
 	Guard      *ServerGuard               `toml:"guard"`
 	Security   *ServerSecurity            `toml:"security"`
 	Search     *ServerSearch              `toml:"search"`
+	BinData    *ServerBinData             `toml:"bindata"`
 }
 
 func NewServerConfig() *ServerConfig {
@@ -70,6 +87,11 @@ func NewServerConfig() *ServerConfig {
 		Test:      false,
 		Search: &ServerSearch{
 			MaxResult: 128,
+		},
+		BinData: &ServerBinData{
+			BasePath: os.Getenv("GOPATH") + "/src",
+			Assets:   make(map[string]*ServerBinDataAsset, 0),
+			//			Templates: make([]string, 0),
 		},
 	}
 }
