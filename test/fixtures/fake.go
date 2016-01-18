@@ -3,6 +3,7 @@ package fixtures
 import (
 	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/plugins/blog"
+	"github.com/rande/gonode/plugins/feed"
 	"github.com/rande/gonode/plugins/media"
 	"github.com/rande/gonode/plugins/search"
 	"github.com/rande/gonode/plugins/user"
@@ -123,6 +124,24 @@ func LoadFixtures(m *core.PgNodeManager, max int) error {
 	archive.Meta = &search.IndexMeta{}
 
 	_, err = m.Save(archive, false)
+
+	core.PanicOnError(err)
+
+	// create feed archives
+	f := core.NewNode()
+	f.Type = "feed.index"
+	f.Name = "Feed Archive"
+	f.Slug = "feed"
+	f.Data = &feed.Feed{
+		Title:       "Archive blog",
+		Description: "This is a description.",
+		Index: &search.Index{
+			Type: search.NewParam([]string{"blog.post"}),
+		},
+	}
+	f.Meta = &search.IndexMeta{}
+
+	_, err = m.Save(f, false)
 
 	core.PanicOnError(err)
 

@@ -83,6 +83,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 				"blog.post":     &blog.PostHandler{},
 				"core.user":     &user.UserHandler{},
 				"core.index":    &search.IndexHandler{},
+				"feed.index":    &feed.FeedHandler{},
 			}
 		})
 
@@ -93,6 +94,10 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 					Search:    app.Get("gonode.search.pgsql").(*search.SearchPGSQL),
 					Manager:   app.Get("gonode.manager").(*core.PgNodeManager),
 					MaxResult: 128,
+				},
+				"feed.index": &feed.FeedViewHandler{
+					Search:  app.Get("gonode.search.pgsql").(*search.SearchPGSQL),
+					Manager: app.Get("gonode.manager").(*core.PgNodeManager),
 				},
 			}
 		})

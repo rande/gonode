@@ -33,6 +33,7 @@ templates = [
     "github.com/rande/gonode/plugins/blog/templates",
     "github.com/rande/gonode/plugins/prism/templates",
     "github.com/rande/gonode/plugins/search/templates",
+    "github.com/rande/gonode/plugins/feed/templates",
 ]
 
     [bindata.assets]

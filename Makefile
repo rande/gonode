@@ -51,7 +51,7 @@ format:
 	go fix ./...
 
 test-backend:
-	go test $(GONODE_PLUGINS) ./test/api ./core ./core/config ./commands/server
+	go test $(GONODE_PLUGINS) ./test/api ./test/plugins ./core ./core/config ./commands/server
 	go vet ./...
 
 test-frontend:

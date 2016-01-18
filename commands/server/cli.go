@@ -16,6 +16,7 @@ import (
 	"github.com/rande/gonode/plugins/api"
 	"github.com/rande/gonode/plugins/bindata"
 	"github.com/rande/gonode/plugins/guard"
+	"github.com/rande/gonode/plugins/node"
 	"github.com/rande/gonode/plugins/prism"
 	"github.com/rande/gonode/plugins/router"
 	"github.com/rande/gonode/plugins/search"
@@ -69,6 +70,7 @@ func (c *ServerCommand) Run(args []string) int {
 	guard.ConfigureServer(l, conf)
 	prism.ConfigureServer(l, conf)
 	router.ConfigureServer(l, conf)
+	node.ConfigureServer(l, conf)
 
 	// must be last for now
 	bindata.ConfigureServer(l, conf)

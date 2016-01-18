@@ -46,6 +46,8 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 			response.Add("request_context", nil)
 		}
 
+		response.Add("request", req)
+
 		if node != nil {
 			response.Add("node", node)
 
@@ -73,8 +75,11 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 		data, err := tpl.ExecuteBytes(response.Context)
 
 		if err != nil {
+			res.Header().Set("Content-Type", "text/html; charset=UTF-8")
 			res.WriteHeader(500)
 			res.Write([]byte("<html><head><title>Internal Server Error</title></head><body><h1>Internal Server Error</h1><p>Sorry, an unexpected error occurs on the server...</p></body></html>"))
+
+			panic(err)
 		} else {
 			res.WriteHeader(response.StatusCode)
 			res.Write(data)

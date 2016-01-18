@@ -8,6 +8,7 @@ package blog
 import (
 	"github.com/rande/gonode/core"
 	"io"
+	"time"
 )
 
 type PostMeta struct {
@@ -15,17 +16,20 @@ type PostMeta struct {
 }
 
 type Post struct {
-	Title    string   `json:"title"`
-	SubTitle string   `json:"sub_title"`
-	Content  string   `json:"content"`
-	Tags     []string `json:"tags"`
+	Title           string    `json:"title"`
+	SubTitle        string    `json:"sub_title"`
+	Content         string    `json:"content"`
+	PublicationDate time.Time `json:"publication_date"`
+	Tags            []string  `json:"tags"`
 }
 
 type PostHandler struct {
 }
 
 func (h *PostHandler) GetStruct() (core.NodeData, core.NodeMeta) {
-	return &Post{}, &PostMeta{}
+	return &Post{
+		PublicationDate: time.Now(),
+	}, &PostMeta{}
 }
 
 func (h *PostHandler) PreInsert(node *core.Node, m core.NodeManager) error {
