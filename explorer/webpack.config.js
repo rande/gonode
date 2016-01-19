@@ -134,7 +134,7 @@ var config = {
             loader: "json"
         }]
     },
-    modules: [
+    plugins: [
         // this plugin will append on generated file the provided string, this can be useful
         // for copyright holder
         new webpack.BannerPlugin("This code is part of the GONODE project", {
@@ -177,12 +177,12 @@ if ('development' === process.env.NODE_ENV) {
     // define how assets will be available, the eval value is useful with the
     // HotModuleReplacementPlugin to reload code on change
     config.devtool = 'eval';
-    config.modules.push(new webpack.HotModuleReplacementPlugin());
+    config.plugins.push(new webpack.HotModuleReplacementPlugin());
 }
 
 if ('production' === process.env.NODE_ENV) {
     // reduce the final size of javascript files
-    config.modules.push(new webpack.optimize.UglifyJsPlugin({
+    config.plugins.push(new webpack.optimize.UglifyJsPlugin({
         compress: {
 //            warning: false
         },
