@@ -11,10 +11,10 @@ import (
 	"github.com/rande/goapp"
 
 	"github.com/rande/gonode/commands/server"
-	"github.com/rande/gonode/plugins/api"
+	"github.com/rande/gonode/modules/api"
 
 	"fmt"
-	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/modules/config"
 )
 
 type DevListServicesCommand struct {

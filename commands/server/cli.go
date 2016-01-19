@@ -12,16 +12,16 @@ import (
 
 	"net/http"
 
-	"github.com/rande/gonode/core/config"
-	"github.com/rande/gonode/plugins/api"
-	"github.com/rande/gonode/plugins/bindata"
-	"github.com/rande/gonode/plugins/guard"
-	"github.com/rande/gonode/plugins/node"
-	"github.com/rande/gonode/plugins/prism"
-	"github.com/rande/gonode/plugins/router"
-	"github.com/rande/gonode/plugins/search"
-	"github.com/rande/gonode/plugins/security"
-	"github.com/rande/gonode/plugins/setup"
+	"github.com/rande/gonode/modules/api"
+	"github.com/rande/gonode/modules/bindata"
+	"github.com/rande/gonode/modules/config"
+	"github.com/rande/gonode/modules/guard"
+	"github.com/rande/gonode/modules/node"
+	"github.com/rande/gonode/modules/prism"
+	"github.com/rande/gonode/modules/router"
+	"github.com/rande/gonode/modules/search"
+	"github.com/rande/gonode/modules/security"
+	"github.com/rande/gonode/modules/setup"
 	"github.com/zenazn/goji/bind"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
@@ -62,7 +62,7 @@ func (c *ServerCommand) Run(args []string) int {
 
 	ConfigureServer(l, conf)
 
-	// add plugins
+	// add modules
 	setup.ConfigureServer(l, conf)
 	security.ConfigureServer(l, conf)
 	search.ConfigureServer(l, conf)

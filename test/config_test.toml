@@ -29,11 +29,11 @@ key = "ZeSecretKey0oo"
 
 [bindata]
 templates = [
-    "github.com/rande/gonode/plugins/setup/templates",
-    "github.com/rande/gonode/plugins/blog/templates",
-    "github.com/rande/gonode/plugins/prism/templates",
-    "github.com/rande/gonode/plugins/search/templates",
-    "github.com/rande/gonode/plugins/feed/templates",
+    "github.com/rande/gonode/modules/setup/templates",
+    "github.com/rande/gonode/modules/blog/templates",
+    "github.com/rande/gonode/modules/prism/templates",
+    "github.com/rande/gonode/modules/search/templates",
+    "github.com/rande/gonode/modules/feed/templates",
 ]
     [bindata.assets]
         [bindata.assets.explorer]

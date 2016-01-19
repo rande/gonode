@@ -35,7 +35,7 @@ type SelectOptions struct {
 func NewSelectOptions() *SelectOptions {
 	return &SelectOptions{
 		TableSuffix:  "nodes",
-		SelectClause: "id, uuid, type, name, revision, version, created_at, updated_at, set_uuid, parent_uuid, parents, slug, created_by, updated_by, data, meta, plugins, deleted, enabled, source, status, weight",
+		SelectClause: "id, uuid, type, name, revision, version, created_at, updated_at, set_uuid, parent_uuid, parents, slug, created_by, updated_by, data, meta, modules, deleted, enabled, source, status, weight",
 	}
 }
 
@@ -76,9 +76,6 @@ func (m *PgNodeManager) FindBy(query sq.SelectBuilder, offset uint64, limit uint
 		PanicOnError(err)
 	}
 
-	rawSql, _, _ := query.ToSql()
-	m.Logger.Printf("[PgNode] Error while runing the request: `%s`, %s ", rawSql, err)
-
 	for rows.Next() {
 		node := m.hydrate(rows)
 
@@ -107,7 +104,7 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 
 	data := json.RawMessage{}
 	meta := json.RawMessage{}
-	plugins := json.RawMessage{}
+	modules := json.RawMessage{}
 
 	Uuid := ""
 	SetUuid := ""
@@ -135,7 +132,7 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 		&UpdatedBy,
 		&data,
 		&meta,
-		&plugins,
+		&modules,
 		&node.Deleted,
 		&node.Enabled,
 		&Source,
@@ -172,7 +169,7 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 
 	m.Handlers.Get(node).Load(data, meta, node)
 
-	err = json.Unmarshal(plugins, &node.Plugins)
+	err = json.Unmarshal(modules, &node.Modules)
 	PanicOnError(err)
 
 	return node
@@ -246,7 +243,7 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 	query := sq.Insert(table).
 		Columns(
 		"uuid", "type", "revision", "version", "name", "created_at", "updated_at", "set_uuid",
-		"parent_uuid", "parents", "slug", "created_by", "updated_by", "data", "meta", "plugins",
+		"parent_uuid", "parents", "slug", "created_by", "updated_by", "data", "meta", "modules",
 		"deleted", "enabled", "source", "status", "weight").
 		Values(
 		node.Uuid.CleanString(),
@@ -264,7 +261,7 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 		node.UpdatedBy.CleanString(),
 		string(InterfaceToJsonMessage(node.Type, node.Data)[:]),
 		string(InterfaceToJsonMessage(node.Type, node.Meta)[:]),
-		string(InterfaceToJsonMessage(node.Type, node.Plugins)[:]),
+		string(InterfaceToJsonMessage(node.Type, node.Modules)[:]),
 		node.Deleted,
 		node.Enabled,
 		node.Source.CleanString(),
@@ -357,7 +354,7 @@ func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 		Set("enabled", node.Enabled).
 		Set("data", string(InterfaceToJsonMessage(node.Type, node.Data)[:])).
 		Set("meta", string(InterfaceToJsonMessage(node.Type, node.Meta)[:])).
-		Set("plugins", string(InterfaceToJsonMessage(node.Type, node.Plugins)[:])).
+		Set("modules", string(InterfaceToJsonMessage(node.Type, node.Modules)[:])).
 		Set("source", node.Source.CleanString()).
 		Set("status", node.Status).
 		Set("weight", node.Weight).
@@ -438,10 +435,13 @@ func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 		// 3. Update the revision number
 		node.Revision++
 		node.CreatedAt = saved.CreatedAt
-		node.UpdatedAt = saved.UpdatedAt
 
 		m.Logger.Printf("[PgNode] Increment revision - uuid: %s, id: %d, type: %s, revision: %d", node.Uuid, node.Id, node.Type, node.Revision)
 	}
+
+	updatedAt := time.Now()
+
+	node.UpdatedAt = updatedAt
 
 	node, err = m.updateNode(node, m.Prefix+"_nodes")
 	PanicOnError(err)
@@ -449,10 +449,13 @@ func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 	handler.PostUpdate(node, m)
 
 	if revision {
+		node.UpdatedAt = saved.UpdatedAt
 		id := node.Id
 		_, err = m.insertNode(node, m.Prefix+"_nodes_audit")
 
 		node.Id = id
+		node.UpdatedAt = updatedAt
+
 		PanicOnError(err)
 	}
 

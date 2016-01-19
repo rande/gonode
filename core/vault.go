@@ -1,7 +1,7 @@
 package core
 
 import (
-	"github.com/rande/gonode/plugins/vault"
+	"github.com/rande/gonode/modules/vault"
 )
 
 func GetVaultMetadata(node *Node) (meta vault.VaultMetadata) {

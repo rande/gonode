@@ -2,11 +2,11 @@ package fixtures
 
 import (
 	"github.com/rande/gonode/core"
-	"github.com/rande/gonode/plugins/blog"
-	"github.com/rande/gonode/plugins/feed"
-	"github.com/rande/gonode/plugins/media"
-	"github.com/rande/gonode/plugins/search"
-	"github.com/rande/gonode/plugins/user"
+	"github.com/rande/gonode/modules/blog"
+	"github.com/rande/gonode/modules/feed"
+	"github.com/rande/gonode/modules/media"
+	"github.com/rande/gonode/modules/search"
+	"github.com/rande/gonode/modules/user"
 	"strconv"
 )
 

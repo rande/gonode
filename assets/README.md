@@ -9,7 +9,7 @@ The assets can contains any template files or front files (js, css, images, ...)
 
 Please note, the ``go-bindata`` must be run from ``GOPATH`` folder, so the assets references will be unique accross different projects.
  
-    github.com/rande/gonode/plugins/setup/templates/core.setup.base.html.tpl
+    github.com/rande/gonode/modules/setup/templates/core.setup.base.html.tpl
     github.com/rande/gonode/explorer/dist/css/app-0-f3673f84.css
     github.com/rande/gonode/explorer/dist/d317f3fe02c697f8b2d3c4c3e940ea7f.gif
     github.com/rande/gonode/explorer/dist/fonts/arrow-left-icon-5fc0d629.svg
@@ -19,7 +19,7 @@ The ``Makefile`` lines to generate the file will be:
 
     ```Makefile
     GO_PATH = $(shell go env GOPATH)
-    GO_BINDATA_PATHS = $(GO_PATH)/src/github.com/rande/gonode/plugins/... $(GO_PATH)/src/github.com/rande/gonode/explorer/dist/...
+    GO_BINDATA_PATHS = $(GO_PATH)/src/github.com/rande/gonode/modules/... $(GO_PATH)/src/github.com/rande/gonode/explorer/dist/...
     GO_BINDATA_IGNORE = "(.*)\.(go|DS_Store)"
     GO_BINDATA_OUTPUT = $(GO_PATH)/src/github.com/rande/gonode/assets/bindata.go
     GO_BINDATA_PACKAGE = assets
