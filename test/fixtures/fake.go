@@ -5,6 +5,7 @@ import (
 	"github.com/rande/gonode/modules/blog"
 	"github.com/rande/gonode/modules/feed"
 	"github.com/rande/gonode/modules/media"
+	"github.com/rande/gonode/modules/raw"
 	"github.com/rande/gonode/modules/search"
 	"github.com/rande/gonode/modules/user"
 	"strconv"
@@ -142,6 +143,22 @@ func LoadFixtures(m *core.PgNodeManager, max int) error {
 	f.Meta = &search.IndexMeta{}
 
 	_, err = m.Save(f, false)
+
+	core.PanicOnError(err)
+
+	// create human.txt
+	h := core.NewNode()
+	h.Type = "core.raw"
+	h.Name = "human.txt"
+	h.Slug = "human.txt"
+	h.Data = &raw.Raw{
+		Name:        "human.txt",
+		Content:     []byte("The human file"),
+		ContentType: "text/plain",
+	}
+	h.Meta = &raw.RawMeta{}
+
+	_, err = m.Save(h, false)
 
 	core.PanicOnError(err)
 
