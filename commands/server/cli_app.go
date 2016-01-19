@@ -17,6 +17,7 @@ import (
 	"github.com/rande/gonode/modules/debug"
 	"github.com/rande/gonode/modules/feed"
 	"github.com/rande/gonode/modules/media"
+	"github.com/rande/gonode/modules/raw"
 	"github.com/rande/gonode/modules/search"
 	"github.com/rande/gonode/modules/user"
 	"github.com/rande/gonode/modules/vault"
@@ -84,6 +85,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 				"core.user":     &user.UserHandler{},
 				"core.index":    &search.IndexHandler{},
 				"feed.index":    &feed.FeedHandler{},
+				"core.raw":      &raw.RawHandler{},
 			}
 		})
 
@@ -99,6 +101,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 					Search:  app.Get("gonode.search.pgsql").(*search.SearchPGSQL),
 					Manager: app.Get("gonode.manager").(*core.PgNodeManager),
 				},
+				"core.raw": &raw.RawViewHandler{},
 			}
 		})
 
