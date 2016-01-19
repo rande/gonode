@@ -435,10 +435,13 @@ func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 		// 3. Update the revision number
 		node.Revision++
 		node.CreatedAt = saved.CreatedAt
-		node.UpdatedAt = saved.UpdatedAt
 
 		m.Logger.Printf("[PgNode] Increment revision - uuid: %s, id: %d, type: %s, revision: %d", node.Uuid, node.Id, node.Type, node.Revision)
 	}
+
+	updatedAt := time.Now()
+
+	node.UpdatedAt = updatedAt
 
 	node, err = m.updateNode(node, m.Prefix+"_nodes")
 	PanicOnError(err)
@@ -446,10 +449,13 @@ func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 	handler.PostUpdate(node, m)
 
 	if revision {
+		node.UpdatedAt = saved.UpdatedAt
 		id := node.Id
 		_, err = m.insertNode(node, m.Prefix+"_nodes_audit")
 
 		node.Id = id
+		node.UpdatedAt = updatedAt
+
 		PanicOnError(err)
 	}
 
