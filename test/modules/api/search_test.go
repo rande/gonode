@@ -40,7 +40,7 @@ func Test_Search_Basic(t *testing.T) {
 		test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 			// WITH
 			auth := test.GetAuthHeader(t, ts)
-			file, _ := os.Open("../fixtures/new_user.json")
+			file, _ := os.Open("../../fixtures/new_user.json")
 			test.RunRequest("POST", ts.URL+"/nodes", file, auth)
 
 			// WHEN
@@ -67,7 +67,7 @@ func Test_Search_NoResult(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		// WITH
 		auth := test.GetAuthHeader(t, ts)
-		file, _ := os.Open("../fixtures/new_user.json")
+		file, _ := os.Open("../../fixtures/new_user.json")
 		test.RunRequest("POST", ts.URL+"/nodes", file)
 
 		// WHEN
@@ -94,7 +94,7 @@ func Test_Search_Invalid_Pagination(t *testing.T) {
 		test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 			// WITH
 			auth := test.GetAuthHeader(t, ts)
-			file, _ := os.Open("../fixtures/new_user.json")
+			file, _ := os.Open("../../fixtures/new_user.json")
 			test.RunRequest("POST", ts.URL+"/nodes", file, auth)
 
 			// WHEN

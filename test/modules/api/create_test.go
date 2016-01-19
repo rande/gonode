@@ -23,7 +23,7 @@ func Test_Create_User(t *testing.T) {
 		auth := test.GetAuthHeader(t, ts)
 
 		// WITH
-		file, _ := os.Open("../fixtures/new_user.json")
+		file, _ := os.Open("../../fixtures/new_user.json")
 		res, _ := test.RunRequest("POST", ts.URL+"/nodes", file, auth)
 
 		assert.Equal(t, 201, res.StatusCode)
@@ -48,7 +48,7 @@ func Test_Create_Media_With_Binary_Upload(t *testing.T) {
 		auth := test.GetAuthHeader(t, ts)
 
 		// WITH
-		file, _ := os.Open("../fixtures/new_image.json")
+		file, _ := os.Open("../../fixtures/new_image.json")
 		res, _ := test.RunRequest("POST", ts.URL+"/nodes", file, auth)
 
 		assert.Equal(t, 201, res.StatusCode)
