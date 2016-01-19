@@ -12,7 +12,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core"
-	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/modules/config"
 	"github.com/rande/gonode/modules/user"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"

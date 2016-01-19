@@ -7,7 +7,7 @@ package security
 
 import (
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/modules/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/zenazn/goji/web"
 	"net/http"

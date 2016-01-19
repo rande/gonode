@@ -15,7 +15,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core"
-	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/modules/config"
 	"github.com/rande/gonode/modules/helper"
 	"github.com/rande/gonode/modules/search"
 	"github.com/rande/gonode/modules/user"

@@ -53,7 +53,7 @@ format:
 	go fix ./...
 
 test-backend: bin
-	go test $(GONODE_MODULES) $(GONODE_FUNC_TESTS) ./core ./core/config ./commands/server
+	go test $(GONODE_MODULES) $(GONODE_FUNC_TESTS) ./core ./commands/server
 	go vet ./...
 
 test-frontend:

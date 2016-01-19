@@ -7,7 +7,7 @@ package search
 
 import (
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/modules/config"
 )
 
 func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {

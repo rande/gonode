@@ -7,7 +7,7 @@ package security
 
 import (
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/modules/config"
 	"github.com/rs/cors"
 	"github.com/zenazn/goji/web"
 	"log"

@@ -8,7 +8,7 @@ package guard
 import (
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core"
-	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/modules/config"
 	"github.com/zenazn/goji/web"
 	"regexp"
 )

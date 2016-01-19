@@ -12,9 +12,9 @@ import (
 
 	"net/http"
 
-	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/modules/api"
 	"github.com/rande/gonode/modules/bindata"
+	"github.com/rande/gonode/modules/config"
 	"github.com/rande/gonode/modules/guard"
 	"github.com/rande/gonode/modules/node"
 	"github.com/rande/gonode/modules/prism"
