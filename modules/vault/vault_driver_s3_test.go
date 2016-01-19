@@ -55,7 +55,7 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 
 	_, err = chainProvider.Get()
 
-	if err == credentials.ErrNoValidProvidersFoundInChain {
+	if err != nil {
 		t.Skip("Unable to find credentials")
 	}
 

@@ -65,7 +65,7 @@ func getVaultS3(algo string, key []byte) *Vault {
 
 	_, err := creds.Get()
 
-	if err == credentials.ErrNoValidProvidersFoundInChain {
+	if err != nil {
 		return nil
 	}
 
