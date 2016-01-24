@@ -102,6 +102,11 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 					Manager: app.Get("gonode.manager").(*core.PgNodeManager),
 				},
 				"core.raw": &raw.RawViewHandler{},
+				"media.image": &media.MediaViewHandler{
+					Vault:         app.Get("gonode.vault.fs").(*vault.Vault),
+					MaxWidth:      conf.Media.Image.MaxWidth,
+					AllowedWidths: conf.Media.Image.AllowedWidths,
+				},
 			}
 		})
 
