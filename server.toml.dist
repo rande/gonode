@@ -42,3 +42,8 @@ templates = [
         index = "index.html"
         public = ""
         private = "github.com/rande/gonode/explorer/dist"
+
+[media]
+    [media.image]
+    allowed_widths = [100, 250, 500, 1024]
+    max_width = 1024

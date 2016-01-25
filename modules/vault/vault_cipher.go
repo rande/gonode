@@ -34,7 +34,7 @@ func GetCipher(mode string) (Encrypter, Decrypter) {
 		return NoopEncrypter, NoopDecrypter
 
 	default:
-		panic("Unable to find the cipher")
+		panic("Unable to find the cipher: " + mode)
 	}
 }
 

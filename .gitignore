@@ -4,3 +4,4 @@ explorer/dist
 .idea
 dist/*
 assets/bindata.go
+.DS_Store

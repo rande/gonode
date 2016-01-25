@@ -50,6 +50,15 @@ type ServerSecurity struct {
 	} `toml:"cors"`
 }
 
+type ServerMediaImage struct {
+	AllowedWidths []uint `toml:"allowed_widths"`
+	MaxWidth      uint   `toml:"max_width"`
+}
+
+type ServerMedia struct {
+	Image *ServerMediaImage `toml:"image"`
+}
+
 type ServerDatabase struct {
 	Name    string `toml:"name"`
 	DSN     string `toml:"dsn"`
@@ -78,6 +87,7 @@ type ServerConfig struct {
 	Security   *ServerSecurity            `toml:"security"`
 	Search     *ServerSearch              `toml:"search"`
 	BinData    *ServerBinData             `toml:"bindata"`
+	Media      *ServerMedia               `toml:"media"`
 }
 
 func NewServerConfig() *ServerConfig {
@@ -92,6 +102,12 @@ func NewServerConfig() *ServerConfig {
 			BasePath: os.Getenv("GOPATH") + "/src",
 			Assets:   make(map[string]*ServerBinDataAsset, 0),
 			//			Templates: make([]string, 0),
+		},
+		Media: &ServerMedia{
+			Image: &ServerMediaImage{
+				MaxWidth: uint(1024),
+				//				AllowedWidths: make([]uint, 0),
+			},
 		},
 	}
 }

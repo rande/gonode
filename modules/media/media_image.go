@@ -9,8 +9,10 @@ import (
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/modules/helper"
 	"github.com/rande/gonode/modules/vault"
 	"io"
+	"net/http"
 )
 
 type ExifMeta map[string]string
@@ -165,13 +167,18 @@ func (l *ImageDownloadListener) Handle(notification *pq.Notification, m core.Nod
 
 	vaultmeta := core.GetVaultMetadata(node)
 
-	_, err = l.Vault.Put(node.UniqueId(), vaultmeta, resp.Body)
+	r := &helper.PartialReader{
+		Reader: resp.Body,
+		Size:   500,
+	}
+
+	_, err = l.Vault.Put(node.UniqueId(), vaultmeta, r)
 
 	if err != nil {
 		return core.PubSubListenContinue, err
 	}
 
-	meta.ContentType = "application/octet-stream"
+	meta.ContentType = http.DetectContentType(r.Data)
 	meta.SourceStatus = core.ProcessStatusDone
 
 	m.Save(node, false)

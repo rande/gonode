@@ -21,7 +21,9 @@ func GetFakeMediaNode(pos int) *core.Node {
 		Name:      "Go pic",
 		Reference: "0x0",
 	}
-	node.Meta = &media.ImageMeta{}
+	node.Meta = &media.ImageMeta{
+		SourceStatus: core.ProcessStatusInit,
+	}
 
 	return node
 }
@@ -159,6 +161,26 @@ func LoadFixtures(m *core.PgNodeManager, max int) error {
 	h.Meta = &raw.RawMeta{}
 
 	_, err = m.Save(h, false)
+
+	core.PanicOnError(err)
+
+	// create real image
+	image := core.NewNode()
+
+	image.Type = "media.image"
+	image.Name = "The image for resize"
+	image.Slug = "the-image-for-resize"
+	image.Data = &media.Image{
+		Name:      "Resize.jpg",
+		Reference: "0x0",
+		// from: https://github.com/nfnt/resize
+		SourceUrl: "https://camo.githubusercontent.com/ef6fdc21c7c8e17354524f0982cdb52885335191/687474703a2f2f6e666e742e6769746875622e636f6d2f696d672f494d475f333639345f3732302e6a7067",
+	}
+	image.Meta = &media.ImageMeta{
+		SourceStatus: core.ProcessStatusInit,
+	}
+
+	_, err = m.Save(image, false)
 
 	core.PanicOnError(err)
 
