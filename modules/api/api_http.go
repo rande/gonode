@@ -8,7 +8,7 @@ package api
 import (
 	"bufio"
 	"container/list"
-	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/schema"
 	"github.com/gorilla/websocket"
@@ -23,7 +23,6 @@ import (
 	"github.com/zenazn/goji/web"
 	"golang.org/x/crypto/bcrypt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"time"
 )
@@ -51,16 +50,22 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 		sub := app.Get("gonode.postgres.subscriber").(*core.Subscriber)
 		sub.ListenMessage(conf.Databases["master"].Prefix+"_manager_action", func(notification *pq.Notification) (int, error) {
 			logger := app.Get("logger").(*log.Logger)
-			logger.Printf("WebSocket: Sending message \n")
+			logger.WithFields(log.Fields{
+				"module":  "api.websocket",
+				"payload": notification.Extra,
+			}).Debug("Sending message")
+
 			webSocketList := app.Get("gonode.websocket.clients").(*list.List)
 
 			for e := webSocketList.Front(); e != nil; e = e.Next() {
 				if err := e.Value.(*websocket.Conn).WriteMessage(websocket.TextMessage, []byte(notification.Extra)); err != nil {
-					logger.Printf("Error writing to websocket")
+					logger.Warn("Error writing to websocket")
 				}
 			}
 
-			logger.Printf("WebSocket: End Sending message \n")
+			logger.WithFields(log.Fields{
+				"module": "api.websocket",
+			}).Debug("WebSocket: End Sending message")
 
 			return core.PubSubListenContinue, nil
 		})
@@ -69,7 +74,10 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 			logger := app.Get("logger").(*log.Logger)
 			webSocketList := app.Get("gonode.websocket.clients").(*list.List)
 
-			logger.Printf("Closing websocket connections \n")
+			logger.WithFields(log.Fields{
+				"module": "api.websocket",
+			}).Info("Closing websocket connections")
+
 			for e := webSocketList.Front(); e != nil; e = e.Next() {
 				e.Value.(*websocket.Conn).Close()
 			}
@@ -80,7 +88,11 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 		logger := app.Get("logger").(*log.Logger)
-		logger.Printf("Starting PostgreSQL subcriber \n")
+
+		logger.WithFields(log.Fields{
+			"module": "api.websocket",
+		}).Info("Starting PostgreSQL subcriber")
+
 		app.Get("gonode.postgres.subscriber").(*core.Subscriber).Register()
 
 		return nil
@@ -88,9 +100,15 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 	l.Exit(func(app *goapp.App) error {
 		logger := app.Get("logger").(*log.Logger)
-		logger.Printf("Closing PostgreSQL subcriber \n")
+		logger.WithFields(log.Fields{
+			"module": "api.websocket",
+		}).Info("Closing PostgreSQL subcriber")
+
 		app.Get("gonode.postgres.subscriber").(*core.Subscriber).Stop()
-		logger.Printf("End closing PostgreSQL subcriber \n")
+
+		logger.WithFields(log.Fields{
+			"module": "api.websocket",
+		}).Info("End closing PostgreSQL subcriber")
 
 		return nil
 	})
@@ -133,8 +151,6 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 				data := node.Data.(*user.User)
 				password = []byte(data.Password)
 			}
-
-			fmt.Printf("%s => %s", password, loginForm.Password)
 
 			if err := bcrypt.CompareHashAndPassword([]byte(password), []byte(loginForm.Password)); err == nil { // equal
 				token := jwt.New(jwt.SigningMethodHS256)

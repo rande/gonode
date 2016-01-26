@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/commands/server"
 	"github.com/rande/gonode/core"
@@ -28,7 +29,6 @@ import (
 	"github.com/zenazn/goji/web/middleware"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -58,7 +58,12 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 	l.Register(func(app *goapp.App) error {
 		// configure main services
 		app.Set("logger", func(app *goapp.App) interface{} {
-			return log.New(os.Stdout, "", log.Lshortfile)
+
+			logger := log.New()
+			logger.Out = os.Stderr
+			logger.Level = log.DebugLevel
+
+			return logger
 		})
 
 		app.Set("goji.mux", func(app *goapp.App) interface{} {

@@ -11,10 +11,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	sq "github.com/lann/squirrel"
 	_ "github.com/lib/pq"
 	"github.com/twinj/uuid"
-	"log"
 	"strings"
 	"time"
 )
@@ -70,7 +70,12 @@ func (m *PgNodeManager) FindBy(query sq.SelectBuilder, offset uint64, limit uint
 	if err != nil {
 		if m.Logger != nil {
 			rawSql, _, _ := query.ToSql()
-			m.Logger.Printf("[PgNode] Error while runing the request: `%s`, %s ", rawSql, err)
+
+			m.Logger.WithFields(log.Fields{
+				"module": "core.manager",
+				"err":    err,
+				"query":  rawSql,
+			}).Warn("error while running the query")
 		}
 
 		PanicOnError(err)
@@ -203,7 +208,13 @@ func (m *PgNodeManager) Remove(query sq.SelectBuilder) error {
 				Date:     node.UpdatedAt,
 			})
 
-			m.Logger.Printf("[PgNode] Soft Delete: Uuid:%+v - type: %s", node.Uuid, node.Type)
+			if m.Logger != nil {
+				m.Logger.WithFields(log.Fields{
+					"type":   node.Type,
+					"uuid":   node.Uuid,
+					"module": "core.manager",
+				}).Warn("soft delete many")
+			}
 		}
 	}
 }
@@ -212,7 +223,13 @@ func (m *PgNodeManager) RemoveOne(node *Node) (*Node, error) {
 	node.UpdatedAt = time.Now()
 	node.Deleted = true
 
-	m.Logger.Printf("[PgNode] Soft Delete: Uuid:%+v - type: %s", node.Uuid, node.Type)
+	if m.Logger != nil {
+		m.Logger.WithFields(log.Fields{
+			"type":   node.Type,
+			"uuid":   node.Uuid,
+			"module": "core.manager",
+		}).Warn("soft delete one")
+	}
 
 	m.sendNotification(m.Prefix+"_manager_action", &ModelEvent{
 		Type:     node.Type,
@@ -376,8 +393,19 @@ func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 }
 
 func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
+
+	var contextLogger *log.Entry
+
 	if m.Logger != nil {
-		m.Logger.Printf("[PgNode] Saving uuid: %s, id: %d, type: %s, revision: %d", node.Uuid, node.Id, node.Type, node.Revision)
+		contextLogger = m.Logger.WithFields(log.Fields{
+			"uuid":     node.Uuid,
+			"id":       node.Id,
+			"type":     node.Type,
+			"revision": node.Revision,
+			"module":   "core.manager",
+		})
+
+		contextLogger.Debug("saving node")
 	}
 
 	PanicIf(m.ReadOnly, "The manager is readonly, cannot alter the datastore")
@@ -397,8 +425,8 @@ func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 		node, err = m.insertNode(node, m.Prefix+"_nodes")
 		PanicOnError(err)
 
-		if m.Logger != nil {
-			m.Logger.Printf("[PgNode] Creating node uuid: %s, id: %d, type: %s, revision: %d", node.Uuid, node.Id, node.Type, node.Revision)
+		if contextLogger != nil {
+			contextLogger.Debug("creating node")
 		}
 
 		handler.PostInsert(node, m)
@@ -422,13 +450,15 @@ func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 	saved := m.FindOneBy(m.SelectBuilder(NewSelectOptions()).Where(sq.Eq{"uuid": node.Uuid.String()}))
 
 	if saved != nil && node.Revision != saved.Revision {
-		m.Logger.Printf("[PgNode] Invalid revision for node: %s, saved rev: %d, current rev: %d", node.Uuid, saved.Revision, node.Revision)
+		if contextLogger != nil {
+			contextLogger.Info("invalid revision for node")
+		}
 
 		return node, NewRevisionError(fmt.Sprintf("Invalid revision for node: %s, saved rev: %d, current rev: %d", node.Uuid, saved.Revision, node.Revision))
 	}
 
-	if m.Logger != nil {
-		m.Logger.Printf("[PgNode] Updating uuid: %s, id: %d, type: %s, revision: %d", node.Uuid, node.Id, node.Type, node.Revision)
+	if contextLogger != nil {
+		contextLogger.Debug("updating node")
 	}
 
 	if revision {
@@ -436,7 +466,9 @@ func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 		node.Revision++
 		node.CreatedAt = saved.CreatedAt
 
-		m.Logger.Printf("[PgNode] Increment revision - uuid: %s, id: %d, type: %s, revision: %d", node.Uuid, node.Id, node.Type, node.Revision)
+		if contextLogger != nil {
+			contextLogger.Debug("increment revision")
+		}
 	}
 
 	updatedAt := time.Now()

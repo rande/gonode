@@ -6,12 +6,12 @@
 package bindata
 
 import (
+	log "github.com/Sirupsen/logrus"
 	"github.com/flosch/pongo2"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/assets"
 	"github.com/rande/gonode/modules/config"
 	"github.com/zenazn/goji/web"
-	"log"
 )
 
 func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {

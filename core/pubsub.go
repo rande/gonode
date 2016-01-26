@@ -8,8 +8,8 @@ package core
 import (
 	"container/list"
 	"encoding/json"
+	log "github.com/Sirupsen/logrus"
 	pq "github.com/lib/pq"
-	"log"
 	"time"
 )
 
@@ -70,7 +70,9 @@ type Subscriber struct {
 }
 
 func (s *Subscriber) Stop() {
-	s.logger.Printf("Sending a stop to channel subscriber\n")
+	s.logger.WithFields(log.Fields{
+		"module": "core.pubsub",
+	}).Info("Sending a stop to channel subscriber")
 
 	s.exit <- 1
 	s.listener.Close()
@@ -105,28 +107,45 @@ func (s *Subscriber) waitAndDispatch() {
 		case notification := <-s.listener.Notify:
 
 			if notification == nil {
-				s.logger.Printf("pubsub:handler:%s - rreceived a nil notification, the underlying driver reconnect", notification.Channel)
+				s.logger.WithFields(log.Fields{
+					"channel": notification.Channel,
+					"module":  "core.pubsub",
+				}).Warn("received a nil notification, the underlying driver reconnect")
 
 				continue
 			}
 
-			s.logger.Printf("pubsub:handler:%s - received notification on channel", notification.Channel)
+			s.logger.WithFields(log.Fields{
+				"channel": notification.Channel,
+				"module":  "core.pubsub",
+			}).Debug("received notification on channel")
 
 			if _, ok := s.handlers[notification.Channel]; ok {
 				// go some handlers register
 				for e := s.handlers[notification.Channel].Front(); e != nil; e = e.Next() {
 					go func(f SubscriberHander) {
-						s.logger.Printf("pubsub:handler:%s - payload:%s", notification.Channel, notification.Extra)
+						s.logger.WithFields(log.Fields{
+							"channel": notification.Channel,
+							"payload": notification.Extra,
+							"module":  "core.pubsub",
+						}).Debug("send payload to handler")
 
 						if state, _ := f(notification); state != PubSubListenContinue {
 							// close listener
 							s.handlers[notification.Channel].Remove(e)
-							s.logger.Printf("pubsub:handler:%s - removing on handler for channel - state != PubSubListenContinue", notification.Channel)
+							s.logger.WithFields(log.Fields{
+								"channel": notification.Channel,
+								"state":   state,
+								"module":  "core.pubsub",
+							}).Debug("removing on handler for channel - state != PubSubListenContinue")
 						}
 					}(e.Value.(SubscriberHander))
 				}
 			} else {
-				s.logger.Printf("pubsub:handler:%s - skipping, no handler for channel", notification.Channel)
+				s.logger.WithFields(log.Fields{
+					"channel": notification.Channel,
+					"module":  "core.pubsub",
+				}).Debug("skipping, no handler for channel")
 			}
 
 		case <-time.After(20 * time.Second):
@@ -136,7 +155,9 @@ func (s *Subscriber) waitAndDispatch() {
 			// Check if there's more work available, just in case it takes
 			// a while for the Listener to notice connection loss and
 			// reconnect.
-			s.logger.Printf("pubsub - received no work for 20 seconds, checking for new work")
+			s.logger.WithFields(log.Fields{
+				"module": "core.pubsub",
+			}).Debug("received no work for 20 seconds, checking for new work")
 
 		case <-s.exit:
 			return

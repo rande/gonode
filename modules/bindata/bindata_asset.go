@@ -6,9 +6,9 @@
 package bindata
 
 import (
+	log "github.com/Sirupsen/logrus"
 	"github.com/rande/gonode/assets"
 	"github.com/zenazn/goji/web"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -30,27 +30,37 @@ func ConfigureBinDataMux(mux *web.Mux, publicPath, privatePath, index string, lo
 
 	lenPath := len(publicPath)
 
-	mux.Get(publicPath+"/*", func(res http.ResponseWriter, req *http.Request) {
+	mux.Get(publicPath+"/*", func(c web.C, res http.ResponseWriter, req *http.Request) {
+		var logger *log.Entry
+
+		if l, ok := c.Env["logger"]; ok {
+			logger = l.(*log.Entry).WithFields(log.Fields{
+				"module": "bindata.handler",
+			})
+		}
 
 		path := req.RequestURI[lenPath:]
 
 		if path[len(path)-1:] == "/" {
 			path = path[0 : len(path)-1]
 		}
+
 		paths := []string{
 			privatePath + path,
 			privatePath + path + "/" + index,
 		}
 
-		logger.Print(paths)
-
 		for _, path := range paths {
-			logger.Printf("GET %s\n", path)
+			if logger != nil {
+				logger.Debug("GET:", path)
+			}
 
 			asset, err := assets.Asset(path)
 
 			if err != nil {
-				logger.Printf("Err: %s\n", err)
+				if logger != nil {
+					logger.Debug("Err:", err)
+				}
 
 				continue
 			}
@@ -60,7 +70,7 @@ func ConfigureBinDataMux(mux *web.Mux, publicPath, privatePath, index string, lo
 			if _, ok := contentTypes[ext]; ok {
 				res.Header().Set("Content-Type", contentTypes[ext])
 
-				logger.Printf("Content-Type: %s\n", contentTypes[ext])
+				logger.Debug("Content-Type:", contentTypes[ext])
 			}
 
 			res.Write(asset)

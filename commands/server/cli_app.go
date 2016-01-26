@@ -7,6 +7,7 @@ package server
 
 import (
 	"database/sql"
+	log "github.com/Sirupsen/logrus"
 	sq "github.com/lann/squirrel"
 	pq "github.com/lib/pq"
 	"github.com/rande/goapp"
@@ -23,9 +24,7 @@ import (
 	"github.com/rande/gonode/modules/vault"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
-	"log"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -40,16 +39,10 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 	})
 
 	l.Register(func(app *goapp.App) error {
-		// configure main services
-		app.Set("logger", func(app *goapp.App) interface{} {
-			return log.New(os.Stdout, "", log.Lshortfile)
-		})
-
 		app.Set("goji.mux", func(app *goapp.App) interface{} {
 			mux := web.New()
 
 			mux.Use(middleware.RequestID)
-			mux.Use(middleware.Logger)
 			mux.Use(middleware.Recoverer)
 			mux.Use(middleware.AutomaticOptions)
 
