@@ -76,6 +76,22 @@ key = "ZeSecretKey0oo"
     [media.image]
     allowed_widths = [100, 200]
     max_width = 300
+
+[logger]
+
+    level = "debug"
+
+    [logger.fields]
+    app = "gonode"
+
+    [logger.hooks]
+        [logger.hooks.default]
+        service = "influxdb"
+        dsn = "http://localhost:8086"
+        tags = ["app.core"]
+        database = "stats"
+        level = "debug"
+
 `, config)
 
 	assert.NoError(t, err)
@@ -110,6 +126,12 @@ key = "ZeSecretKey0oo"
 	// test media
 	assert.Equal(t, uint(300), config.Media.Image.MaxWidth)
 	assert.Equal(t, []uint{100, 200}, config.Media.Image.AllowedWidths)
+
+	// test logger
+	assert.Equal(t, map[string]string{"app": "gonode"}, config.Logger.Fields)
+	assert.Equal(t, "influxdb", config.Logger.Hooks["default"]["service"])
+	assert.Equal(t, []interface{}{"app.core"}, config.Logger.Hooks["default"]["tags"])
+	assert.Equal(t, "debug", config.Logger.Hooks["default"]["level"])
 
 	// debug
 	config.Guard.Jwt.Login.Path = `^\/nodes\/(.*)$`

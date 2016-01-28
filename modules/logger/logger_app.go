@@ -6,70 +6,71 @@
 package logger
 
 import (
+	"errors"
+	"fmt"
+	"github.com/Abramovic/logrus_influxdb"
 	log "github.com/Sirupsen/logrus"
+	influxdb "github.com/influxdb/influxdb/client/v2"
 	"github.com/rande/goapp"
+	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/modules/config"
 	"github.com/zenazn/goji/web"
-	"github.com/zenazn/goji/web/middleware"
-	"github.com/zenazn/goji/web/mutil"
-	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
-func GetMiddleware(logger *log.Logger) func(c *web.C, h http.Handler) http.Handler {
-	return func(c *web.C, h http.Handler) http.Handler {
-		fn := func(w http.ResponseWriter, r *http.Request) {
-			reqID := middleware.GetReqID(*c)
+var (
+	MissingHookNameError = errors.New("missing hook name")
+	NoHookHandlerError   = errors.New("No hook handler")
+)
 
-			fields := initFields(reqID, r)
-
-			c.Env["logger"] = logger.WithFields(fields)
-
-			lw := mutil.WrapWriter(w)
-
-			t1 := time.Now()
-			h.ServeHTTP(lw, r)
-
-			if lw.Status() == 0 {
-				lw.WriteHeader(http.StatusOK)
-			}
-			t2 := time.Now()
-
-			fields = printEnd(fields, reqID, lw, t2.Sub(t1))
-
-			logger.WithFields(fields).Info("Serve request")
+func GetValue(name string, conf map[string]interface{}, d ...interface{}) interface{} {
+	if v, ok := conf[name]; !ok {
+		if len(d) > 0 {
+			return d[0]
 		}
 
-		return http.HandlerFunc(fn)
+		panic(fmt.Sprintf("missing key: %s", name))
+	} else {
+		return v
 	}
 }
 
-func initFields(reqID string, r *http.Request) log.Fields {
-	fields := log.Fields{
-		"method":      r.Method,
-		"url":         r.URL.String(),
-		"remote_addr": r.RemoteAddr,
-		"host":        r.Host,
+func GetHook(conf map[string]interface{}) (log.Hook, error) {
+	if _, ok := conf["service"]; !ok {
+		return nil, MissingHookNameError
 	}
 
-	if reqID != "" {
-		fields["request_id"] = reqID
+	var tags []string
+	if _, ok := conf["tags"]; !ok {
+		tags = nil
+	} else {
+		switch ts := conf["tags"].(type) {
+		case []string:
+			tags = ts
+		case []interface{}:
+			for _, tag := range ts {
+				tags = append(tags, tag.(string))
+			}
+		default:
+			panic("invalid type")
+		}
 	}
 
-	return fields
-}
+	switch conf["service"] {
+	case "influxdb":
+		c, _ := influxdb.NewHTTPClient(influxdb.HTTPConfig{
+			Addr:     GetValue("url", conf, "http://localhost:8086").(string),
+			Timeout:  100 * time.Millisecond, // The InfluxDB default timeout is 0. In this example we're using 100ms.
+			Username: GetValue("username", conf, "").(string),
+			Password: GetValue("password", conf, "").(string),
+		})
 
-func printEnd(fields log.Fields, reqID string, w mutil.WriterProxy, dt time.Duration) log.Fields {
-	if reqID != "" {
-		fields["request_id"] = reqID
+		return logrus_influxdb.NewWithClientInfluxDBHook(c, GetValue("database", conf, "gonode").(string), tags)
 	}
 
-	fields["status"] = w.Status()
-	fields["content_type"] = w.Header().Get("Content-Type")
-	fields["time"] = dt.Nanoseconds() / (int64(time.Millisecond) / int64(time.Nanosecond))
-
-	return fields
+	return nil, NoHookHandlerError
 }
 
 func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
@@ -80,7 +81,25 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 			logger := log.New()
 			logger.Out = os.Stderr
-			logger.Level = log.DebugLevel
+			logger.Level, _ = log.ParseLevel(strings.ToLower(conf.Logger.Level))
+
+			d := &DispatchHook{
+				make(map[log.Level][]log.Hook, 0),
+			}
+
+			for _, v := range conf.Logger.Hooks {
+				hook, err := GetHook(v)
+
+				core.PanicOnError(err)
+
+				l, err := log.ParseLevel(strings.ToLower(GetValue("level", v).(string)))
+
+				core.PanicOnError(err)
+
+				d.Add(hook, l)
+			}
+
+			logger.Hooks.Add(d)
 
 			return logger
 		})

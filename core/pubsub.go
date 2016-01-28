@@ -108,8 +108,7 @@ func (s *Subscriber) waitAndDispatch() {
 
 			if notification == nil {
 				s.logger.WithFields(log.Fields{
-					"channel": notification.Channel,
-					"module":  "core.pubsub",
+					"module": "core.pubsub",
 				}).Warn("received a nil notification, the underlying driver reconnect")
 
 				continue
