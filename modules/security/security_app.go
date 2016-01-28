@@ -10,7 +10,6 @@ import (
 	"github.com/rande/gonode/modules/config"
 	"github.com/rs/cors"
 	"github.com/zenazn/goji/web"
-	"log"
 )
 
 func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
@@ -32,12 +31,6 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 			MaxAge:             conf.Security.Cors.MaxAge,
 			OptionsPassthrough: conf.Security.Cors.OptionsPassthrough,
 		})
-
-		if app.Has("logger") {
-			log := app.Get("logger").(*log.Logger)
-
-			c.Log = log
-		}
 
 		mux.Use(c.Handler)
 

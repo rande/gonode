@@ -77,6 +77,12 @@ type ServerHandler struct {
 	Enabled bool   `toml:"enabled"`
 }
 
+type ServerLogger struct {
+	Level  string                            `toml:"level"`
+	Fields map[string]string                 `toml:"fields"`
+	Hooks  map[string]map[string]interface{} `toml:"hooks"`
+}
+
 type ServerConfig struct {
 	Name       string                     `toml:"name"`
 	Databases  map[string]*ServerDatabase `toml:"databases"`
@@ -88,6 +94,7 @@ type ServerConfig struct {
 	Search     *ServerSearch              `toml:"search"`
 	BinData    *ServerBinData             `toml:"bindata"`
 	Media      *ServerMedia               `toml:"media"`
+	Logger     *ServerLogger              `toml:"logger"`
 }
 
 func NewServerConfig() *ServerConfig {
@@ -101,13 +108,14 @@ func NewServerConfig() *ServerConfig {
 		BinData: &ServerBinData{
 			BasePath: os.Getenv("GOPATH") + "/src",
 			Assets:   make(map[string]*ServerBinDataAsset, 0),
-			//			Templates: make([]string, 0),
 		},
 		Media: &ServerMedia{
 			Image: &ServerMediaImage{
 				MaxWidth: uint(1024),
-				//				AllowedWidths: make([]uint, 0),
 			},
+		},
+		Logger: &ServerLogger{
+			Level: "warn",
 		},
 	}
 }

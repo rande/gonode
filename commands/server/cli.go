@@ -12,10 +12,12 @@ import (
 
 	"net/http"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/rande/gonode/modules/api"
 	"github.com/rande/gonode/modules/bindata"
 	"github.com/rande/gonode/modules/config"
 	"github.com/rande/gonode/modules/guard"
+	"github.com/rande/gonode/modules/logger"
 	"github.com/rande/gonode/modules/node"
 	"github.com/rande/gonode/modules/prism"
 	"github.com/rande/gonode/modules/router"
@@ -25,7 +27,6 @@ import (
 	"github.com/zenazn/goji/bind"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
-	"log"
 )
 
 type ServerCommand struct {
@@ -63,6 +64,7 @@ func (c *ServerCommand) Run(args []string) int {
 	ConfigureServer(l, conf)
 
 	// add modules
+	logger.ConfigureServer(l, conf)
 	setup.ConfigureServer(l, conf)
 	security.ConfigureServer(l, conf)
 	search.ConfigureServer(l, conf)
@@ -86,13 +88,23 @@ func (c *ServerCommand) Run(args []string) int {
 		http.Handle("/", mux)
 
 		listener := bind.Socket(conf.Bind)
-		log.Println("Starting Goji on", listener.Addr())
+		log.WithFields(log.Fields{
+			"module": "command.cli",
+		}).Debug("Starting Goji on %s", listener.Addr())
 
 		graceful.HandleSignals()
 		bind.Ready()
 
-		graceful.PreHook(func() { log.Printf("Goji received signal, gracefully stopping") })
-		graceful.PostHook(func() { log.Printf("Goji stopped") })
+		graceful.PreHook(func() {
+			log.WithFields(log.Fields{
+				"module": "command.cli",
+			}).Debug("Goji received signal, gracefully stopping")
+		})
+		graceful.PostHook(func() {
+			log.WithFields(log.Fields{
+				"module": "command.cli",
+			}).Debug("Goji stopped")
+		})
 
 		err := graceful.Serve(listener, http.DefaultServeMux)
 

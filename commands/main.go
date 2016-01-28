@@ -6,10 +6,10 @@
 package main
 
 import (
+	log "github.com/Sirupsen/logrus"
 	"github.com/mitchellh/cli"
 	"github.com/rande/gonode/commands/dev"
 	"github.com/rande/gonode/commands/server"
-	"log"
 	"os"
 )
 
