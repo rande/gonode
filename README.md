@@ -18,4 +18,5 @@ Documentation
     * [Search](docs/modules/search.md): Search filters
     * [Bindata](docs/modules/bindata.md): Provide http handler to server static file from ``go-bindata`` assets
     * [Raw](docs/modules/raw.md): Send raw content
+    * [Logger](docs/modules/logger.md): Logger
  * [Contributing](docs/contributing.md)
