@@ -7,8 +7,8 @@ package api
 
 import (
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/core"
 	"github.com/rande/gonode/modules/api"
+	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
 	"net/http/httptest"
@@ -55,7 +55,7 @@ func Test_Search_Basic(t *testing.T) {
 			assert.Equal(t, uint64(0), p.Next)
 			assert.Equal(t, uint64(0), p.Previous)
 
-			n := p.Elements[0].(*core.Node)
+			n := p.Elements[0].(*base.Node)
 
 			assert.Equal(t, "core.user", n.Type)
 			assert.False(t, n.Deleted)
@@ -131,9 +131,9 @@ func Test_Search_OrderBy_Name_ASC(t *testing.T) {
 		p := GetPager(app, res)
 
 		assert.Equal(t, 4, len(p.Elements))
-		assert.Equal(t, "User A", p.Elements[0].(*core.Node).Name)
-		assert.Equal(t, "User AA", p.Elements[1].(*core.Node).Name)
-		assert.Equal(t, "User B", p.Elements[2].(*core.Node).Name)
+		assert.Equal(t, "User A", p.Elements[0].(*base.Node).Name)
+		assert.Equal(t, "User AA", p.Elements[1].(*base.Node).Name)
+		assert.Equal(t, "User B", p.Elements[2].(*base.Node).Name)
 	})
 }
 
@@ -149,9 +149,9 @@ func Test_Search_OrderBy_Name_DESC(t *testing.T) {
 		p := GetPager(app, res)
 
 		assert.Equal(t, 4, len(p.Elements))
-		assert.Equal(t, "User ZZ", p.Elements[0].(*core.Node).Name)
-		assert.Equal(t, "User B", p.Elements[1].(*core.Node).Name)
-		assert.Equal(t, "User AA", p.Elements[2].(*core.Node).Name)
+		assert.Equal(t, "User ZZ", p.Elements[0].(*base.Node).Name)
+		assert.Equal(t, "User B", p.Elements[1].(*base.Node).Name)
+		assert.Equal(t, "User AA", p.Elements[2].(*base.Node).Name)
 	})
 }
 
@@ -168,9 +168,9 @@ func Test_Search_OrderBy_Weight_DESC_Name_ASC(t *testing.T) {
 		p := GetPager(app, res)
 
 		assert.Equal(t, 4, len(p.Elements))
-		assert.Equal(t, "User AA", p.Elements[0].(*core.Node).Name)
-		assert.Equal(t, "User A", p.Elements[1].(*core.Node).Name)
-		assert.Equal(t, "User B", p.Elements[2].(*core.Node).Name)
+		assert.Equal(t, "User AA", p.Elements[0].(*base.Node).Name)
+		assert.Equal(t, "User A", p.Elements[1].(*base.Node).Name)
+		assert.Equal(t, "User B", p.Elements[2].(*base.Node).Name)
 	})
 }
 
@@ -187,9 +187,9 @@ func Test_Search_OrderBy_Meta_Username(t *testing.T) {
 		p := GetPager(app, res)
 
 		assert.Equal(t, 4, len(p.Elements))
-		assert.Equal(t, "User ZZ", p.Elements[0].(*core.Node).Name)
-		assert.Equal(t, "User A", p.Elements[1].(*core.Node).Name)
-		assert.Equal(t, "User AA", p.Elements[2].(*core.Node).Name)
+		assert.Equal(t, "User ZZ", p.Elements[0].(*base.Node).Name)
+		assert.Equal(t, "User A", p.Elements[1].(*base.Node).Name)
+		assert.Equal(t, "User AA", p.Elements[2].(*base.Node).Name)
 	})
 }
 

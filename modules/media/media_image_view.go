@@ -9,8 +9,8 @@ import (
 	"errors"
 	"github.com/nfnt/resize"
 	"github.com/oliamb/cutter"
-	"github.com/rande/gonode/core"
-	"github.com/rande/gonode/modules/vault"
+	"github.com/rande/gonode/core/vault"
+	"github.com/rande/gonode/modules/base"
 	"image"
 	"image/gif"
 	"image/jpeg"
@@ -48,7 +48,7 @@ type MediaViewHandler struct {
 	MaxWidth      uint
 }
 
-func (m *MediaViewHandler) Execute(node *core.Node, request *core.ViewRequest, response *core.ViewResponse) error {
+func (m *MediaViewHandler) Execute(node *base.Node, request *base.ViewRequest, response *base.ViewResponse) error {
 	values := request.HttpRequest.URL.Query()
 
 	meta := node.Meta.(*ImageMeta)
@@ -70,7 +70,7 @@ func (m *MediaViewHandler) Execute(node *core.Node, request *core.ViewRequest, r
 	return err
 }
 
-func (m *MediaViewHandler) imageResize(node *core.Node, request *core.ViewRequest, response *core.ViewResponse) error {
+func (m *MediaViewHandler) imageResize(node *base.Node, request *base.ViewRequest, response *base.ViewResponse) error {
 	width, err := strconv.ParseUint(request.HttpRequest.URL.Query().Get("mr"), 10, 0)
 
 	if err != nil {
@@ -96,7 +96,7 @@ func (m *MediaViewHandler) imageResize(node *core.Node, request *core.ViewReques
 	return m.encode(imageDst, node, response.HttpResponse)
 }
 
-func (m *MediaViewHandler) imageFit(node *core.Node, request *core.ViewRequest, response *core.ViewResponse) error {
+func (m *MediaViewHandler) imageFit(node *base.Node, request *base.ViewRequest, response *base.ViewResponse) error {
 	options := strings.Split(request.HttpRequest.URL.Query().Get("mf"), ",")
 
 	if len(options) != 2 && len(options) != 4 {
@@ -155,7 +155,7 @@ func (m *MediaViewHandler) imageFit(node *core.Node, request *core.ViewRequest, 
 	return m.encode(croppedImg, node, response.HttpResponse)
 }
 
-func (m *MediaViewHandler) getImage(node *core.Node) (image.Image, error) {
+func (m *MediaViewHandler) getImage(node *base.Node) (image.Image, error) {
 	source, _ := ioutil.TempFile(os.TempDir(), "gonode_image_resize_")
 	defer source.Close()
 
@@ -175,7 +175,7 @@ func (m *MediaViewHandler) getImage(node *core.Node) (image.Image, error) {
 	return gif.Decode(source)
 }
 
-func (m *MediaViewHandler) encode(image image.Image, node *core.Node, w io.Writer) error {
+func (m *MediaViewHandler) encode(image image.Image, node *base.Node, w io.Writer) error {
 	meta := node.Meta.(*ImageMeta)
 
 	if meta.ContentType == "image/jpeg" {

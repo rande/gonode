@@ -1,7 +1,8 @@
 package fixtures
 
 import (
-	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/blog"
 	"github.com/rande/gonode/modules/feed"
 	"github.com/rande/gonode/modules/media"
@@ -11,8 +12,8 @@ import (
 	"strconv"
 )
 
-func GetFakeMediaNode(pos int) *core.Node {
-	node := core.NewNode()
+func GetFakeMediaNode(pos int) *base.Node {
+	node := base.NewNode()
 
 	node.Type = "media.image"
 	node.Name = "The image " + strconv.Itoa(pos)
@@ -22,14 +23,14 @@ func GetFakeMediaNode(pos int) *core.Node {
 		Reference: "0x0",
 	}
 	node.Meta = &media.ImageMeta{
-		SourceStatus: core.ProcessStatusInit,
+		SourceStatus: base.ProcessStatusInit,
 	}
 
 	return node
 }
 
-func GetFakePostNode(pos int) *core.Node {
-	node := core.NewNode()
+func GetFakePostNode(pos int) *base.Node {
+	node := base.NewNode()
 
 	node.Type = "blog.post"
 	node.Name = "The blog post " + strconv.Itoa(pos)
@@ -46,8 +47,8 @@ func GetFakePostNode(pos int) *core.Node {
 	return node
 }
 
-func GetFakeUserNode(pos int) *core.Node {
-	node := core.NewNode()
+func GetFakeUserNode(pos int) *base.Node {
+	node := base.NewNode()
 
 	node.Type = "core.user"
 	node.Name = "The user " + strconv.Itoa(pos)
@@ -64,14 +65,14 @@ func GetFakeUserNode(pos int) *core.Node {
 	return node
 }
 
-func LoadFixtures(m *core.PgNodeManager, max int) error {
+func LoadFixtures(m *base.PgNodeManager, max int) error {
 
 	var err error
 
 	// create user
-	admin := core.NewNode()
+	admin := base.NewNode()
 
-	admin.Uuid = core.GetRootReference()
+	admin.Uuid = base.GetRootReference()
 	admin.Type = "core.user"
 	admin.Name = "The admin user"
 	admin.Slug = "the-admin-user"
@@ -93,7 +94,7 @@ func LoadFixtures(m *core.PgNodeManager, max int) error {
 
 		_, err = m.Save(node, false)
 
-		core.PanicOnError(err)
+		helper.PanicOnError(err)
 	}
 
 	for i := 1; i < max; i++ {
@@ -103,7 +104,7 @@ func LoadFixtures(m *core.PgNodeManager, max int) error {
 
 		_, err = m.Save(node, false)
 
-		core.PanicOnError(err)
+		helper.PanicOnError(err)
 	}
 
 	for i := 1; i < max; i++ {
@@ -113,11 +114,11 @@ func LoadFixtures(m *core.PgNodeManager, max int) error {
 
 		_, err = m.Save(node, false)
 
-		core.PanicOnError(err)
+		helper.PanicOnError(err)
 	}
 
 	// create blog archives
-	archive := core.NewNode()
+	archive := base.NewNode()
 	archive.Type = "core.index"
 	archive.Name = "Blog Archive"
 	archive.Slug = "blog"
@@ -128,10 +129,10 @@ func LoadFixtures(m *core.PgNodeManager, max int) error {
 
 	_, err = m.Save(archive, false)
 
-	core.PanicOnError(err)
+	helper.PanicOnError(err)
 
 	// create feed archives
-	f := core.NewNode()
+	f := base.NewNode()
 	f.Type = "feed.index"
 	f.Name = "Feed Archive"
 	f.Slug = "feed"
@@ -146,10 +147,10 @@ func LoadFixtures(m *core.PgNodeManager, max int) error {
 
 	_, err = m.Save(f, false)
 
-	core.PanicOnError(err)
+	helper.PanicOnError(err)
 
 	// create human.txt
-	h := core.NewNode()
+	h := base.NewNode()
 	h.Type = "core.raw"
 	h.Name = "human.txt"
 	h.Slug = "human.txt"
@@ -162,10 +163,10 @@ func LoadFixtures(m *core.PgNodeManager, max int) error {
 
 	_, err = m.Save(h, false)
 
-	core.PanicOnError(err)
+	helper.PanicOnError(err)
 
 	// create real image
-	image := core.NewNode()
+	image := base.NewNode()
 
 	image.Type = "media.image"
 	image.Name = "The image for resize"
@@ -177,12 +178,12 @@ func LoadFixtures(m *core.PgNodeManager, max int) error {
 		SourceUrl: "https://camo.githubusercontent.com/ef6fdc21c7c8e17354524f0982cdb52885335191/687474703a2f2f6e666e742e6769746875622e636f6d2f696d672f494d475f333639345f3732302e6a7067",
 	}
 	image.Meta = &media.ImageMeta{
-		SourceStatus: core.ProcessStatusInit,
+		SourceStatus: base.ProcessStatusInit,
 	}
 
 	_, err = m.Save(image, false)
 
-	core.PanicOnError(err)
+	helper.PanicOnError(err)
 
 	return nil
 }

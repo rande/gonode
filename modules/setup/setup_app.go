@@ -8,9 +8,9 @@ package setup
 import (
 	"fmt"
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/core"
-	"github.com/rande/gonode/modules/config"
-	"github.com/rande/gonode/modules/helper"
+	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/test/fixtures"
 	"github.com/zenazn/goji/web"
 	"net/http"
@@ -24,7 +24,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 		}
 
 		mux := app.Get("goji.mux").(*web.Mux)
-		manager := app.Get("gonode.manager").(*core.PgNodeManager)
+		manager := app.Get("gonode.manager").(*base.PgNodeManager)
 
 		prefix := ""
 
@@ -123,7 +123,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 		mux.Post(prefix+"/setup/data/purge", func(res http.ResponseWriter, req *http.Request) {
 
-			manager := app.Get("gonode.manager").(*core.PgNodeManager)
+			manager := app.Get("gonode.manager").(*base.PgNodeManager)
 
 			prefix := conf.Databases["master"].Prefix
 
@@ -140,8 +140,8 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 		})
 
 		mux.Post(prefix+"/setup/data/load", func(res http.ResponseWriter, req *http.Request) {
-			manager := app.Get("gonode.manager").(*core.PgNodeManager)
-			nodes := manager.FindBy(manager.SelectBuilder(core.NewSelectOptions()), 0, 10)
+			manager := app.Get("gonode.manager").(*base.PgNodeManager)
+			nodes := manager.FindBy(manager.SelectBuilder(base.NewSelectOptions()), 0, 10)
 
 			if nodes.Len() != 0 {
 				helper.SendWithStatus("KO", "Table contains data, purge the data first!", res)

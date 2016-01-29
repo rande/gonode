@@ -8,9 +8,9 @@ package media
 import (
 	"fmt"
 	"github.com/lib/pq"
-	"github.com/rande/gonode/core"
-	"github.com/rande/gonode/modules/helper"
-	"github.com/rande/gonode/modules/vault"
+	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/core/vault"
+	"github.com/rande/gonode/modules/base"
 	"io"
 	"net/http"
 )
@@ -39,86 +39,86 @@ type ImageHandler struct {
 	Vault *vault.Vault
 }
 
-func (h *ImageHandler) GetStruct() (core.NodeData, core.NodeMeta) {
+func (h *ImageHandler) GetStruct() (base.NodeData, base.NodeMeta) {
 	return &Image{}, &ImageMeta{
-		SourceStatus: core.ProcessStatusInit,
+		SourceStatus: base.ProcessStatusInit,
 	}
 }
 
-func (h *ImageHandler) PreInsert(node *core.Node, m core.NodeManager) error {
+func (h *ImageHandler) PreInsert(node *base.Node, m base.NodeManager) error {
 	data := node.Data.(*Image)
 	meta := node.Meta.(*ImageMeta)
 
-	if data.SourceUrl != "" && meta.SourceStatus == core.ProcessStatusInit {
-		meta.SourceStatus = core.ProcessStatusUpdate
+	if data.SourceUrl != "" && meta.SourceStatus == base.ProcessStatusInit {
+		meta.SourceStatus = base.ProcessStatusUpdate
 		meta.SourceError = ""
 	}
 
 	return nil
 }
 
-func (h *ImageHandler) PreUpdate(node *core.Node, m core.NodeManager) error {
+func (h *ImageHandler) PreUpdate(node *base.Node, m base.NodeManager) error {
 	data := node.Data.(*Image)
 	meta := node.Meta.(*ImageMeta)
 
-	if data.SourceUrl != "" && meta.SourceStatus == core.ProcessStatusInit {
-		meta.SourceStatus = core.ProcessStatusUpdate
+	if data.SourceUrl != "" && meta.SourceStatus == base.ProcessStatusInit {
+		meta.SourceStatus = base.ProcessStatusUpdate
 		meta.SourceError = ""
 	}
 
 	return nil
 }
 
-func (h *ImageHandler) PostInsert(node *core.Node, m core.NodeManager) error {
+func (h *ImageHandler) PostInsert(node *base.Node, m base.NodeManager) error {
 	meta := node.Meta.(*ImageMeta)
 
-	if meta.SourceStatus == core.ProcessStatusUpdate {
+	if meta.SourceStatus == base.ProcessStatusUpdate {
 		m.Notify("media_file_download", node.Uuid.String())
 	}
 
 	return nil
 }
 
-func (h *ImageHandler) PostUpdate(node *core.Node, m core.NodeManager) error {
+func (h *ImageHandler) PostUpdate(node *base.Node, m base.NodeManager) error {
 	meta := node.Meta.(*ImageMeta)
 
-	if meta.SourceStatus == core.ProcessStatusUpdate {
+	if meta.SourceStatus == base.ProcessStatusUpdate {
 		m.Notify("media_file_download", node.Uuid.String())
 	}
 
 	return nil
 }
 
-func (h *ImageHandler) Validate(node *core.Node, m core.NodeManager, errors core.Errors) {
+func (h *ImageHandler) Validate(node *base.Node, m base.NodeManager, errors base.Errors) {
 
 }
 
-func (h *ImageHandler) GetDownloadData(node *core.Node) *core.DownloadData {
+func (h *ImageHandler) GetDownloadData(node *base.Node) *base.DownloadData {
 	meta := node.Meta.(*ImageMeta)
 
-	data := core.GetDownloadData()
+	data := base.GetDownloadData()
 	data.Filename = node.Name
 	data.ContentType = meta.ContentType
-	data.Stream = func(node *core.Node, w io.Writer) {
+	data.Stream = func(node *base.Node, w io.Writer) {
 		_, err := h.Vault.Get(node.UniqueId(), w)
-		core.PanicOnError(err)
+		helper.PanicOnError(err)
 	}
 
 	return data
 }
 
-func (h *ImageHandler) Load(data []byte, meta []byte, node *core.Node) error {
-	return core.HandlerLoad(h, data, meta, node)
+func (h *ImageHandler) Load(data []byte, meta []byte, node *base.Node) error {
+	return base.HandlerLoad(h, data, meta, node)
 }
 
-func (h *ImageHandler) StoreStream(node *core.Node, r io.Reader) (written int64, err error) {
-	vaultmeta := core.GetVaultMetadata(node)
+func (h *ImageHandler) StoreStream(node *base.Node, r io.Reader) (written int64, err error) {
+	vaultmeta := base.GetVaultMetadata(node)
 
 	meta := node.Meta.(*ImageMeta)
 	meta.ContentType = "application/octet-stream"
 
 	if written, err = h.Vault.Put(node.UniqueId(), vaultmeta, r); err != nil {
-		core.PanicOnError(err)
+		helper.PanicOnError(err)
 	}
 
 	return
@@ -126,14 +126,14 @@ func (h *ImageHandler) StoreStream(node *core.Node, r io.Reader) (written int64,
 
 type ImageDownloadListener struct {
 	Vault      *vault.Vault
-	HttpClient core.HttpClient
+	HttpClient base.HttpClient
 }
 
-func (l *ImageDownloadListener) Handle(notification *pq.Notification, m core.NodeManager) (int, error) {
-	reference, err := core.GetReferenceFromString(notification.Extra)
+func (l *ImageDownloadListener) Handle(notification *pq.Notification, m base.NodeManager) (int, error) {
+	reference, err := base.GetReferenceFromString(notification.Extra)
 
 	if err != nil { // unable to parse the reference
-		return core.PubSubListenContinue, nil
+		return base.PubSubListenContinue, nil
 	}
 
 	fmt.Printf("Download binary from uuid: %s\n", notification.Extra)
@@ -141,31 +141,31 @@ func (l *ImageDownloadListener) Handle(notification *pq.Notification, m core.Nod
 
 	if node == nil {
 		fmt.Printf("Uuid does not exist: %s\n", notification.Extra)
-		return core.PubSubListenContinue, nil
+		return base.PubSubListenContinue, nil
 	}
 
 	data := node.Data.(*Image)
 	meta := node.Meta.(*ImageMeta)
 
-	if meta.SourceStatus == core.ProcessStatusDone {
+	if meta.SourceStatus == base.ProcessStatusDone {
 		fmt.Printf("Nothing to update: %s\n", notification.Extra)
 
-		return core.PubSubListenContinue, nil
+		return base.PubSubListenContinue, nil
 	}
 
 	resp, err := l.HttpClient.Get(data.SourceUrl)
 
 	if err != nil {
-		meta.SourceStatus = core.ProcessStatusError
+		meta.SourceStatus = base.ProcessStatusError
 		meta.SourceError = "Unable to retrieve the remote file"
 		m.Save(node, false)
 
-		return core.PubSubListenContinue, err
+		return base.PubSubListenContinue, err
 	}
 
 	defer resp.Body.Close()
 
-	vaultmeta := core.GetVaultMetadata(node)
+	vaultmeta := base.GetVaultMetadata(node)
 
 	r := &helper.PartialReader{
 		Reader: resp.Body,
@@ -175,13 +175,13 @@ func (l *ImageDownloadListener) Handle(notification *pq.Notification, m core.Nod
 	_, err = l.Vault.Put(node.UniqueId(), vaultmeta, r)
 
 	if err != nil {
-		return core.PubSubListenContinue, err
+		return base.PubSubListenContinue, err
 	}
 
 	meta.ContentType = http.DetectContentType(r.Data)
-	meta.SourceStatus = core.ProcessStatusDone
+	meta.SourceStatus = base.ProcessStatusDone
 
 	m.Save(node, false)
 
-	return core.PubSubListenContinue, nil
+	return base.PubSubListenContinue, nil
 }

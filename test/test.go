@@ -12,16 +12,16 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/commands/server"
-	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/core/bindata"
+	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/core/router"
+	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/modules/api"
-	"github.com/rande/gonode/modules/bindata"
-	"github.com/rande/gonode/modules/config"
+	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/guard"
-	"github.com/rande/gonode/modules/node"
 	"github.com/rande/gonode/modules/prism"
-	"github.com/rande/gonode/modules/router"
 	"github.com/rande/gonode/modules/search"
-	"github.com/rande/gonode/modules/security"
 	"github.com/rande/gonode/modules/setup"
 	"github.com/rande/gonode/modules/user"
 	"github.com/stretchr/testify/assert"
@@ -83,11 +83,11 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 	search.ConfigureServer(l, conf)
 	api.ConfigureServer(l, conf)
 	setup.ConfigureServer(l, conf)
-	guard.ConfigureServer(l, conf)
+	node_guard.ConfigureServer(l, conf)
 	prism.ConfigureServer(l, conf)
 	bindata.ConfigureServer(l, conf)
 	router.ConfigureServer(l, conf)
-	node.ConfigureServer(l, conf)
+	base.ConfigureServer(l, conf)
 
 	return l
 }
@@ -180,7 +180,7 @@ func RunRequest(method string, path string, options ...interface{}) (*Response, 
 		}
 	}
 
-	core.PanicOnError(err)
+	helper.PanicOnError(err)
 
 	resp, err := client.Do(req)
 
@@ -208,17 +208,17 @@ func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *go
 		}()
 
 		res, err = RunRequest("POST", ts.URL+"/setup/uninstall", nil)
-		core.PanicIf(res.StatusCode != http.StatusOK, fmt.Sprintf("Expected code 200, get %d\n%s", res.StatusCode, string(res.GetBody()[:])))
-		core.PanicOnError(err)
+		helper.PanicIf(res.StatusCode != http.StatusOK, fmt.Sprintf("Expected code 200, get %d\n%s", res.StatusCode, string(res.GetBody()[:])))
+		helper.PanicOnError(err)
 
 		res, err = RunRequest("POST", ts.URL+"/setup/install", nil)
-		core.PanicIf(res.StatusCode != http.StatusOK, fmt.Sprintf("Expected code 200, get %d\n%s", res.StatusCode, string(res.GetBody()[:])))
-		core.PanicOnError(err)
+		helper.PanicIf(res.StatusCode != http.StatusOK, fmt.Sprintf("Expected code 200, get %d\n%s", res.StatusCode, string(res.GetBody()[:])))
+		helper.PanicOnError(err)
 
 		// create a valid user
-		manager := app.Get("gonode.manager").(*core.PgNodeManager)
+		manager := app.Get("gonode.manager").(*base.PgNodeManager)
 
-		u := app.Get("gonode.handler_collection").(core.HandlerCollection).NewNode("core.user")
+		u := app.Get("gonode.handler_collection").(base.HandlerCollection).NewNode("core.user")
 		u.Name = "User ZZ"
 		data := u.Data.(*user.User)
 		data.Email = "test-admin@example.org"

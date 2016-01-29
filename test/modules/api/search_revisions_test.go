@@ -8,7 +8,8 @@ package api
 import (
 	"fmt"
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/user"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
@@ -23,8 +24,8 @@ func Test_Search_Revision_Basic(t *testing.T) {
 
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 
-		u := app.Get("gonode.handler_collection").(core.HandlerCollection).NewNode("core.user")
-		manager := app.Get("gonode.manager").(*core.PgNodeManager)
+		u := app.Get("gonode.handler_collection").(base.HandlerCollection).NewNode("core.user")
+		manager := app.Get("gonode.manager").(*base.PgNodeManager)
 
 		data := u.Data.(*user.User)
 		data.Email = "test@example.org"
@@ -44,22 +45,22 @@ func Test_Search_Revision_Basic(t *testing.T) {
 		u, err = manager.Save(u, true)
 		u.Name = "Title 2"
 		assert.Equal(t, 1, u.Revision, "revision should be 1")
-		core.PanicOnError(err)
+		helper.PanicOnError(err)
 
 		u, err = manager.Save(u, true)
 		assert.Equal(t, 2, u.Revision, "revision should be 2")
-		core.PanicOnError(err)
+		helper.PanicOnError(err)
 
 		u, err = manager.Save(u, true)
 		assert.Equal(t, 3, u.Revision, "revision should be 3")
-		core.PanicOnError(err)
+		helper.PanicOnError(err)
 
 		u, err = manager.Save(u, true)
-		core.PanicOnError(err)
+		helper.PanicOnError(err)
 		assert.Equal(t, 4, u.Revision, "revision should be 4")
 
 		u, err = manager.Save(u, true)
-		core.PanicOnError(err)
+		helper.PanicOnError(err)
 		assert.Equal(t, 5, u.Revision, "revision should be 5")
 
 		baseUrl := fmt.Sprintf("%s/nodes/%s/revisions", ts.URL, u.Uuid.CleanString())

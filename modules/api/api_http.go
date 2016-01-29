@@ -14,9 +14,9 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/lib/pq"
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/core"
-	"github.com/rande/gonode/modules/config"
-	"github.com/rande/gonode/modules/helper"
+	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/search"
 	"github.com/rande/gonode/modules/user"
 	"github.com/zenazn/goji/graceful"
@@ -47,7 +47,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 			return list.New()
 		})
 
-		sub := app.Get("gonode.postgres.subscriber").(*core.Subscriber)
+		sub := app.Get("gonode.postgres.subscriber").(*base.Subscriber)
 		sub.ListenMessage(conf.Databases["master"].Prefix+"_manager_action", func(notification *pq.Notification) (int, error) {
 			logger := app.Get("logger").(*log.Logger)
 			logger.WithFields(log.Fields{
@@ -67,7 +67,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 				"module": "api.websocket",
 			}).Debug("WebSocket: End Sending message")
 
-			return core.PubSubListenContinue, nil
+			return base.PubSubListenContinue, nil
 		})
 
 		graceful.PreHook(func() {
@@ -93,7 +93,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 			"module": "api.websocket",
 		}).Info("Starting PostgreSQL subcriber")
 
-		app.Get("gonode.postgres.subscriber").(*core.Subscriber).Register()
+		app.Get("gonode.postgres.subscriber").(*base.Subscriber).Register()
 
 		return nil
 	})
@@ -104,7 +104,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 			"module": "api.websocket",
 		}).Info("Closing PostgreSQL subcriber")
 
-		app.Get("gonode.postgres.subscriber").(*core.Subscriber).Stop()
+		app.Get("gonode.postgres.subscriber").(*base.Subscriber).Stop()
 
 		logger.WithFields(log.Fields{
 			"module": "api.websocket",
@@ -115,9 +115,9 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 	l.Prepare(func(app *goapp.App) error {
 		mux := app.Get("goji.mux").(*web.Mux)
-		manager := app.Get("gonode.manager").(*core.PgNodeManager)
+		manager := app.Get("gonode.manager").(*base.PgNodeManager)
 		apiHandler := app.Get("gonode.api").(*Api)
-		handler_collection := app.Get("gonode.handler_collection").(core.Handlers)
+		handler_collection := app.Get("gonode.handler_collection").(base.Handlers)
 		searchBuilder := app.Get("gonode.search.pgsql").(*search.SearchPGSQL)
 		searchParser := app.Get("gonode.search.parser.http").(*search.HttpSearchParser)
 		prefix := ""
@@ -139,9 +139,9 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 			decoder := schema.NewDecoder()
 			err := decoder.Decode(loginForm, req.Form)
 
-			core.PanicOnError(err)
+			helper.PanicOnError(err)
 
-			query := manager.SelectBuilder(core.NewSelectOptions()).Where("type = 'core.user' AND data->>'username' = ?", loginForm.Username)
+			query := manager.SelectBuilder(base.NewSelectOptions()).Where("type = 'core.user' AND data->>'username' = ?", loginForm.Username)
 
 			node := manager.FindOneBy(query)
 
@@ -166,7 +166,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 					return
 				}
 
-				core.PanicOnError(err)
+				helper.PanicOnError(err)
 				res.Write([]byte(tokenString))
 			} else {
 				helper.SendWithHttpCode(res, http.StatusForbidden, "Unable to authenticate request: "+err.Error())
@@ -182,7 +182,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 			ws, err := upgrader.Upgrade(res, req, nil)
 
-			core.PanicOnError(err)
+			helper.PanicOnError(err)
 
 			element := webSocketList.PushBack(ws)
 
@@ -208,7 +208,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 			values := req.URL.Query()
 
 			if _, raw := values["raw"]; raw { // ask for binary content
-				reference, err := core.GetReferenceFromString(c.URLParams["uuid"])
+				reference, err := base.GetReferenceFromString(c.URLParams["uuid"])
 
 				if err != nil {
 					helper.SendWithHttpCode(res, http.StatusInternalServerError, "Unable to parse the reference")
@@ -238,7 +238,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 				res.Header().Set("Content-Type", "application/json")
 				err := apiHandler.FindOne(c.URLParams["uuid"], res)
 
-				if err == core.NotFoundError {
+				if err == base.NotFoundError {
 					helper.SendWithHttpCode(res, http.StatusNotFound, err.Error())
 				}
 
@@ -253,7 +253,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 			searchForm := searchParser.HandleSearch(res, req)
 
-			options := core.NewSelectOptions()
+			options := base.NewSelectOptions()
 			options.TableSuffix = "nodes_audit"
 
 			query := apiHandler.SelectBuilder(options).
@@ -265,7 +265,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 		mux.Get(prefix+"/nodes/:uuid/revisions/:rev", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
 
-			options := core.NewSelectOptions()
+			options := base.NewSelectOptions()
 			options.TableSuffix = "nodes_audit"
 
 			query := apiHandler.SelectBuilder(options).
@@ -274,7 +274,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 			err := apiHandler.FindOneBy(query, res)
 
-			if err == core.NotFoundError {
+			if err == base.NotFoundError {
 				helper.SendWithHttpCode(res, http.StatusNotFound, err.Error())
 			}
 
@@ -290,11 +290,11 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 			err := apiHandler.Save(req.Body, w)
 
-			if err == core.RevisionError {
+			if err == base.RevisionError {
 				res.WriteHeader(http.StatusConflict)
 			}
 
-			if err == core.ValidationError {
+			if err == base.ValidationError {
 				res.WriteHeader(http.StatusPreconditionFailed)
 			}
 
@@ -309,7 +309,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 			values := req.URL.Query()
 
 			if _, raw := values["raw"]; raw { // send binary data
-				reference, err := core.GetReferenceFromString(c.URLParams["uuid"])
+				reference, err := base.GetReferenceFromString(c.URLParams["uuid"])
 
 				if err != nil {
 					helper.SendWithHttpCode(res, http.StatusInternalServerError, "Unable to parse the reference")
@@ -339,11 +339,11 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 				err := apiHandler.Save(req.Body, w)
 
-				if err == core.RevisionError {
+				if err == base.RevisionError {
 					res.WriteHeader(http.StatusConflict)
 				}
 
-				if err == core.ValidationError {
+				if err == base.ValidationError {
 					res.WriteHeader(http.StatusPreconditionFailed)
 				}
 
@@ -364,12 +364,12 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 		mux.Delete(prefix+"/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			err := apiHandler.RemoveOne(c.URLParams["uuid"], res)
 
-			if err == core.NotFoundError {
+			if err == base.NotFoundError {
 				helper.SendWithHttpCode(res, http.StatusNotFound, err.Error())
 				return
 			}
 
-			if err == core.AlreadyDeletedError {
+			if err == base.AlreadyDeletedError {
 				helper.SendWithHttpCode(res, http.StatusGone, err.Error())
 				return
 			}
@@ -394,7 +394,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 				return
 			}
 
-			query := searchBuilder.BuildQuery(searchForm, manager.SelectBuilder(core.NewSelectOptions()))
+			query := searchBuilder.BuildQuery(searchForm, manager.SelectBuilder(base.NewSelectOptions()))
 
 			apiHandler.Find(res, query, searchForm.Page, searchForm.PerPage)
 		})

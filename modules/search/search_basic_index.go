@@ -7,8 +7,8 @@ package search
 
 import (
 	"fmt"
-	"github.com/rande/gonode/core"
-	"github.com/rande/gonode/modules/helper"
+	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/modules/base"
 	"io"
 	"net/http"
 	"strconv"
@@ -44,51 +44,51 @@ type Index struct {
 type IndexHandler struct {
 }
 
-func (h *IndexHandler) GetStruct() (core.NodeData, core.NodeMeta) {
+func (h *IndexHandler) GetStruct() (base.NodeData, base.NodeMeta) {
 	return &Index{
 		Deleted: NewParam(false, "="),
 	}, &IndexMeta{}
 }
 
-func (h *IndexHandler) PreInsert(node *core.Node, m core.NodeManager) error {
+func (h *IndexHandler) PreInsert(node *base.Node, m base.NodeManager) error {
 	return nil
 }
 
-func (h *IndexHandler) PreUpdate(node *core.Node, m core.NodeManager) error {
+func (h *IndexHandler) PreUpdate(node *base.Node, m base.NodeManager) error {
 	return nil
 }
 
-func (h *IndexHandler) PostInsert(node *core.Node, m core.NodeManager) error {
+func (h *IndexHandler) PostInsert(node *base.Node, m base.NodeManager) error {
 	return nil
 }
 
-func (h *IndexHandler) PostUpdate(node *core.Node, m core.NodeManager) error {
+func (h *IndexHandler) PostUpdate(node *base.Node, m base.NodeManager) error {
 	return nil
 }
 
-func (h *IndexHandler) Validate(node *core.Node, m core.NodeManager, errors core.Errors) {
+func (h *IndexHandler) Validate(node *base.Node, m base.NodeManager, errors base.Errors) {
 
 }
 
-func (h *IndexHandler) GetDownloadData(node *core.Node) *core.DownloadData {
-	return core.GetDownloadData()
+func (h *IndexHandler) GetDownloadData(node *base.Node) *base.DownloadData {
+	return base.GetDownloadData()
 }
 
-func (h *IndexHandler) Load(data []byte, meta []byte, node *core.Node) error {
-	return core.HandlerLoad(h, data, meta, node)
+func (h *IndexHandler) Load(data []byte, meta []byte, node *base.Node) error {
+	return base.HandlerLoad(h, data, meta, node)
 }
 
-func (h *IndexHandler) StoreStream(node *core.Node, r io.Reader) (int64, error) {
-	return core.DefaultHandlerStoreStream(node, r)
+func (h *IndexHandler) StoreStream(node *base.Node, r io.Reader) (int64, error) {
+	return base.DefaultHandlerStoreStream(node, r)
 }
 
 type IndexViewHandler struct {
 	Search    *SearchPGSQL
-	Manager   core.NodeManager
+	Manager   base.NodeManager
 	MaxResult uint64
 }
 
-func (v *IndexViewHandler) Execute(node *core.Node, request *core.ViewRequest, response *core.ViewResponse) error {
+func (v *IndexViewHandler) Execute(node *base.Node, request *base.ViewRequest, response *base.ViewResponse) error {
 	var err error
 
 	index := node.Data.(*Index)

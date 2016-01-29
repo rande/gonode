@@ -13,16 +13,16 @@ import (
 	"net/http"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/rande/gonode/core/bindata"
+	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/core/logger"
+	"github.com/rande/gonode/core/router"
+	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/modules/api"
-	"github.com/rande/gonode/modules/bindata"
-	"github.com/rande/gonode/modules/config"
+	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/guard"
-	"github.com/rande/gonode/modules/logger"
-	"github.com/rande/gonode/modules/node"
 	"github.com/rande/gonode/modules/prism"
-	"github.com/rande/gonode/modules/router"
 	"github.com/rande/gonode/modules/search"
-	"github.com/rande/gonode/modules/security"
 	"github.com/rande/gonode/modules/setup"
 	"github.com/zenazn/goji/bind"
 	"github.com/zenazn/goji/graceful"
@@ -69,10 +69,10 @@ func (c *ServerCommand) Run(args []string) int {
 	security.ConfigureServer(l, conf)
 	search.ConfigureServer(l, conf)
 	api.ConfigureServer(l, conf)
-	guard.ConfigureServer(l, conf)
+	node_guard.ConfigureServer(l, conf)
 	prism.ConfigureServer(l, conf)
 	router.ConfigureServer(l, conf)
-	node.ConfigureServer(l, conf)
+	base.ConfigureServer(l, conf)
 
 	// must be last for now
 	bindata.ConfigureServer(l, conf)

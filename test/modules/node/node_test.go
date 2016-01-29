@@ -7,7 +7,7 @@ package node
 
 import (
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/blog"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
@@ -18,9 +18,9 @@ import (
 func Test_Valid_UpdatedAt(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 
-		manager := app.Get("gonode.manager").(*core.PgNodeManager)
+		manager := app.Get("gonode.manager").(*base.PgNodeManager)
 
-		node := app.Get("gonode.handler_collection").(core.HandlerCollection).NewNode("blog.post")
+		node := app.Get("gonode.handler_collection").(base.HandlerCollection).NewNode("blog.post")
 		data := node.Data.(*blog.Post)
 		data.Title = "Blog Post 1"
 
@@ -37,9 +37,9 @@ func Test_Valid_UpdatedAt(t *testing.T) {
 func Test_New_Revision(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 
-		manager := app.Get("gonode.manager").(*core.PgNodeManager)
+		manager := app.Get("gonode.manager").(*base.PgNodeManager)
 
-		node := app.Get("gonode.handler_collection").(core.HandlerCollection).NewNode("blog.post")
+		node := app.Get("gonode.handler_collection").(base.HandlerCollection).NewNode("blog.post")
 		data := node.Data.(*blog.Post)
 		data.Title = "Blog Post 1"
 
