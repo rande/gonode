@@ -36,7 +36,7 @@ func Test_JwtLoginGuardAuthenticator_getCredentials_Valid_Request(t *testing.T) 
 	req, _ := http.NewRequest("POST", "/login", strings.NewReader(v.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	c, err := a.getCredentials(req)
+	c, err := a.GetCredentials(req)
 
 	assert.NotNil(t, c)
 	assert.Nil(t, err)
@@ -60,7 +60,7 @@ func Test_JwtLoginGuardAuthenticator_checkCredentials_Valid_Password(t *testing.
 	c := &struct{ Username, Password string }{Username: "thomas", Password: "ZePassword"}
 	u := &DefaultGuardUser{Username: "thomas", Password: string(password[:])}
 
-	err := a.checkCredentials(c, u)
+	err := a.CheckCredentials(c, u)
 
 	assert.Nil(t, err)
 }
@@ -79,7 +79,7 @@ func Test_JwtLoginGuardAuthenticator_createAuthenticatedToken(t *testing.T) {
 		Roles:    []string{"ADMIN"},
 	}
 
-	token, err := a.createAuthenticatedToken(u)
+	token, err := a.CreateAuthenticatedToken(u)
 
 	assert.NotNil(t, token)
 	assert.Nil(t, err)
@@ -102,7 +102,7 @@ func Test_JwtLoginGuardAuthenticator_onAuthenticationSuccess(t *testing.T) {
 		Roles:    []string{"ADMIN"},
 	}
 
-	a.onAuthenticationSuccess(req, res, token)
+	a.OnAuthenticationSuccess(req, res, token)
 
 	b := bytes.NewBuffer([]byte(""))
 	io.Copy(b, res.Body)
@@ -148,7 +148,7 @@ func Test_JwtLoginGuardAuthenticator_onAuthenticationFailure(t *testing.T) {
 
 	err := InvalidCredentials
 
-	a.onAuthenticationFailure(req, res, err)
+	a.OnAuthenticationFailure(req, res, err)
 	b := bytes.NewBuffer([]byte(""))
 	io.Copy(b, res.Body)
 

@@ -67,9 +67,17 @@ func (m *PgNodeManager) FindBy(query sq.SelectBuilder, offset uint64, limit uint
 
 	list := list.New()
 
+	rawSql, _, _ := query.ToSql()
+
+	if m.Logger != nil {
+		m.Logger.WithFields(log.Fields{
+			"module": "node.manager",
+			"query":  rawSql,
+		}).Debug("Executing query")
+	}
+
 	if err != nil {
 		if m.Logger != nil {
-			rawSql, _, _ := query.ToSql()
 
 			m.Logger.WithFields(log.Fields{
 				"module": "node.manager",

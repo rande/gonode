@@ -70,29 +70,29 @@ type GuardAuthenticator interface {
 	// This method is call on each request.
 	// If the method return nil as interface{} value, it means the authenticator
 	// cannot handle the request
-	getCredentials(req *http.Request) (interface{}, error)
+	GetCredentials(req *http.Request) (interface{}, error)
 
 	// Return the user from the credentials
-	getUser(credentials interface{}) (GuardUser, error)
+	GetUser(credentials interface{}) (GuardUser, error)
 
 	// Check if the provided credentials are valid for the current user
-	checkCredentials(credentials interface{}, user GuardUser) error
+	CheckCredentials(credentials interface{}, user GuardUser) error
 
 	// Return a security token related to the user
-	createAuthenticatedToken(u GuardUser) (GuardToken, error)
+	CreateAuthenticatedToken(u GuardUser) (GuardToken, error)
 
 	// Action when the authentication fail.
 	// On a default form login, it can be used to redirect the user to login page
 	// return true if the workflows must be stopped (ie, the authenticator was written
 	// bytes on the response. false if not.
-	onAuthenticationFailure(req *http.Request, res http.ResponseWriter, err error) bool
+	OnAuthenticationFailure(req *http.Request, res http.ResponseWriter, err error) bool
 
 	// Action when the authentication success
 	// On a default form login, it can be used to redirect the user to protected page
 	// or the homepage
 	// return true if the workflows must be stopped (ie, the authenticator was written
 	// bytes on the response. false if not.
-	onAuthenticationSuccess(req *http.Request, res http.ResponseWriter, token GuardToken) bool
+	OnAuthenticationSuccess(req *http.Request, res http.ResponseWriter, token GuardToken) bool
 }
 
 type GuardManager interface {

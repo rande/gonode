@@ -6,6 +6,7 @@
 package node_guard
 
 import (
+	log "github.com/Sirupsen/logrus"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/guard"
@@ -36,6 +37,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 		mux := app.Get("goji.mux").(*web.Mux)
 		conf := app.Get("gonode.configuration").(*config.ServerConfig)
 		manager := app.Get("gonode.manager").(*base.PgNodeManager)
+		logger := app.Get("logger").(*log.Logger)
 
 		auths := []guard.GuardAuthenticator{
 			&guard.JwtTokenGuardAuthenticator{
@@ -43,12 +45,14 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 				Key:      []byte(conf.Guard.Key),
 				Validity: conf.Guard.Jwt.Validity,
 				Manager:  &GuardManager{manager},
+				Logger:   logger,
 			},
 			&guard.JwtLoginGuardAuthenticator{
 				LoginPath: conf.Guard.Jwt.Login.Path,
 				Key:       []byte(conf.Guard.Key),
 				Validity:  conf.Guard.Jwt.Validity,
 				Manager:   &GuardManager{manager},
+				Logger:    logger,
 			},
 		}
 

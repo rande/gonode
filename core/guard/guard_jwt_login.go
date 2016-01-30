@@ -7,6 +7,7 @@ package guard
 
 import (
 	"encoding/json"
+	log "github.com/Sirupsen/logrus"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/schema"
 	"golang.org/x/crypto/bcrypt"
@@ -20,9 +21,10 @@ type JwtLoginGuardAuthenticator struct {
 	Manager   GuardManager
 	Validity  int64
 	Key       []byte
+	Logger    *log.Logger
 }
 
-func (a *JwtLoginGuardAuthenticator) getCredentials(req *http.Request) (interface{}, error) {
+func (a *JwtLoginGuardAuthenticator) GetCredentials(req *http.Request) (interface{}, error) {
 	if !(req.Method == "POST" && req.URL.Path == a.LoginPath) {
 		return nil, nil
 	}
@@ -39,15 +41,30 @@ func (a *JwtLoginGuardAuthenticator) getCredentials(req *http.Request) (interfac
 		return nil, err
 	}
 
+	if a.Logger != nil {
+		a.Logger.WithFields(log.Fields{
+			"module":   "core.guard.jwt_login",
+			"username": loginForm.Username,
+		}).Info("Starting authentification process")
+	}
+
 	return &struct{ Username, Password string }{loginForm.Username, loginForm.Password}, nil
 }
 
-func (a *JwtLoginGuardAuthenticator) getUser(credentials interface{}) (GuardUser, error) {
+func (a *JwtLoginGuardAuthenticator) GetUser(credentials interface{}) (GuardUser, error) {
 	c := credentials.(*struct{ Username, Password string })
 
 	user, err := a.Manager.GetUser(c.Username)
 
 	if err != nil {
+		if a.Logger != nil {
+			a.Logger.WithFields(log.Fields{
+				"module":   "core.guard.jwt_login",
+				"error":    err.Error(),
+				"username": c.Username,
+			}).Error("An error occurs when retrieving the user")
+		}
+
 		return user, err
 	}
 
@@ -55,27 +72,49 @@ func (a *JwtLoginGuardAuthenticator) getUser(credentials interface{}) (GuardUser
 		return user, nil
 	}
 
+	if a.Logger != nil {
+		a.Logger.WithFields(log.Fields{
+			"module":   "core.guard.jwt_login",
+			"username": c.Username,
+		}).Info("Unable to found the user")
+	}
+
 	return nil, UnableRetrieveUser
 }
 
-func (a *JwtLoginGuardAuthenticator) checkCredentials(credentials interface{}, user GuardUser) error {
+func (a *JwtLoginGuardAuthenticator) CheckCredentials(credentials interface{}, user GuardUser) error {
 	c := credentials.(*struct{ Username, Password string })
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.GetPassword()), []byte(c.Password)); err != nil { // equal
+
+		if a.Logger != nil {
+			a.Logger.WithFields(log.Fields{
+				"module":   "core.guard.jwt_login",
+				"username": c.Username,
+			}).Info("Invalid credentials")
+		}
+
 		return InvalidCredentials
+	}
+
+	if a.Logger != nil {
+		a.Logger.WithFields(log.Fields{
+			"module":   "core.guard.jwt_login",
+			"username": c.Username,
+		}).Info("Valid credentials")
 	}
 
 	return nil
 }
 
-func (a *JwtLoginGuardAuthenticator) createAuthenticatedToken(user GuardUser) (GuardToken, error) {
+func (a *JwtLoginGuardAuthenticator) CreateAuthenticatedToken(user GuardUser) (GuardToken, error) {
 	return &DefaultGuardToken{
 		Username: user.GetUsername(),
 		Roles:    user.GetRoles(),
 	}, nil
 }
 
-func (a *JwtLoginGuardAuthenticator) onAuthenticationFailure(req *http.Request, res http.ResponseWriter, err error) bool {
+func (a *JwtLoginGuardAuthenticator) OnAuthenticationFailure(req *http.Request, res http.ResponseWriter, err error) bool {
 	// nothing to do
 	res.Header().Set("Content-Type", "application/json")
 
@@ -91,7 +130,7 @@ func (a *JwtLoginGuardAuthenticator) onAuthenticationFailure(req *http.Request, 
 	return true
 }
 
-func (a *JwtLoginGuardAuthenticator) onAuthenticationSuccess(req *http.Request, res http.ResponseWriter, token GuardToken) bool {
+func (a *JwtLoginGuardAuthenticator) OnAuthenticationSuccess(req *http.Request, res http.ResponseWriter, token GuardToken) bool {
 	jwtToken := jwt.New(jwt.SigningMethodHS256)
 
 	// @todo: add support for referenced token on database

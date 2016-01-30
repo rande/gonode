@@ -19,7 +19,7 @@ func Test_Perform_Authentification_With_Not_Found_Credentials(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	a := &MockedAuthenticator{}
-	a.On("getCredentials", r).Return(nil, nil)
+	a.On("GetCredentials", r).Return(nil, nil)
 
 	cw := &web.C{Env: make(map[interface{}]interface{})}
 
@@ -39,9 +39,9 @@ func Test_Perform_Authentification_With_Not_User_Found(t *testing.T) {
 	}
 
 	a := &MockedAuthenticator{}
-	a.On("getCredentials", r).Return(c, nil)
-	a.On("getUser", c).Return(nil, nil)
-	a.On("onAuthenticationFailure", r, w, nil).Return(true)
+	a.On("GetCredentials", r).Return(c, nil)
+	a.On("GetUser", c).Return(nil, nil)
+	a.On("OnAuthenticationFailure", r, w, nil).Return(true)
 
 	cw := &web.C{Env: make(map[interface{}]interface{})}
 
@@ -66,10 +66,10 @@ func Test_Perform_Authentification_With_Invalid_Credentials(t *testing.T) {
 	}
 
 	a := &MockedAuthenticator{}
-	a.On("getCredentials", r).Return(c, nil)
-	a.On("getUser", c).Return(u, nil)
-	a.On("checkCredentials", c, u).Return(InvalidCredentials)
-	a.On("onAuthenticationFailure", r, w, InvalidCredentials).Return(true)
+	a.On("GetCredentials", r).Return(c, nil)
+	a.On("GetUser", c).Return(u, nil)
+	a.On("CheckCredentials", c, u).Return(InvalidCredentials)
+	a.On("OnAuthenticationFailure", r, w, InvalidCredentials).Return(true)
 
 	cw := &web.C{Env: make(map[interface{}]interface{})}
 
@@ -98,11 +98,11 @@ func Test_Perform_Authentification_With_Valid_User(t *testing.T) {
 	}
 
 	a := &MockedAuthenticator{}
-	a.On("getCredentials", r).Return(c, nil)
-	a.On("getUser", c).Return(u, nil)
-	a.On("checkCredentials", c, u).Return(nil)
-	a.On("createAuthenticatedToken", u).Return(token, nil)
-	a.On("onAuthenticationSuccess", r, w, token).Return(true)
+	a.On("GetCredentials", r).Return(c, nil)
+	a.On("GetUser", c).Return(u, nil)
+	a.On("CheckCredentials", c, u).Return(nil)
+	a.On("CreateAuthenticatedToken", u).Return(token, nil)
+	a.On("OnAuthenticationSuccess", r, w, token).Return(true)
 
 	cw := &web.C{Env: make(map[interface{}]interface{})}
 

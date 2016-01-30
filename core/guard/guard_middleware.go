@@ -6,22 +6,58 @@
 package guard
 
 import (
+	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/zenazn/goji/web"
 	"net/http"
 )
 
 func GetGuardMiddleware(auths []GuardAuthenticator) func(c *web.C, h http.Handler) http.Handler {
 	return func(c *web.C, h http.Handler) http.Handler {
+		var logger *log.Entry
+
 		fn := func(w http.ResponseWriter, r *http.Request) {
+
+			if _, ok := c.Env["logger"]; ok {
+				logger = c.Env["logger"].(*log.Entry)
+			}
 
 			// handle security here
 			for _, authenticator := range auths {
+				if logger != nil {
+					logger.WithFields(log.Fields{
+						"module": "core.guard.middleware",
+						"type":   fmt.Sprintf("%T", authenticator),
+					}).Debug("Starting authentificator process")
+				}
+
 				performed, output := performAuthentication(c, authenticator, w, r)
 
 				if performed && output {
+					if logger != nil {
+						logger.WithFields(log.Fields{
+							"module": "core.guard.middleware",
+							"type":   fmt.Sprintf("%T", authenticator),
+						}).Debug("Authentification performed and output sent, skipping next middleware")
+					}
+
 					return
 				} else if performed {
+					if logger != nil {
+						logger.WithFields(log.Fields{
+							"module": "core.guard.middleware",
+							"type":   fmt.Sprintf("%T", authenticator),
+						}).Debug("Authentification performed, start next middleware")
+					}
+
 					break
+				}
+
+				if logger != nil {
+					logger.WithFields(log.Fields{
+						"module": "core.guard.middleware",
+						"type":   fmt.Sprintf("%T", authenticator),
+					}).Debug("Ignoring authenticator")
 				}
 			}
 
@@ -37,10 +73,10 @@ func performAuthentication(c *web.C, a GuardAuthenticator, w http.ResponseWriter
 	var o bool
 
 	// get credentials from request
-	credentials, err := a.getCredentials(r)
+	credentials, err := a.GetCredentials(r)
 
 	if err == InvalidCredentialsFormat {
-		o = a.onAuthenticationFailure(r, w, err)
+		o = a.OnAuthenticationFailure(r, w, err)
 
 		return true, o
 	}
@@ -51,28 +87,28 @@ func performAuthentication(c *web.C, a GuardAuthenticator, w http.ResponseWriter
 	}
 
 	// ok get the current user for the current credentials
-	user, err := a.getUser(credentials)
+	user, err := a.GetUser(credentials)
 
 	if err != nil || user == nil {
-		o = a.onAuthenticationFailure(r, w, err)
+		o = a.OnAuthenticationFailure(r, w, err)
 
 		return true, o
 	}
 
 	// check if the request's credentials match user credentials
-	if err = a.checkCredentials(credentials, user); err != nil {
-		o = a.onAuthenticationFailure(r, w, err)
+	if err = a.CheckCredentials(credentials, user); err != nil {
+		o = a.OnAuthenticationFailure(r, w, err)
 
 		return true, o
 	}
 
 	// create a valid security token for the user
-	token, err := a.createAuthenticatedToken(user)
+	token, err := a.CreateAuthenticatedToken(user)
 
 	c.Env["guard_token"] = token
 
 	// complete the process
-	o = a.onAuthenticationSuccess(r, w, token)
+	o = a.OnAuthenticationSuccess(r, w, token)
 
 	return true, o
 }

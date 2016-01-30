@@ -45,7 +45,7 @@ func Test_JwtTokenGuardAuthenticator_getCredentials_NoMatch(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/ressource", nil)
 
-	c, err := a.getCredentials(req)
+	c, err := a.GetCredentials(req)
 
 	assert.Nil(t, c)
 	assert.Nil(t, err)
@@ -61,7 +61,7 @@ func Test_JwtTokenGuardAuthenticator_getCredentials_NoHeader_Request(t *testing.
 
 	req, _ := http.NewRequest("GET", "/ressource", nil)
 
-	c, err := a.getCredentials(req)
+	c, err := a.GetCredentials(req)
 
 	assert.Nil(t, c)
 	assert.NotNil(t, err)
@@ -78,7 +78,7 @@ func Test_JwtTokenGuardAuthenticator_getCredentials_Invalid_Token(t *testing.T) 
 	req, _ := http.NewRequest("GET", "/ressource", nil)
 	req.Header.Set("Authorization", "Bearer XXXX")
 
-	c, err := a.getCredentials(req)
+	c, err := a.GetCredentials(req)
 
 	assert.Nil(t, c)
 	assert.NotNil(t, err)
@@ -98,7 +98,7 @@ func Test_JwtTokenGuardAuthenticator_getCredentials_Valid_Token_Header(t *testin
 	req, _ := http.NewRequest("GET", "/ressource", nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tokenString))
 
-	c, err := a.getCredentials(req)
+	c, err := a.GetCredentials(req)
 
 	assert.NotNil(t, c)
 	assert.Nil(t, err)
@@ -118,7 +118,7 @@ func Test_JwtTokenGuardAuthenticator_getCredentials_Valid_Token_QueryString(t *t
 
 	req, _ := http.NewRequest("GET", "/ressource?access_token="+tokenString, nil)
 
-	c, err := a.getCredentials(req)
+	c, err := a.GetCredentials(req)
 
 	assert.NotNil(t, c)
 	assert.Nil(t, err)
@@ -137,7 +137,7 @@ func Test_JwtTokenGuardAuthenticator_checkCredentials(t *testing.T) {
 	c := GetToken()
 	u := &DefaultGuardUser{Username: "thomas", Password: "dontcareaboutpassword"}
 
-	err := a.checkCredentials(c, u)
+	err := a.CheckCredentials(c, u)
 
 	assert.Nil(t, err)
 }
@@ -155,7 +155,7 @@ func Test_JwtTokenGuardAuthenticator_createAuthenticatedToken(t *testing.T) {
 		Roles:    []string{"ADMIN"},
 	}
 
-	token, err := a.createAuthenticatedToken(u)
+	token, err := a.CreateAuthenticatedToken(u)
 
 	assert.NotNil(t, token)
 	assert.Nil(t, err)
@@ -178,7 +178,7 @@ func Test_JwtTokenGuardAuthenticator_onAuthenticationSuccess(t *testing.T) {
 		Roles:    []string{"ADMIN"},
 	}
 
-	a.onAuthenticationSuccess(req, res, token)
+	a.OnAuthenticationSuccess(req, res, token)
 
 	b := bytes.NewBuffer([]byte(""))
 	io.Copy(b, res.Body)
@@ -199,7 +199,7 @@ func Test_JwtTokenGuardAuthenticator_onAuthenticationFailure(t *testing.T) {
 
 	err := InvalidCredentials
 
-	a.onAuthenticationFailure(req, res, err)
+	a.OnAuthenticationFailure(req, res, err)
 
 	b := bytes.NewBuffer([]byte(""))
 	io.Copy(b, res.Body)
