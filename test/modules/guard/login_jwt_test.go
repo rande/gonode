@@ -11,8 +11,8 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/core"
-	"github.com/rande/gonode/modules/config"
+	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/user"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
@@ -29,9 +29,9 @@ func Test_Create_Username(t *testing.T) {
 
 		// WITH
 		// create a valid user into the database ...
-		manager := app.Get("gonode.manager").(*core.PgNodeManager)
+		manager := app.Get("gonode.manager").(*base.PgNodeManager)
 
-		u := app.Get("gonode.handler_collection").(core.HandlerCollection).NewNode("core.user")
+		u := app.Get("gonode.handler_collection").(base.HandlerCollection).NewNode("core.user")
 		data := u.Data.(*user.User)
 		data.Email = "test@example.org"
 		data.Enabled = true

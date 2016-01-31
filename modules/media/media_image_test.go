@@ -6,7 +6,7 @@
 package media
 
 import (
-	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/modules/base"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -21,108 +21,108 @@ func Test_ImageHandler(t *testing.T) {
 	a.IsType(&ImageMeta{}, meta)
 	a.IsType(&Image{}, data)
 
-	a.Equal(meta.(*ImageMeta).SourceStatus, core.ProcessStatusInit)
+	a.Equal(meta.(*ImageMeta).SourceStatus, base.ProcessStatusInit)
 	a.Equal(data.(*Image).SourceUrl, "")
 }
 
 func Test_ImageHandler_PreInsert(t *testing.T) {
 	a := assert.New(t)
 
-	node := core.NewNode()
+	node := base.NewNode()
 
 	handler := &ImageHandler{}
-	manager := &core.PgNodeManager{}
+	manager := &base.PgNodeManager{}
 
 	node.Data, node.Meta = handler.GetStruct()
 
 	// no url => keep status
 	handler.PreInsert(node, manager)
-	a.Equal(node.Meta.(*ImageMeta).SourceStatus, core.ProcessStatusInit)
+	a.Equal(node.Meta.(*ImageMeta).SourceStatus, base.ProcessStatusInit)
 
 	// url => update status
 	node.Data.(*Image).SourceUrl = "http://myimage.com/salut.jpg"
 	handler.PreInsert(node, manager)
-	a.Equal(node.Meta.(*ImageMeta).SourceStatus, core.ProcessStatusUpdate)
+	a.Equal(node.Meta.(*ImageMeta).SourceStatus, base.ProcessStatusUpdate)
 
 	// url, status done => no update
-	node.Meta.(*ImageMeta).SourceStatus = core.ProcessStatusDone
+	node.Meta.(*ImageMeta).SourceStatus = base.ProcessStatusDone
 	handler.PreInsert(node, manager)
-	a.Equal(node.Meta.(*ImageMeta).SourceStatus, core.ProcessStatusDone)
+	a.Equal(node.Meta.(*ImageMeta).SourceStatus, base.ProcessStatusDone)
 }
 
 func Test_ImageHandler_PreUpdate(t *testing.T) {
 	a := assert.New(t)
 
-	node := core.NewNode()
+	node := base.NewNode()
 
 	handler := &ImageHandler{}
-	manager := &core.PgNodeManager{}
+	manager := &base.PgNodeManager{}
 
 	node.Data, node.Meta = handler.GetStruct()
 
 	// no url => keep status
 	handler.PreUpdate(node, manager)
-	a.Equal(node.Meta.(*ImageMeta).SourceStatus, core.ProcessStatusInit)
+	a.Equal(node.Meta.(*ImageMeta).SourceStatus, base.ProcessStatusInit)
 
 	// url => update status
 	node.Data.(*Image).SourceUrl = "http://myimage.com/salut.jpg"
 	handler.PreUpdate(node, manager)
-	a.Equal(node.Meta.(*ImageMeta).SourceStatus, core.ProcessStatusUpdate)
+	a.Equal(node.Meta.(*ImageMeta).SourceStatus, base.ProcessStatusUpdate)
 
 	// url, status done => no update
-	node.Meta.(*ImageMeta).SourceStatus = core.ProcessStatusDone
+	node.Meta.(*ImageMeta).SourceStatus = base.ProcessStatusDone
 	handler.PreUpdate(node, manager)
-	a.Equal(node.Meta.(*ImageMeta).SourceStatus, core.ProcessStatusDone)
+	a.Equal(node.Meta.(*ImageMeta).SourceStatus, base.ProcessStatusDone)
 }
 
 func Test_ImageHandler_PostUpdate(t *testing.T) {
 	a := assert.New(t)
 
-	node := core.NewNode()
+	node := base.NewNode()
 
 	handler := &ImageHandler{}
-	manager := &core.MockedManager{}
+	manager := &base.MockedManager{}
 	manager.On("Notify", "media_file_download", node.Uuid.String()).Return()
 
 	node.Data, node.Meta = handler.GetStruct()
 
 	// no url => keep status
 	handler.PostUpdate(node, manager)
-	a.Equal(node.Meta.(*ImageMeta).SourceStatus, core.ProcessStatusInit)
+	a.Equal(node.Meta.(*ImageMeta).SourceStatus, base.ProcessStatusInit)
 
 	// url => keep status
 	node.Data.(*Image).SourceUrl = "http://myimage.com/salut.jpg"
-	node.Meta.(*ImageMeta).SourceStatus = core.ProcessStatusUpdate
+	node.Meta.(*ImageMeta).SourceStatus = base.ProcessStatusUpdate
 
 	handler.PostUpdate(node, manager)
 
 	manager.AssertCalled(t, "Notify", "media_file_download", node.Uuid.String())
 
-	a.Equal(node.Meta.(*ImageMeta).SourceStatus, core.ProcessStatusUpdate)
+	a.Equal(node.Meta.(*ImageMeta).SourceStatus, base.ProcessStatusUpdate)
 }
 
 func Test_ImageHandler_PostInsert(t *testing.T) {
 	a := assert.New(t)
 
-	node := core.NewNode()
+	node := base.NewNode()
 
 	handler := &ImageHandler{}
-	manager := &core.MockedManager{}
+	manager := &base.MockedManager{}
 	manager.On("Notify", "media_file_download", node.Uuid.String()).Return()
 
 	node.Data, node.Meta = handler.GetStruct()
 
 	// no url => keep status
 	handler.PostInsert(node, manager)
-	a.Equal(node.Meta.(*ImageMeta).SourceStatus, core.ProcessStatusInit)
+	a.Equal(node.Meta.(*ImageMeta).SourceStatus, base.ProcessStatusInit)
 
 	// url => keep status
 	node.Data.(*Image).SourceUrl = "http://myimage.com/salut.jpg"
-	node.Meta.(*ImageMeta).SourceStatus = core.ProcessStatusUpdate
+	node.Meta.(*ImageMeta).SourceStatus = base.ProcessStatusUpdate
 
 	handler.PostInsert(node, manager)
 
 	manager.AssertCalled(t, "Notify", "media_file_download", node.Uuid.String())
 
-	a.Equal(node.Meta.(*ImageMeta).SourceStatus, core.ProcessStatusUpdate)
+	a.Equal(node.Meta.(*ImageMeta).SourceStatus, base.ProcessStatusUpdate)
 }

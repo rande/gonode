@@ -3,10 +3,10 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package guard
+package node_guard
 
 import (
-	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/modules/base"
 	"io"
 	"time"
 )
@@ -16,7 +16,7 @@ type JwtTokenMeta struct {
 }
 
 type JwtToken struct {
-	User  *core.Reference `json:"user"`
+	User  *base.Reference `json:"user"`
 	Key   []byte          `json:"key"`
 	Roles []string        `json:"roles"`
 }
@@ -24,38 +24,38 @@ type JwtToken struct {
 type JwtTokentHandler struct {
 }
 
-func (h *JwtTokentHandler) GetStruct() (core.NodeData, core.NodeMeta) {
+func (h *JwtTokentHandler) GetStruct() (base.NodeData, base.NodeMeta) {
 	return &JwtToken{}, &JwtTokenMeta{}
 }
 
-func (h *JwtTokentHandler) PreInsert(node *core.Node, m core.NodeManager) error {
+func (h *JwtTokentHandler) PreInsert(node *base.Node, m base.NodeManager) error {
 	return nil
 }
 
-func (h *JwtTokentHandler) PreUpdate(node *core.Node, m core.NodeManager) error {
+func (h *JwtTokentHandler) PreUpdate(node *base.Node, m base.NodeManager) error {
 	return nil
 }
 
-func (h *JwtTokentHandler) PostInsert(node *core.Node, m core.NodeManager) error {
+func (h *JwtTokentHandler) PostInsert(node *base.Node, m base.NodeManager) error {
 	return nil
 }
 
-func (h *JwtTokentHandler) PostUpdate(node *core.Node, m core.NodeManager) error {
+func (h *JwtTokentHandler) PostUpdate(node *base.Node, m base.NodeManager) error {
 	return nil
 }
 
-func (h *JwtTokentHandler) Validate(node *core.Node, m core.NodeManager, errors core.Errors) {
+func (h *JwtTokentHandler) Validate(node *base.Node, m base.NodeManager, errors base.Errors) {
 
 }
 
-func (h *JwtTokentHandler) GetDownloadData(node *core.Node) *core.DownloadData {
-	return core.GetDownloadData()
+func (h *JwtTokentHandler) GetDownloadData(node *base.Node) *base.DownloadData {
+	return base.GetDownloadData()
 }
 
-func (h *JwtTokentHandler) Load(data []byte, meta []byte, node *core.Node) error {
-	return core.HandlerLoad(h, data, meta, node)
+func (h *JwtTokentHandler) Load(data []byte, meta []byte, node *base.Node) error {
+	return base.HandlerLoad(h, data, meta, node)
 }
 
-func (h *JwtTokentHandler) StoreStream(node *core.Node, r io.Reader) (int64, error) {
-	return core.DefaultHandlerStoreStream(node, r)
+func (h *JwtTokentHandler) StoreStream(node *base.Node, r io.Reader) (int64, error) {
+	return base.DefaultHandlerStoreStream(node, r)
 }

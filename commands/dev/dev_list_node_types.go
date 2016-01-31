@@ -11,9 +11,9 @@ import (
 	"github.com/rande/goapp"
 
 	"github.com/rande/gonode/commands/server"
-	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/modules/api"
-	"github.com/rande/gonode/modules/config"
+	"github.com/rande/gonode/modules/base"
 
 	"fmt"
 )
@@ -55,10 +55,10 @@ func (c *DevListNodeTypesCommand) Run(args []string) int {
 
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 
-		handlers := app.Get("gonode.handler_collection").(core.HandlerCollection)
+		handlers := app.Get("gonode.handler_collection").(base.HandlerCollection)
 
 		for _, k := range handlers.GetKeys() {
-			c.Ui.Info(fmt.Sprintf(" > % -40s - %T", k, handlers.GetByCode(k)))
+			c.Ui.Info(fmt.Sprintf(" > %-40s - %T", k, handlers.GetByCode(k)))
 		}
 
 		c.Ui.Info(fmt.Sprintf("Found %d node types", len(app.GetKeys())))

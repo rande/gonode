@@ -3,6 +3,7 @@
 PID = .pid
 GO_FILES = $(shell find . -type f -name "*.go")
 GONODE_MODULES = $(shell ls -d ./modules/* | grep -v go)
+GONODE_CORE = $(shell ls -d ./core/* | grep -v go)
 GONODE_FUNC_TESTS = $(shell ls -d ./test/modules/* | grep -v go)
 
 GO_PATH = $(shell go env GOPATH)
@@ -53,7 +54,7 @@ format:
 	go fix ./...
 
 test-backend: bin
-	go test $(GONODE_MODULES) $(GONODE_FUNC_TESTS) ./core ./commands/server
+	go test $(GONODE_CORE) $(GONODE_MODULES) $(GONODE_FUNC_TESTS) ./commands/server
 	go vet ./...
 
 test-frontend:

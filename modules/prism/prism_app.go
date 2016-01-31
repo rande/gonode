@@ -8,20 +8,21 @@ package prism
 import (
 	"github.com/flosch/pongo2"
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/core"
-	"github.com/rande/gonode/modules/config"
-	"github.com/rande/gonode/modules/router"
+	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/core/router"
+	"github.com/rande/gonode/modules/base"
 	"github.com/zenazn/goji/web"
 	"net/http"
 )
 
 func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *http.Request) {
-	manager := app.Get("gonode.manager").(*core.PgNodeManager)
+	manager := app.Get("gonode.manager").(*base.PgNodeManager)
 	pongo := app.Get("gonode.pongo").(*pongo2.TemplateSet)
-	handlers := app.Get("gonode.view_handler_collection").(core.ViewHandlerCollection)
+	handlers := app.Get("gonode.view_handler_collection").(base.ViewHandlerCollection)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
-		reference, _ := core.GetReferenceFromString(c.URLParams["uuid"])
+		reference, _ := base.GetReferenceFromString(c.URLParams["uuid"])
 
 		format := "html"
 		if _, ok := c.URLParams["format"]; ok {
@@ -32,13 +33,13 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 
 		res.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
-		request := &core.ViewRequest{
+		request := &base.ViewRequest{
 			Context:     c,
 			HttpRequest: req,
 			Format:      format,
 		}
 
-		response := core.NewViewResponse(res)
+		response := base.NewViewResponse(res)
 
 		if _, ok := c.Env["request_context"]; ok {
 			response.Add("request_context", c.Env["request_context"])
@@ -53,7 +54,7 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 
 			err := handlers.Get(node).Execute(node, request, response)
 
-			core.PanicOnError(err)
+			helper.PanicOnError(err)
 
 			// the execute method already take care of the rendering, nothing to do
 			if response.Template == "" {
@@ -70,7 +71,7 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 
 		tpl, err := pongo.FromFile(response.Template)
 
-		core.PanicOnError(err)
+		helper.PanicOnError(err)
 
 		data, err := tpl.ExecuteBytes(response.Context)
 

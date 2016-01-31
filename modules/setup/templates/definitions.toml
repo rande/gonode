@@ -1,2 +1,2 @@
 [files]
-"setup.base"="core.setup.base.html.tpl, core.setup.header.html.tpl"
+"setup.base"="node.setup.base.html.tpl, node.setup.header.html.tpl"

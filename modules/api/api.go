@@ -11,7 +11,8 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	sq "github.com/lann/squirrel"
-	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/modules/base"
 	"io"
 )
 
@@ -30,9 +31,9 @@ type ApiPager struct {
 
 type Api struct {
 	Version    string
-	Manager    core.NodeManager
+	Manager    base.NodeManager
 	BaseUrl    string
-	Serializer *core.Serializer
+	Serializer *base.Serializer
 	Logger     *log.Logger
 }
 
@@ -41,7 +42,7 @@ type ApiOperation struct {
 	Message string `json:"message"`
 }
 
-func (a *Api) SelectBuilder(options *core.SelectOptions) sq.SelectBuilder {
+func (a *Api) SelectBuilder(options *base.SelectOptions) sq.SelectBuilder {
 	return a.Manager.SelectBuilder(options)
 }
 
@@ -67,7 +68,7 @@ func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uin
 		}
 
 		b := bytes.NewBuffer([]byte{})
-		a.Serializer.Serialize(b, e.Value.(*core.Node))
+		a.Serializer.Serialize(b, e.Value.(*base.Node))
 
 		message := json.RawMessage(b.Bytes())
 		pager.Elements = append(pager.Elements, &message)
@@ -75,17 +76,17 @@ func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uin
 		counter++
 	}
 
-	core.Serialize(w, pager)
+	base.Serialize(w, pager)
 
 	return nil
 }
 
 func (a *Api) Save(r io.Reader, w io.Writer) error {
-	node := core.NewNode()
+	node := base.NewNode()
 
 	err := a.Serializer.Deserialize(r, node)
 
-	core.PanicOnError(err)
+	helper.PanicOnError(err)
 
 	if a.Logger != nil {
 		a.Logger.Printf("trying to save node.uuid=%s, node.type=%s", node.Uuid, node.Type)
@@ -96,11 +97,11 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 	if saved != nil {
 		a.Logger.Printf("find uuid: %s", node.Uuid)
 
-		core.PanicUnless(node.Type == saved.Type, "Type mismatch")
-		core.PanicIf(saved.Deleted, "Cannot save a deleted node, restore it first ...")
+		helper.PanicUnless(node.Type == saved.Type, "Type mismatch")
+		helper.PanicIf(saved.Deleted, "Cannot save a deleted node, restore it first ...")
 
 		if node.Revision != saved.Revision {
-			return core.RevisionError
+			return base.RevisionError
 		}
 
 		node.Id = saved.Id
@@ -118,9 +119,9 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 	}
 
 	if ok, errors := a.Manager.Validate(node); !ok {
-		core.Serialize(w, errors)
+		base.Serialize(w, errors)
 
-		return core.ValidationError
+		return base.ValidationError
 	}
 
 	a.Manager.Save(node, true)
@@ -132,13 +133,13 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 
 func (a *Api) Move(nodeUuid, parentUuid string, w io.Writer) error {
 
-	nodeReference, err := core.GetReferenceFromString(nodeUuid)
+	nodeReference, err := base.GetReferenceFromString(nodeUuid)
 
 	if err != nil {
 		return err
 	}
 
-	parentReference, err := core.GetReferenceFromString(parentUuid)
+	parentReference, err := base.GetReferenceFromString(parentUuid)
 
 	if err != nil {
 		return err
@@ -159,16 +160,16 @@ func (a *Api) Move(nodeUuid, parentUuid string, w io.Writer) error {
 }
 
 func (a *Api) FindOne(uuid string, w io.Writer) error {
-	reference, err := core.GetReferenceFromString(uuid)
+	reference, err := base.GetReferenceFromString(uuid)
 
 	if err != nil {
-		return core.NotFoundError
+		return base.NotFoundError
 	}
 
 	node := a.Manager.Find(reference)
 
 	if node == nil {
-		return core.NotFoundError
+		return base.NotFoundError
 	}
 
 	a.Serializer.Serialize(w, node)
@@ -181,7 +182,7 @@ func (a *Api) FindOneBy(query sq.SelectBuilder, w io.Writer) error {
 	node := a.Manager.FindOneBy(query)
 
 	if node == nil {
-		return core.NotFoundError
+		return base.NotFoundError
 	}
 
 	a.Serializer.Serialize(w, node)
@@ -190,7 +191,7 @@ func (a *Api) FindOneBy(query sq.SelectBuilder, w io.Writer) error {
 }
 
 func (a *Api) RemoveOne(uuid string, w io.Writer) error {
-	reference, err := core.GetReferenceFromString(uuid)
+	reference, err := base.GetReferenceFromString(uuid)
 
 	if err != nil {
 		return err
@@ -199,11 +200,11 @@ func (a *Api) RemoveOne(uuid string, w io.Writer) error {
 	node := a.Manager.Find(reference)
 
 	if node == nil {
-		return core.NotFoundError
+		return base.NotFoundError
 	}
 
 	if node.Deleted {
-		return core.AlreadyDeletedError
+		return base.AlreadyDeletedError
 	}
 
 	node, _ = a.Manager.RemoveOne(node)

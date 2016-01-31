@@ -11,17 +11,17 @@ import (
 	sq "github.com/lann/squirrel"
 	pq "github.com/lib/pq"
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/core/vault"
 	"github.com/rande/gonode/modules/api"
+	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/blog"
-	"github.com/rande/gonode/modules/config"
 	"github.com/rande/gonode/modules/debug"
 	"github.com/rande/gonode/modules/feed"
 	"github.com/rande/gonode/modules/media"
 	"github.com/rande/gonode/modules/raw"
 	"github.com/rande/gonode/modules/search"
 	"github.com/rande/gonode/modules/user"
-	"github.com/rande/gonode/modules/vault"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
 	"net/http"
@@ -68,7 +68,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 		})
 
 		app.Set("gonode.handler_collection", func(app *goapp.App) interface{} {
-			return core.HandlerCollection{
+			return base.HandlerCollection{
 				"default": &debug.DefaultHandler{},
 				"media.image": &media.ImageHandler{
 					Vault: app.Get("gonode.vault.fs").(*vault.Vault),
@@ -83,16 +83,16 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 		})
 
 		app.Set("gonode.view_handler_collection", func(app *goapp.App) interface{} {
-			return core.ViewHandlerCollection{
+			return base.ViewHandlerCollection{
 				"default": &debug.DefaultViewHandler{},
 				"core.index": &search.IndexViewHandler{
 					Search:    app.Get("gonode.search.pgsql").(*search.SearchPGSQL),
-					Manager:   app.Get("gonode.manager").(*core.PgNodeManager),
+					Manager:   app.Get("gonode.manager").(*base.PgNodeManager),
 					MaxResult: 128,
 				},
 				"feed.index": &feed.FeedViewHandler{
 					Search:  app.Get("gonode.search.pgsql").(*search.SearchPGSQL),
-					Manager: app.Get("gonode.manager").(*core.PgNodeManager),
+					Manager: app.Get("gonode.manager").(*base.PgNodeManager),
 				},
 				"core.raw": &raw.RawViewHandler{},
 				"media.image": &media.MediaViewHandler{
@@ -104,11 +104,11 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 		})
 
 		app.Set("gonode.manager", func(app *goapp.App) interface{} {
-			return &core.PgNodeManager{
+			return &base.PgNodeManager{
 				Logger:   app.Get("logger").(*log.Logger),
 				Db:       app.Get("gonode.postgres.connection").(*sql.DB),
 				ReadOnly: false,
-				Handlers: app.Get("gonode.handler_collection").(core.Handlers),
+				Handlers: app.Get("gonode.handler_collection").(base.Handlers),
 				Prefix:   conf.Databases["master"].Prefix,
 			}
 		})
@@ -134,22 +134,22 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 		app.Set("gonode.api", func(app *goapp.App) interface{} {
 			return &api.Api{
-				Manager:    app.Get("gonode.manager").(*core.PgNodeManager),
+				Manager:    app.Get("gonode.manager").(*base.PgNodeManager),
 				Version:    "1.0.0",
-				Serializer: app.Get("gonode.node.serializer").(*core.Serializer),
+				Serializer: app.Get("gonode.node.serializer").(*base.Serializer),
 				Logger:     app.Get("logger").(*log.Logger),
 			}
 		})
 
 		app.Set("gonode.node.serializer", func(app *goapp.App) interface{} {
-			s := core.NewSerializer()
-			s.Handlers = app.Get("gonode.handler_collection").(core.Handlers)
+			s := base.NewSerializer()
+			s.Handlers = app.Get("gonode.handler_collection").(base.Handlers)
 
 			return s
 		})
 
 		app.Set("gonode.postgres.subscriber", func(app *goapp.App) interface{} {
-			return core.NewSubscriber(
+			return base.NewSubscriber(
 				conf.Databases["master"].DSN,
 				app.Get("logger").(*log.Logger),
 			)
@@ -175,10 +175,10 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 	l.Prepare(func(app *goapp.App) error {
 		// need to find a way to trigger the handler registration
-		sub := app.Get("gonode.postgres.subscriber").(*core.Subscriber)
+		sub := app.Get("gonode.postgres.subscriber").(*base.Subscriber)
 
-		sub.ListenMessage("media_youtube_update", func(app *goapp.App) core.SubscriberHander {
-			manager := app.Get("gonode.manager").(*core.PgNodeManager)
+		sub.ListenMessage("media_youtube_update", func(app *goapp.App) base.SubscriberHander {
+			manager := app.Get("gonode.manager").(*base.PgNodeManager)
 			listener := app.Get("gonode.listener.youtube").(*media.YoutubeListener)
 
 			return func(notification *pq.Notification) (int, error) {
@@ -186,8 +186,8 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 			}
 		}(app))
 
-		sub.ListenMessage("media_file_download", func(app *goapp.App) core.SubscriberHander {
-			manager := app.Get("gonode.manager").(*core.PgNodeManager)
+		sub.ListenMessage("media_file_download", func(app *goapp.App) base.SubscriberHander {
+			manager := app.Get("gonode.manager").(*base.PgNodeManager)
 			listener := app.Get("gonode.listener.file_downloader").(*media.ImageDownloadListener)
 
 			return func(notification *pq.Notification) (int, error) {
@@ -195,7 +195,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 			}
 		}(app))
 
-		sub.ListenMessage("core_sleep", func(app *goapp.App) core.SubscriberHander {
+		sub.ListenMessage("core_sleep", func(app *goapp.App) base.SubscriberHander {
 			return func(notification *pq.Notification) (int, error) {
 
 				logger := app.Get("logger").(*log.Logger)
@@ -208,7 +208,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 				logger.Printf("[core_sleep] wake up ...")
 
-				return core.PubSubListenContinue, nil
+				return base.PubSubListenContinue, nil
 			}
 		}(app))
 

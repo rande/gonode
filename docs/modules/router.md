@@ -82,7 +82,7 @@ package prism
 import (
 	"github.com/flosch/pongo2"
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/modules/config"
+	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/modules/router"
 )
 

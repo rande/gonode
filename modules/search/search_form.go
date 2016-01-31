@@ -6,7 +6,7 @@
 package search
 
 import (
-	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/modules/base"
 )
 
 type Param struct {
@@ -90,15 +90,15 @@ func NewSearchFormFromIndex(index *Index) *SearchForm {
 	return search
 }
 
-func GetPager(search *SearchForm, manager core.NodeManager, engine *SearchPGSQL) *SearchPager {
-	query := engine.BuildQuery(search, manager.SelectBuilder(core.NewSelectOptions()))
+func GetPager(search *SearchForm, manager base.NodeManager, engine *SearchPGSQL) *SearchPager {
+	query := engine.BuildQuery(search, manager.SelectBuilder(base.NewSelectOptions()))
 
 	list := manager.FindBy(query, (search.Page-1)*search.PerPage, search.PerPage+1)
 
 	pager := &SearchPager{
 		Page:     search.Page,
 		PerPage:  search.PerPage,
-		Elements: make([]*core.Node, 0),
+		Elements: make([]*base.Node, 0),
 		Previous: uint64(0),
 		Next:     uint64(0),
 	}
@@ -113,7 +113,7 @@ func GetPager(search *SearchForm, manager core.NodeManager, engine *SearchPGSQL)
 			pager.Next = search.Page + 1
 			break
 		}
-		pager.Elements = append(pager.Elements, e.Value.(*core.Node))
+		pager.Elements = append(pager.Elements, e.Value.(*base.Node))
 
 		counter++
 	}

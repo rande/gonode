@@ -14,7 +14,7 @@ import (
 	"github.com/rande/gonode/modules/api"
 
 	"fmt"
-	"github.com/rande/gonode/modules/config"
+	"github.com/rande/gonode/core/config"
 )
 
 type DevListServicesCommand struct {

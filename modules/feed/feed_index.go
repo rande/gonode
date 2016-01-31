@@ -8,7 +8,7 @@ package feed
 import (
 	"errors"
 	"fmt"
-	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/search"
 	"io"
 )
@@ -26,8 +26,7 @@ type Feed struct {
 type FeedHandler struct {
 }
 
-func (h *FeedHandler) GetStruct() (core.NodeData, core.NodeMeta) {
-
+func (h *FeedHandler) GetStruct() (base.NodeData, base.NodeMeta) {
 	return &Feed{
 		Index: &search.Index{
 			Deleted: search.NewParam(false, "="),
@@ -36,43 +35,43 @@ func (h *FeedHandler) GetStruct() (core.NodeData, core.NodeMeta) {
 	}, &search.IndexMeta{}
 }
 
-func (h *FeedHandler) PreInsert(node *core.Node, m core.NodeManager) error {
+func (h *FeedHandler) PreInsert(node *base.Node, m base.NodeManager) error {
 	return nil
 }
 
-func (h *FeedHandler) PreUpdate(node *core.Node, m core.NodeManager) error {
+func (h *FeedHandler) PreUpdate(node *base.Node, m base.NodeManager) error {
 	return nil
 }
 
-func (h *FeedHandler) PostInsert(node *core.Node, m core.NodeManager) error {
+func (h *FeedHandler) PostInsert(node *base.Node, m base.NodeManager) error {
 	return nil
 }
 
-func (h *FeedHandler) PostUpdate(node *core.Node, m core.NodeManager) error {
+func (h *FeedHandler) PostUpdate(node *base.Node, m base.NodeManager) error {
 	return nil
 }
 
-func (h *FeedHandler) Validate(node *core.Node, m core.NodeManager, errors core.Errors) {
+func (h *FeedHandler) Validate(node *base.Node, m base.NodeManager, errors base.Errors) {
 }
 
-func (h *FeedHandler) GetDownloadData(node *core.Node) *core.DownloadData {
-	return core.GetDownloadData()
+func (h *FeedHandler) GetDownloadData(node *base.Node) *base.DownloadData {
+	return base.GetDownloadData()
 }
 
-func (h *FeedHandler) Load(data []byte, meta []byte, node *core.Node) error {
-	return core.HandlerLoad(h, data, meta, node)
+func (h *FeedHandler) Load(data []byte, meta []byte, node *base.Node) error {
+	return base.HandlerLoad(h, data, meta, node)
 }
 
-func (h *FeedHandler) StoreStream(node *core.Node, r io.Reader) (int64, error) {
-	return core.DefaultHandlerStoreStream(node, r)
+func (h *FeedHandler) StoreStream(node *base.Node, r io.Reader) (int64, error) {
+	return base.DefaultHandlerStoreStream(node, r)
 }
 
 type FeedViewHandler struct {
 	Search  *search.SearchPGSQL
-	Manager core.NodeManager
+	Manager base.NodeManager
 }
 
-func (v *FeedViewHandler) Execute(node *core.Node, request *core.ViewRequest, response *core.ViewResponse) error {
+func (v *FeedViewHandler) Execute(node *base.Node, request *base.ViewRequest, response *base.ViewResponse) error {
 	feed := node.Data.(*Feed)
 
 	// we just copy over node to create search form

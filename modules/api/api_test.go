@@ -11,7 +11,8 @@ import (
 	"encoding/json"
 	"github.com/gorilla/schema"
 	sq "github.com/lann/squirrel"
-	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/search"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
@@ -23,29 +24,29 @@ func Test_ApiPager_Serialization(t *testing.T) {
 	sb := sq.Select("id, name").From("test_nodes").PlaceholderFormat(sq.Dollar)
 
 	list := list.New()
-	node1 := core.NewNode()
+	node1 := base.NewNode()
 	node1.Type = "image"
 	node1.CreatedAt, _ = time.Parse(time.RFC3339Nano, "2015-06-15T10:23:08.698707603+02:00")
 	node1.UpdatedAt, _ = time.Parse(time.RFC3339Nano, "2015-06-15T10:23:08.698707603+02:00")
 
 	list.PushBack(node1)
 
-	node2 := core.NewNode()
+	node2 := base.NewNode()
 	node2.Type = "video"
 	node2.CreatedAt, _ = time.Parse(time.RFC3339Nano, "2015-06-15T10:23:08.698707603+02:00")
 	node2.UpdatedAt, _ = time.Parse(time.RFC3339Nano, "2015-06-15T10:23:08.698707603+02:00")
 
 	list.PushBack(node2)
 
-	options := core.NewSelectOptions()
-	manager := &core.MockedManager{}
+	options := base.NewSelectOptions()
+	manager := &base.MockedManager{}
 	manager.On("SelectBuilder", options).Return(sb)
 	manager.On("FindBy", sb, uint64(0), uint64(11)).Return(list)
 
 	api := &Api{
 		Version:    "1",
 		Manager:    manager,
-		Serializer: core.NewSerializer(),
+		Serializer: base.NewSerializer(),
 	}
 
 	b := bytes.NewBuffer([]byte{})
@@ -60,7 +61,7 @@ func Test_ApiPager_Serialization(t *testing.T) {
 
 	data, err := ioutil.ReadFile("../../test/fixtures/pager_results.json")
 
-	core.PanicOnError(err)
+	helper.PanicOnError(err)
 
 	assert.Equal(t, string(data[:]), out.String())
 }
@@ -82,7 +83,7 @@ func Test_ApiPager_Deserialization(t *testing.T) {
 	// and then unmarshal again with the correct structure
 	raw, _ := json.Marshal(p.Elements[0])
 
-	n := core.NewNode()
+	n := base.NewNode()
 	json.Unmarshal(raw, n)
 
 	assert.Equal(t, "image", n.Type)

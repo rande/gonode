@@ -8,7 +8,9 @@ package search
 import (
 	"fmt"
 	sq "github.com/lann/squirrel"
-	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/core/squirrel"
+	"github.com/rande/gonode/modules/base"
 	"strings"
 )
 
@@ -35,7 +37,7 @@ func GetJsonSearchQuery(query sq.SelectBuilder, params []*Param, field string) s
 
 		if len(value) > 1 {
 			name := GetJsonQuery(field+"."+param.SubField, "->")
-			query = query.Where(core.NewExprSlice(fmt.Sprintf("%s ??| array["+sq.Placeholders(len(value))+"]", name), value))
+			query = query.Where(squirrel.NewExprSlice(fmt.Sprintf("%s ??| array["+sq.Placeholders(len(value))+"]", name), value))
 		}
 
 		if len(value) == 1 {
@@ -48,7 +50,7 @@ func GetJsonSearchQuery(query sq.SelectBuilder, params []*Param, field string) s
 }
 
 type SearchPager struct {
-	Elements []*core.Node
+	Elements []*base.Node
 	Page     uint64
 	PerPage  uint64
 	Next     uint64
@@ -61,7 +63,7 @@ type SearchPGSQL struct {
 func (s *SearchPGSQL) BuildQuery(searchForm *SearchForm, query sq.SelectBuilder) sq.SelectBuilder {
 
 	for _, order := range searchForm.OrderBy {
-		core.PanicIf(len(order.SubField) == 0, "OrderBy field name is empty")
+		helper.PanicIf(len(order.SubField) == 0, "OrderBy field name is empty")
 
 		query = query.OrderBy(GetJsonQuery(order.SubField, "->") + " " + order.Operation)
 	}

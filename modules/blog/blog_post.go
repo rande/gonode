@@ -6,7 +6,7 @@
 package blog
 
 import (
-	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/modules/base"
 	"io"
 	"time"
 )
@@ -26,40 +26,40 @@ type Post struct {
 type PostHandler struct {
 }
 
-func (h *PostHandler) GetStruct() (core.NodeData, core.NodeMeta) {
+func (h *PostHandler) GetStruct() (base.NodeData, base.NodeMeta) {
 	return &Post{
 		PublicationDate: time.Now(),
 	}, &PostMeta{}
 }
 
-func (h *PostHandler) PreInsert(node *core.Node, m core.NodeManager) error {
+func (h *PostHandler) PreInsert(node *base.Node, m base.NodeManager) error {
 	return nil
 }
 
-func (h *PostHandler) PreUpdate(node *core.Node, m core.NodeManager) error {
+func (h *PostHandler) PreUpdate(node *base.Node, m base.NodeManager) error {
 	return nil
 }
 
-func (h *PostHandler) PostInsert(node *core.Node, m core.NodeManager) error {
+func (h *PostHandler) PostInsert(node *base.Node, m base.NodeManager) error {
 	return nil
 }
 
-func (h *PostHandler) PostUpdate(node *core.Node, m core.NodeManager) error {
+func (h *PostHandler) PostUpdate(node *base.Node, m base.NodeManager) error {
 	return nil
 }
 
-func (h *PostHandler) Validate(node *core.Node, m core.NodeManager, errors core.Errors) {
+func (h *PostHandler) Validate(node *base.Node, m base.NodeManager, errors base.Errors) {
 
 }
 
-func (h *PostHandler) GetDownloadData(node *core.Node) *core.DownloadData {
-	return core.GetDownloadData()
+func (h *PostHandler) GetDownloadData(node *base.Node) *base.DownloadData {
+	return base.GetDownloadData()
 }
 
-func (h *PostHandler) Load(data []byte, meta []byte, node *core.Node) error {
-	return core.HandlerLoad(h, data, meta, node)
+func (h *PostHandler) Load(data []byte, meta []byte, node *base.Node) error {
+	return base.HandlerLoad(h, data, meta, node)
 }
 
-func (h *PostHandler) StoreStream(node *core.Node, r io.Reader) (int64, error) {
-	return core.DefaultHandlerStoreStream(node, r)
+func (h *PostHandler) StoreStream(node *base.Node, r io.Reader) (int64, error) {
+	return base.DefaultHandlerStoreStream(node, r)
 }

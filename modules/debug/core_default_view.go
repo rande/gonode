@@ -7,13 +7,13 @@ package debug
 
 import (
 	"fmt"
-	"github.com/rande/gonode/core"
+	"github.com/rande/gonode/modules/base"
 )
 
 type DefaultViewHandler struct {
 }
 
-func (v *DefaultViewHandler) Execute(node *core.Node, request *core.ViewRequest, response *core.ViewResponse) error {
+func (v *DefaultViewHandler) Execute(node *base.Node, request *base.ViewRequest, response *base.ViewResponse) error {
 
 	response.
 		Set(200, fmt.Sprintf("nodes/%s.tpl", node.Type)).

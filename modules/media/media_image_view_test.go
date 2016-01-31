@@ -7,8 +7,9 @@ package media
 
 import (
 	"errors"
-	"github.com/rande/gonode/core"
-	"github.com/rande/gonode/modules/vault"
+	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/core/vault"
+	"github.com/rande/gonode/modules/base"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -26,7 +27,7 @@ func Test_ContainsSize(t *testing.T) {
 func GetDriver() vault.VaultDriver {
 	fv, err := os.Open("../../test/fixtures/photo.jpg.vault")
 
-	core.PanicOnError(err)
+	helper.PanicOnError(err)
 
 	driver := &vault.MockedDriver{}
 	driver.
@@ -35,7 +36,7 @@ func GetDriver() vault.VaultDriver {
 		Return(fv, nil)
 
 	f, err := os.Open("../../test/fixtures/photo.jpg")
-	core.PanicOnError(err)
+	helper.PanicOnError(err)
 	driver.
 		// default string for 111...111 uuid
 		On("GetReader", "eb/60/6938046e0b96477b491c35ab8ce174ce96cfef588c827508a14822e16939.bin").
@@ -45,7 +46,7 @@ func GetDriver() vault.VaultDriver {
 }
 
 func Test_MediaViewHandler_NoError_And_NoParam(t *testing.T) {
-	n := core.NewNode()
+	n := base.NewNode()
 	n.Meta = &ImageMeta{
 		ContentType: "image/jpeg",
 	}
@@ -59,12 +60,12 @@ func Test_MediaViewHandler_NoError_And_NoParam(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/we-don-t-care", nil)
 
-	request := &core.ViewRequest{
+	request := &base.ViewRequest{
 		HttpRequest: req,
 	}
 
 	res := httptest.NewRecorder()
-	response := &core.ViewResponse{
+	response := &base.ViewResponse{
 		HttpResponse: res,
 	}
 
@@ -82,7 +83,7 @@ func Test_MediaViewHandler_VaultError(t *testing.T) {
 		On("GetReader", "eb/60/6938046e0b96477b491c35ab8ce174ce96cfef588c827508a14822e16939.bin.vault").
 		Return(nil, errors.New("error"))
 
-	n := core.NewNode()
+	n := base.NewNode()
 	n.Meta = &ImageMeta{
 		ContentType: "image/jpeg",
 	}
@@ -96,12 +97,12 @@ func Test_MediaViewHandler_VaultError(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/we-don-t-care", nil)
 
-	request := &core.ViewRequest{
+	request := &base.ViewRequest{
 		HttpRequest: req,
 	}
 
 	res := httptest.NewRecorder()
-	response := &core.ViewResponse{
+	response := &base.ViewResponse{
 		HttpResponse: res,
 	}
 
@@ -112,7 +113,7 @@ func Test_MediaViewHandler_VaultError(t *testing.T) {
 }
 
 func Test_MediaViewHandler_InvalidResize_Width(t *testing.T) {
-	n := core.NewNode()
+	n := base.NewNode()
 	n.Meta = &ImageMeta{
 		ContentType: "image/jpeg",
 	}
@@ -127,12 +128,12 @@ func Test_MediaViewHandler_InvalidResize_Width(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/we-don-t-care?mr=3000", nil)
 
-	request := &core.ViewRequest{
+	request := &base.ViewRequest{
 		HttpRequest: req,
 	}
 
 	res := httptest.NewRecorder()
-	response := &core.ViewResponse{
+	response := &base.ViewResponse{
 		HttpResponse: res,
 	}
 
@@ -143,7 +144,7 @@ func Test_MediaViewHandler_InvalidResize_Width(t *testing.T) {
 }
 
 func Test_MediaViewHandler_Invalid_Crop_Width(t *testing.T) {
-	n := core.NewNode()
+	n := base.NewNode()
 	n.Meta = &ImageMeta{
 		ContentType: "image/jpeg",
 	}
@@ -158,12 +159,12 @@ func Test_MediaViewHandler_Invalid_Crop_Width(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/we-don-t-care?mf=3000,3000", nil)
 
-	request := &core.ViewRequest{
+	request := &base.ViewRequest{
 		HttpRequest: req,
 	}
 
 	res := httptest.NewRecorder()
-	response := &core.ViewResponse{
+	response := &base.ViewResponse{
 		HttpResponse: res,
 	}
 
@@ -174,7 +175,7 @@ func Test_MediaViewHandler_Invalid_Crop_Width(t *testing.T) {
 }
 
 func Test_MediaViewHandler_Invalid_Resize_NotAllowedWidth(t *testing.T) {
-	n := core.NewNode()
+	n := base.NewNode()
 	n.Meta = &ImageMeta{
 		ContentType: "image/jpeg",
 	}
@@ -190,12 +191,12 @@ func Test_MediaViewHandler_Invalid_Resize_NotAllowedWidth(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/we-don-t-care?mr=120", nil)
 
-	request := &core.ViewRequest{
+	request := &base.ViewRequest{
 		HttpRequest: req,
 	}
 
 	res := httptest.NewRecorder()
-	response := &core.ViewResponse{
+	response := &base.ViewResponse{
 		HttpResponse: res,
 	}
 
@@ -206,7 +207,7 @@ func Test_MediaViewHandler_Invalid_Resize_NotAllowedWidth(t *testing.T) {
 }
 
 func Test_MediaViewHandler_Invalid_Crop_NotAllowedWidth(t *testing.T) {
-	n := core.NewNode()
+	n := base.NewNode()
 	n.Meta = &ImageMeta{
 		ContentType: "image/jpeg",
 	}
@@ -222,12 +223,12 @@ func Test_MediaViewHandler_Invalid_Crop_NotAllowedWidth(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/we-don-t-care?mf=120,120", nil)
 
-	request := &core.ViewRequest{
+	request := &base.ViewRequest{
 		HttpRequest: req,
 	}
 
 	res := httptest.NewRecorder()
-	response := &core.ViewResponse{
+	response := &base.ViewResponse{
 		HttpResponse: res,
 	}
 
@@ -238,7 +239,7 @@ func Test_MediaViewHandler_Invalid_Crop_NotAllowedWidth(t *testing.T) {
 }
 
 func Test_MediaViewHandler_Resize(t *testing.T) {
-	n := core.NewNode()
+	n := base.NewNode()
 	n.Meta = &ImageMeta{
 		ContentType: "image/jpeg",
 	}
@@ -254,12 +255,12 @@ func Test_MediaViewHandler_Resize(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/we-don-t-care?mr=150", nil)
 
-	request := &core.ViewRequest{
+	request := &base.ViewRequest{
 		HttpRequest: req,
 	}
 
 	res := httptest.NewRecorder()
-	response := &core.ViewResponse{
+	response := &base.ViewResponse{
 		HttpResponse: res,
 	}
 
@@ -271,7 +272,7 @@ func Test_MediaViewHandler_Resize(t *testing.T) {
 }
 
 func Test_MediaViewHandler_Crop(t *testing.T) {
-	n := core.NewNode()
+	n := base.NewNode()
 	n.Meta = &ImageMeta{
 		ContentType: "image/jpeg",
 	}
@@ -287,12 +288,12 @@ func Test_MediaViewHandler_Crop(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/we-don-t-care?mf=150,150", nil)
 
-	request := &core.ViewRequest{
+	request := &base.ViewRequest{
 		HttpRequest: req,
 	}
 
 	res := httptest.NewRecorder()
-	response := &core.ViewResponse{
+	response := &base.ViewResponse{
 		HttpResponse: res,
 	}
 
