@@ -189,7 +189,7 @@ func RunRequest(method string, path string, options ...interface{}) (*Response, 
 
 func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *goapp.App)) {
 
-	l := GetLifecycle("../../config_test.toml")
+	l := GetLifecycle("../config_test.toml")
 
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 		var err error

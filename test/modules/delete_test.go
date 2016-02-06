@@ -3,7 +3,7 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package api
+package modules
 
 import (
 	. "github.com/rande/goapp"
@@ -29,7 +29,7 @@ func Test_Delete_Existant_Node(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
 		auth := test.GetAuthHeader(t, ts)
 
-		file, _ := os.Open("../../fixtures/new_user.json")
+		file, _ := os.Open("../fixtures/new_user.json")
 		res, _ := test.RunRequest("POST", ts.URL+"/nodes", file, auth)
 
 		assert.Equal(t, 201, res.StatusCode, "Node created")
