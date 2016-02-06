@@ -1,32 +1,32 @@
 Prism
 =====
 
-This plugin allow to render a node with different output depends on the context. The context can be the requested format
-or any value.
+This plugin allows to render a node calling a specific view handler for the current node type.
 
-Each context must be defined and there is one rendered per context. A rendered is a template or a callback.
+Request / Response Workflow
+---------------------------
 
-
-Configuration
--------------
-
-```toml
-[prism]
-    [prism.template]
-
-
-html_desktop => 'reference_to_a_template'
-html_mobile => 'reference_to_another_template'
-xml_seo => 'reference_to_an_xml_template'
-
-Open questions
---------------
-
- - How to detect context ?
-
-Usage
------
-
-  /prism/:uuid => should render the node
+When the prism controller is being called a ``base.ViewRequest`` is created holding the current ``http.Request`` 
+structure, also a ``base.ViewResponse`` with the ``ResponseWriter``. So the ViewHandler is called with:  
   
-  
+  ``Execute(node *Node, request *ViewRequest, response *ViewResponse) error``
+
+The ``Execute`` method can either use the ``ResponseWriter`` to write content directly to the client or set the 
+``Template`` and the ``Context`` property from the ``ViewResponse`` structure.
+
+If the template is set, the controller will use this template to generate the related content. The ``ViewHandler``
+is like a small controller dedicated to one node.
+ 
+
+Template functions
+------------------
+
+ - ``prism_path`` : take a node as parameter and generates a valid path.
+
+Routes definition
+-----------------
+
+ - ``prism_format`` : Generates an url like this: ``/:uuid.:format``
+ - ``prism``:  Generates an url like this: ``/:uuid``
+ - ``prism_path_format``:  Generates an url like this: ``/:path.:format``
+ - ``prism_path``:  Generates an url like this: ``/:path.:format``

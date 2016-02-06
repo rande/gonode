@@ -87,10 +87,9 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 	l.Register(func(app *goapp.App) error {
 		// configure main services
 		app.Set("logger", func(app *goapp.App) interface{} {
-
 			logger := log.New()
-			logger.Out = os.Stderr
-			logger.Level = log.DebugLevel
+			logger.Out = os.Stdout
+			logger.Level = log.WarnLevel
 
 			return logger
 		})
@@ -229,6 +228,8 @@ func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *go
 		ts := httptest.NewServer(mux)
 
 		defer func() {
+			state.Out <- goapp.Control_Stop
+
 			ts.Close()
 
 			if r := recover(); r != nil {
@@ -259,11 +260,10 @@ func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *go
 		meta := u.Meta.(*user.UserMeta)
 		meta.PasswordCost = 1 // save test time
 
-		manager.Save(u, false)
+		_, err = manager.Save(u, false)
+		helper.PanicOnError(err)
 
 		f(t, ts, app)
-
-		state.Out <- 1
 
 		return nil
 	})

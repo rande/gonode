@@ -37,11 +37,15 @@ type SelectOptions struct {
 func NewSelectOptions() *SelectOptions {
 	return &SelectOptions{
 		TableSuffix:  "nodes",
-		SelectClause: "id, uuid, type, name, revision, version, created_at, updated_at, set_uuid, parent_uuid, parents, slug, created_by, updated_by, data, meta, modules, deleted, enabled, source, status, weight",
+		SelectClause: "id, uuid, type, name, revision, version, created_at, updated_at, set_uuid, parent_uuid, parents, slug, path, created_by, updated_by, data, meta, modules, deleted, enabled, source, status, weight",
 	}
 }
 
 func (m *PgNodeManager) SelectBuilder(options *SelectOptions) sq.SelectBuilder {
+	if options == nil {
+		options = NewSelectOptions()
+	}
+
 	return sq.
 		Select(options.SelectClause).
 		From(m.Prefix + "_" + options.TableSuffix).
@@ -141,6 +145,7 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 		&ParentUuid,
 		&Parents,
 		&node.Slug,
+		&node.Path,
 		&CreatedBy,
 		&UpdatedBy,
 		&data,
@@ -268,7 +273,7 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 	query := sq.Insert(table).
 		Columns(
 		"uuid", "type", "revision", "version", "name", "created_at", "updated_at", "set_uuid",
-		"parent_uuid", "parents", "slug", "created_by", "updated_by", "data", "meta", "modules",
+		"parent_uuid", "parents", "slug", "path", "created_by", "updated_by", "data", "meta", "modules",
 		"deleted", "enabled", "source", "status", "weight").
 		Values(
 		node.Uuid.CleanString(),
@@ -282,6 +287,7 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 		node.ParentUuid.CleanString(),
 		Parents,
 		node.Slug,
+		node.Path,
 		node.CreatedBy.CleanString(),
 		node.UpdatedBy.CleanString(),
 		string(InterfaceToJsonMessage(node.Type, node.Data)[:]),
@@ -332,16 +338,22 @@ func (m *PgNodeManager) Move(uuid, parentUuid Reference) (int64, error) {
 	}
 
 	if affectedRows > 0 {
+		// @todo: optimize to only use the 2 tree's branches: source and target
+		//        to avoid rebuilding the full tree
 		tx.Exec(fmt.Sprintf(`WITH RECURSIVE  r AS (
-					SELECT uuid, parent_uuid, parents
+					SELECT uuid, parent_uuid, parents,
+						CASE	WHEN type = 'core.root' THEN ''
+							WHEN array_length(parents, 1)>0 THEN path
+							ELSE '/' || slug::varchar(2000)
+						END as path
 					FROM %s r
 					WHERE uuid = $1::uuid
 				UNION ALL
-					SELECT c.uuid, c.parent_uuid, array_append(r.parents, c.parent_uuid) AS parents
+					SELECT c.uuid, c.parent_uuid, array_append(r.parents, c.parent_uuid) AS parents, r.path || '/' || c.slug as path
 					FROM %s c
 					JOIN r ON c.parent_uuid = r.uuid
 			)
-			UPDATE %s n SET parents = r.parents FROM r WHERE r.uuid = n.uuid`,
+			UPDATE %s n SET parents = r.parents, path = r.path FROM r WHERE r.uuid = n.uuid`,
 			m.Prefix+"_nodes",
 			m.Prefix+"_nodes",
 			m.Prefix+"_nodes"),
@@ -373,6 +385,7 @@ func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 		Set("updated_at", node.UpdatedAt).
 		Set("set_uuid", node.SetUuid.CleanString()).
 		Set("slug", node.Slug).
+		Set("path", node.Path).
 		Set("created_by", node.CreatedBy.CleanString()).
 		Set("updated_by", node.UpdatedBy.CleanString()).
 		Set("deleted", node.Deleted).
@@ -526,7 +539,7 @@ func (m *PgNodeManager) Validate(node *Node) (bool, Errors) {
 	}
 
 	if node.Slug == "" {
-		errors.AddError("slug", "Name cannot be empty")
+		errors.AddError("slug", "Slug cannot be empty")
 	}
 
 	if node.Type == "" {

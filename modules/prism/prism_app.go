@@ -7,6 +7,7 @@ package prism
 
 import (
 	"github.com/flosch/pongo2"
+	sq "github.com/lann/squirrel"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/helper"
@@ -14,6 +15,8 @@ import (
 	"github.com/rande/gonode/modules/base"
 	"github.com/zenazn/goji/web"
 	"net/http"
+	"net/url"
+	"strings"
 )
 
 func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *http.Request) {
@@ -22,14 +25,31 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 	handlers := app.Get("gonode.view_handler_collection").(base.ViewHandlerCollection)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
-		reference, _ := base.GetReferenceFromString(c.URLParams["uuid"])
+		var node *base.Node
 
 		format := "html"
-		if _, ok := c.URLParams["format"]; ok {
-			format = c.URLParams["format"]
-		}
+		if uuid, ok := c.URLParams["uuid"]; ok {
+			reference, _ := base.GetReferenceFromString(uuid)
 
-		node := manager.Find(reference)
+			node = manager.Find(reference)
+
+			if _, ok := c.URLParams["format"]; ok {
+				format = c.URLParams["format"]
+			}
+
+		} else { // get the path
+			path := req.URL.Path
+			s := strings.Split(req.URL.Path, ".")
+
+			if len(s) > 1 {
+				format = s[len(s)-1]
+				path = strings.Join(s[0:len(s)-1], "/")
+			}
+
+			query := manager.SelectBuilder(base.NewSelectOptions()).Where(sq.Eq{"path": path})
+
+			node = manager.FindOneBy(query)
+		}
 
 		res.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
@@ -50,6 +70,8 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 		response.Add("request", req)
 
 		if node != nil {
+			res.Header().Set("X-Content-Uuid", node.Uuid.String())
+
 			response.Add("node", node)
 
 			err := handlers.Get(node).Execute(node, request, response)
@@ -88,6 +110,50 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 	}
 }
 
+func PrismPath(router *router.Router) func(nv *pongo2.Value, vparams ...*pongo2.Value) *pongo2.Value {
+
+	return func(nv *pongo2.Value, vparams ...*pongo2.Value) *pongo2.Value {
+		var route string
+
+		if nv.Interface() == nil {
+			return pongo2.AsSafeValue("no-node")
+		}
+
+		node := nv.Interface().(*base.Node)
+
+		params := url.Values{}
+		if len(vparams) > 0 {
+			params = vparams[0].Interface().(url.Values)
+		}
+
+		if len(node.Path) > 0 {
+			params.Set("path", node.Path[1:])
+
+			if len(params.Get("format")) > 0 {
+				route = "prism_path_format"
+			} else {
+				route = "prism_path"
+			}
+		} else {
+			params.Set("uuid", node.Uuid.String())
+
+			if len(params.Get("format")) > 0 {
+				route = "prism_format"
+			} else {
+				route = "prism"
+			}
+		}
+
+		path, err := router.GeneratePath(route, params)
+
+		if err != nil {
+			panic(err)
+		}
+
+		return pongo2.AsSafeValue(path)
+	}
+}
+
 func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 	l.Prepare(func(app *goapp.App) error {
@@ -96,6 +162,20 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 		r.Handle("prism_format", prefix+"/prism/:uuid.:format", RenderPrism(app))
 		r.Handle("prism", prefix+"/prism/:uuid", RenderPrism(app))
+		r.Handle("prism_path_catch_all", prefix+"/*", RenderPrism(app))
+
+		// this should be never call, only there for route generation
+		r.Handle("prism_path_format", prefix+"/:path.:format", func(c web.C, res http.ResponseWriter, req *http.Request) {})
+		r.Handle("prism_path", prefix+"/:path", func(c web.C, res http.ResponseWriter, req *http.Request) {})
+
+		return nil
+	})
+
+	l.Prepare(func(app *goapp.App) error {
+
+		router := app.Get("gonode.router").(*router.Router)
+		pongo := app.Get("gonode.pongo").(*pongo2.TemplateSet)
+		pongo.Globals["prism_path"] = PrismPath(router)
 
 		return nil
 	})

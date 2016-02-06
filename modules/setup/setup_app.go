@@ -29,29 +29,40 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 		prefix := ""
 
 		mux.Post(prefix+"/setup/uninstall", func(res http.ResponseWriter, req *http.Request) {
+			var err error
 			res.Header().Set("Content-Type", "application/json")
 
 			prefix := conf.Databases["master"].Prefix
 
-			manager.Db.Exec(fmt.Sprintf(`DROP TABLE IF EXISTS "%s_nodes"`, prefix))
-			manager.Db.Exec(fmt.Sprintf(`DROP TABLE IF EXISTS "%s_nodes_audit"`, prefix))
-			manager.Db.Exec(fmt.Sprintf(`DROP INDEX IF EXISTS "%s_uuid_idx"`, prefix))
-			manager.Db.Exec(fmt.Sprintf(`DROP INDEX IF EXISTS "%s_uuid_current_idx"`, prefix))
-			manager.Db.Exec(fmt.Sprintf(`DROP SEQUENCE IF EXISTS "%s_nodes_id_seq" CASCADE`, prefix))
-			manager.Db.Exec(fmt.Sprintf(`DROP SEQUENCE IF EXISTS "%s_nodes_audit_id_seq" CASCADE`, prefix))
+			_, err = manager.Db.Exec(fmt.Sprintf(`DROP TABLE IF EXISTS "%s_nodes"`, prefix))
+			helper.PanicOnError(err)
+			_, err = manager.Db.Exec(fmt.Sprintf(`DROP TABLE IF EXISTS "%s_nodes_audit"`, prefix))
+			helper.PanicOnError(err)
+			_, err = manager.Db.Exec(fmt.Sprintf(`DROP INDEX IF EXISTS "%s_uuid_idx"`, prefix))
+			helper.PanicOnError(err)
+			_, err = manager.Db.Exec(fmt.Sprintf(`DROP INDEX IF EXISTS "%s_uuid_current_idx"`, prefix))
+			helper.PanicOnError(err)
+			_, err = manager.Db.Exec(fmt.Sprintf(`DROP SEQUENCE IF EXISTS "%s_nodes_id_seq" CASCADE`, prefix))
+			helper.PanicOnError(err)
+			_, err = manager.Db.Exec(fmt.Sprintf(`DROP SEQUENCE IF EXISTS "%s_nodes_audit_id_seq" CASCADE`, prefix))
+			helper.PanicOnError(err)
 
 			helper.SendWithHttpCode(res, http.StatusOK, "Successfully delete tables!")
 		})
 
 		mux.Post(prefix+"/setup/install", func(res http.ResponseWriter, req *http.Request) {
+			var err error
+			//var r sql.Result
+
 			res.Header().Set("Content-Type", "application/json")
 
 			prefix := conf.Databases["master"].Prefix
-			tx, _ := manager.Db.Begin()
 
 			// Create my table
-			tx.Exec(fmt.Sprintf(`CREATE SEQUENCE "%s_nodes_id_seq" INCREMENT 1 MINVALUE 0 MAXVALUE 2147483647 START 1 CACHE 1`, prefix))
-			tx.Exec(fmt.Sprintf(`CREATE TABLE "%s_nodes" (
+			_, err = manager.Db.Exec(fmt.Sprintf(`CREATE SEQUENCE "%s_nodes_id_seq" INCREMENT 1 MINVALUE 0 MAXVALUE 2147483647 START 1 CACHE 1`, prefix))
+			helper.PanicOnError(err)
+
+			_, err = manager.Db.Exec(fmt.Sprintf(`CREATE TABLE "%s_nodes" (
 				"id" INTEGER DEFAULT nextval('%s_nodes_id_seq'::regclass) NOT NULL UNIQUE,
 				"uuid" UUid NOT NULL,
 				"type" CHARACTER VARYING( 64 ) COLLATE "pg_catalog"."default" NOT NULL,
@@ -66,6 +77,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 				"meta" jsonb DEFAULT '{}'::jsonb NOT NULL,
 				"modules" jsonb DEFAULT '{}'::jsonb NOT NULL,
 				"slug" CHARACTER VARYING( 256 ) COLLATE "default" NOT NULL,
+				"path" CHARACTER VARYING( 2000 ) COLLATE "default" NOT NULL,
 				"source" UUid,
 				"set_uuid" UUid,
 				"parent_uuid" UUid,
@@ -79,13 +91,17 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 				CONSTRAINT "%s_slug" UNIQUE( "parent_uuid","slug","revision" ),
 				CONSTRAINT "%s_uuid" UNIQUE( "revision","uuid" )
 			)`, prefix, prefix, prefix, prefix))
+			helper.PanicOnError(err)
 
-			tx.Exec(fmt.Sprintf(`CREATE INDEX "%s_uuid_idx" ON "%s_nodes" USING btree( "uuid" ASC NULLS LAST )`, prefix, prefix))
-			tx.Exec(fmt.Sprintf(`CREATE INDEX "%s_uuid_current_idx" ON "%s_nodes" USING btree( "uuid" ASC NULLS LAST, "current" ASC NULLS LAST )`, prefix, prefix))
+			_, err = manager.Db.Exec(fmt.Sprintf(`CREATE INDEX "%s_uuid_idx" ON "%s_nodes" USING btree( "uuid" ASC NULLS LAST )`, prefix, prefix))
+			helper.PanicOnError(err)
+			_, err = manager.Db.Exec(fmt.Sprintf(`CREATE INDEX "%s_uuid_current_idx" ON "%s_nodes" USING btree( "uuid" ASC NULLS LAST, "current" ASC NULLS LAST )`, prefix, prefix))
+			helper.PanicOnError(err)
 
 			// Create Index
-			tx.Exec(fmt.Sprintf(`CREATE SEQUENCE "%s_nodes_audit_id_seq" INCREMENT 1 MINVALUE 0 MAXVALUE 2147483647 START 1 CACHE 1`, prefix))
-			tx.Exec(fmt.Sprintf(`CREATE TABLE "%s_nodes_audit" (
+			_, err = manager.Db.Exec(fmt.Sprintf(`CREATE SEQUENCE "%s_nodes_audit_id_seq" INCREMENT 1 MINVALUE 0 MAXVALUE 2147483647 START 1 CACHE 1`, prefix))
+			helper.PanicOnError(err)
+			_, err = manager.Db.Exec(fmt.Sprintf(`CREATE TABLE "%s_nodes_audit" (
 				"id" INTEGER DEFAULT nextval('%s_nodes_audit_id_seq'::regclass) NOT NULL UNIQUE,
 				"uuid" UUid NOT NULL,
 				"type" CHARACTER VARYING( 64 ) COLLATE "pg_catalog"."default" NOT NULL,
@@ -100,6 +116,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 				"meta" jsonb DEFAULT '{}'::jsonb NOT NULL,
 				"modules" jsonb DEFAULT '{}'::jsonb NOT NULL,
 				"slug" CHARACTER VARYING( 256 ) COLLATE "default" NOT NULL,
+				"path" CHARACTER VARYING( 2000 ) COLLATE "default" NOT NULL,
 				"source" UUid,
 				"set_uuid" UUid,
 				"parent_uuid" UUid,
@@ -111,11 +128,10 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 				"weight" INTEGER DEFAULT '0' NOT NULL,
 				PRIMARY KEY ( "id" )
 			)`, prefix, prefix))
-
-			err := tx.Commit()
+			helper.PanicOnError(err)
 
 			if err != nil {
-				helper.SendWithHttpCode(res, http.StatusInternalServerError, err.Error())
+				helper.SendWithHttpCode(res, http.StatusInternalServerError, "create tables: "+err.Error())
 			} else {
 				helper.SendWithHttpCode(res, http.StatusOK, "Successfully create tables!")
 			}

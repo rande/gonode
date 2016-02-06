@@ -96,6 +96,7 @@ type Node struct {
 	Type       string      `json:"type"`
 	Name       string      `json:"name"`
 	Slug       string      `json:"slug"`
+	Path       string      `json:"path"`
 	Data       interface{} `json:"data"`
 	Meta       interface{} `json:"meta"`
 	Status     int         `json:"status"`
@@ -155,6 +156,7 @@ func DumpNode(node *Node) {
 	fmt.Printf(" CreatedAt:  %v\n", node.CreatedAt)
 	fmt.Printf(" UpdatedAt:  %v\n", node.UpdatedAt)
 	fmt.Printf(" Slug:       %s\n", node.Slug)
+	fmt.Printf(" Path:       %s\n", node.Path)
 	fmt.Printf(" Data:       %T => %v\n", node.Data, node.Data)
 	fmt.Printf(" Meta:       %T => %v\n", node.Meta, node.Meta)
 	fmt.Printf(" Modules:    %T => %v\n", node.Modules, node.Modules)

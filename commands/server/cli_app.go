@@ -214,4 +214,27 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 		return nil
 	})
+
+	l.Exit(func(app *goapp.App) error {
+		logger := app.Get("logger").(*log.Logger)
+		logger.WithFields(log.Fields{
+			"module": "commands.server",
+		}).Info("Closing PostgreSQL connection")
+
+		db := app.Get("gonode.postgres.connection").(*sql.DB)
+		err := db.Close()
+
+		if err != nil {
+			logger.WithFields(log.Fields{
+				"module": "commands.server",
+				"error":  err,
+			}).Warn("Error while closing the connection")
+		}
+
+		logger.WithFields(log.Fields{
+			"module": "commands.server",
+		}).Info("End closing PostgreSQL connection")
+
+		return err
+	})
 }
