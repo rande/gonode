@@ -38,6 +38,35 @@ import (
 	"testing"
 )
 
+func GetPager(app *goapp.App, res *Response) *api.ApiPager {
+	p := &api.ApiPager{}
+
+	serializer := app.Get("gonode.node.serializer").(*base.Serializer)
+	serializer.Deserialize(res.Body, p)
+
+	// the Element is a [string]interface so we need to convert it back to []byte
+	// and then unmarshal again with the correct structure
+	for k, v := range p.Elements {
+		raw, _ := json.Marshal(v)
+
+		n := base.NewNode()
+		json.Unmarshal(raw, n)
+
+		p.Elements[k] = n
+	}
+
+	return p
+}
+
+func GetNode(app *goapp.App, res *Response) *base.Node {
+	n := base.NewNode()
+
+	serializer := app.Get("gonode.node.serializer").(*base.Serializer)
+	serializer.Deserialize(res.Body, n)
+
+	return n
+}
+
 func GetLifecycle(file string) *goapp.Lifecycle {
 
 	l := goapp.NewLifecycle()

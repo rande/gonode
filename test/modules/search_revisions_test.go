@@ -79,7 +79,7 @@ func Test_Search_Revision_Basic(t *testing.T) {
 			// WHEN
 			res, _ := test.RunRequest("GET", v.Url, nil, auth)
 
-			p := GetPager(app, res)
+			p := test.GetPager(app, res)
 
 			// THEN
 			assert.Equal(t, uint64(1), p.Page, "Page: "+v.Url)
@@ -90,7 +90,7 @@ func Test_Search_Revision_Basic(t *testing.T) {
 		res, _ := test.RunRequest("GET", fmt.Sprintf("%s/2", baseUrl), nil, auth)
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 
-		node := GetNode(app, res)
+		node := test.GetNode(app, res)
 		assert.Equal(t, 2, node.Revision, "Invalid revision number")
 		assert.Equal(t, "Title 2", node.Name, "Invalid name")
 

@@ -57,7 +57,7 @@ func Test_Pagination(t *testing.T) {
 			// paginate result ...
 			res, _ := test.RunRequest("GET", ts.URL+v.Url, nil, auth)
 
-			p := GetPager(app, res)
+			p := test.GetPager(app, res)
 
 			fmt.Printf("%v", p.Elements)
 			// THEN
