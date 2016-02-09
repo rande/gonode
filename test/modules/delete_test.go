@@ -60,7 +60,7 @@ func Test_Delete_Find_Filter(t *testing.T) {
 		nodes := InitSearchFixture(app)
 
 		res, _ := test.RunRequest("GET", ts.URL+"/nodes", nil, auth)
-		p := GetPager(app, res)
+		p := test.GetPager(app, res)
 
 		assert.Equal(t, 4, len(p.Elements))
 
@@ -70,7 +70,7 @@ func Test_Delete_Find_Filter(t *testing.T) {
 		res, _ = test.RunRequest("GET", ts.URL+"/nodes", nil, auth)
 		assert.Equal(t, 200, res.StatusCode)
 
-		p = GetPager(app, res)
+		p = test.GetPager(app, res)
 
 		assert.Equal(t, 200, res.StatusCode)
 		assert.Equal(t, 3, len(p.Elements))

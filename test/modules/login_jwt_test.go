@@ -76,7 +76,5 @@ func Test_Create_Username(t *testing.T) {
 		assert.True(t, len(configuration.Guard.Key) > 0)
 		assert.Nil(t, err)
 		assert.True(t, token.Valid)
-
-		fmt.Printf("%v", token)
 	})
 }

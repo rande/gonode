@@ -107,15 +107,15 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 		helper.PanicOnError(err)
 	}
 
-	for i := 1; i < max; i++ {
-		node := GetFakePostNode(i)
-		node.UpdatedBy = admin.Uuid
-		node.CreatedBy = admin.Uuid
+	root := base.NewNode()
+	root.Type = "core.root"
+	root.Name = "Root path"
+	root.Slug = "root-path"
+	root.Meta = make(map[string]interface{})
+	root.Data = make(map[string]interface{})
 
-		_, err = m.Save(node, false)
-
-		helper.PanicOnError(err)
-	}
+	_, err = m.Save(root, false)
+	helper.PanicOnError(err)
 
 	// create blog archives
 	archive := base.NewNode()
@@ -128,8 +128,22 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 	archive.Meta = &search.IndexMeta{}
 
 	_, err = m.Save(archive, false)
-
 	helper.PanicOnError(err)
+
+	_, err = m.Move(archive.Uuid, root.Uuid)
+	helper.PanicOnError(err)
+
+	for i := 1; i < max; i++ {
+		node := GetFakePostNode(i)
+		node.UpdatedBy = admin.Uuid
+		node.CreatedBy = admin.Uuid
+
+		_, err = m.Save(node, false)
+		helper.PanicOnError(err)
+
+		_, err = m.Move(node.Uuid, archive.Uuid)
+		helper.PanicOnError(err)
+	}
 
 	// create feed archives
 	f := base.NewNode()
@@ -146,7 +160,9 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 	f.Meta = &search.IndexMeta{}
 
 	_, err = m.Save(f, false)
+	helper.PanicOnError(err)
 
+	_, err = m.Move(f.Uuid, root.Uuid)
 	helper.PanicOnError(err)
 
 	// create human.txt
@@ -162,7 +178,9 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 	h.Meta = &raw.RawMeta{}
 
 	_, err = m.Save(h, false)
+	helper.PanicOnError(err)
 
+	_, err = m.Move(h.Uuid, root.Uuid)
 	helper.PanicOnError(err)
 
 	// create real image

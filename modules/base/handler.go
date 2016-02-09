@@ -131,6 +131,7 @@ func (c ViewHandlerCollection) GetKeys() []string {
 }
 
 type ViewHandler interface {
+	Support(node *Node, request *ViewRequest, response *ViewResponse) bool
 	Execute(node *Node, request *ViewRequest, response *ViewResponse) error
 }
 

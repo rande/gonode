@@ -17,7 +17,6 @@ import (
 
 func Test_Valid_UpdatedAt(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
-
 		manager := app.Get("gonode.manager").(*base.PgNodeManager)
 
 		node := app.Get("gonode.handler_collection").(base.HandlerCollection).NewNode("blog.post")
@@ -36,7 +35,6 @@ func Test_Valid_UpdatedAt(t *testing.T) {
 
 func Test_New_Revision(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
-
 		manager := app.Get("gonode.manager").(*base.PgNodeManager)
 
 		node := app.Get("gonode.handler_collection").(base.HandlerCollection).NewNode("blog.post")
@@ -57,6 +55,5 @@ func Test_New_Revision(t *testing.T) {
 
 		manager.Save(node, false)
 		assert.Equal(t, 3, node.Revision)
-
 	})
 }

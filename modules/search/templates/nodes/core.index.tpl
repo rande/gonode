@@ -11,13 +11,13 @@
 
         <ul>
             {% for elm in pager.Elements %}
-                <li><a href="/prism/{{ elm.Uuid }}">{{ elm.Name }}</a> - {{ elm.Type }}</li>
+                <li><a href="{{ prism_path(elm) }}">{{ elm.Name }}</a> - {{ elm.Type }}</li>
             {% endfor %}
         </ul>
 
         <ul>
-            <li><a href="/prism/{{ node.Uuid }}?page={{ pager.Previous }}">Previous</li>
-            <li><a href="/prism/{{ node.Uuid }}?page={{ pager.Next }}">Next</li>
+            <li><a href="{{ prism_path(node, url_values("page", pager.Previous)) }}">Previous</li>
+            <li><a href="{{ prism_path(node, url_values("page", pager.Next)) }}">Next</li>
         </ul>
     </div>
 {% endblock %}}

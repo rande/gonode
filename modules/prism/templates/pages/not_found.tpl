@@ -5,6 +5,7 @@
     <h1>Page Not Found</h1>
 
     <div>
-        The requested page cannot be found.
+        The requested page cannot be found. <br />
+        <em>(no prism source found.)</em>
     </div>
 {% endblock %}

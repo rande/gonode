@@ -23,15 +23,19 @@ func Test_Create_Parents_With_Manager(t *testing.T) {
 		manager := app.Get("gonode.manager").(*base.PgNodeManager)
 
 		node1 := handlers.NewNode("default")
+		node1.Slug = "the"
 		manager.Save(node1, false)
 
 		node2 := handlers.NewNode("default")
+		node2.Slug = "path"
 		manager.Save(node2, false)
 
 		node3 := handlers.NewNode("default")
+		node3.Slug = "to"
 		manager.Save(node3, false)
 
 		node4 := handlers.NewNode("default")
+		node4.Slug = "node"
 		manager.Save(node4, false)
 
 		// WHEN
@@ -61,6 +65,8 @@ func Test_Create_Parents_With_Manager(t *testing.T) {
 		assert.Contains(t, node.Parents, node2.Uuid)
 		assert.Contains(t, node.Parents, node3.Uuid)
 		assert.NotContains(t, node.Parents, node4.Uuid)
+
+		assert.Equal(t, node.Path, "/the/path/to/node")
 	})
 }
 
@@ -102,6 +108,5 @@ func Test_Create_Parents_With_Api(t *testing.T) {
 
 		assert.Equal(t, "OK", op.Status)
 		assert.Equal(t, "Node altered: 0", op.Message)
-
 	})
 }

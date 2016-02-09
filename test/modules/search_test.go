@@ -46,7 +46,7 @@ func Test_Search_Basic(t *testing.T) {
 			// WHEN
 			res, _ := test.RunRequest("GET", ts.URL+v.Url, nil, auth)
 
-			p := GetPager(app, res)
+			p := test.GetPager(app, res)
 
 			// THEN
 			assert.Equal(t, uint64(32), p.PerPage)
@@ -73,7 +73,7 @@ func Test_Search_NoResult(t *testing.T) {
 		// WHEN
 		res, _ := test.RunRequest("GET", ts.URL+"/nodes?type=other", nil, auth)
 
-		p := GetPager(app, res)
+		p := test.GetPager(app, res)
 
 		// THEN
 		CheckNoResults(t, p)
@@ -128,7 +128,7 @@ func Test_Search_OrderBy_Name_ASC(t *testing.T) {
 
 		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=name,ASC")
 
-		p := GetPager(app, res)
+		p := test.GetPager(app, res)
 
 		assert.Equal(t, 4, len(p.Elements))
 		assert.Equal(t, "User A", p.Elements[0].(*base.Node).Name)
@@ -146,7 +146,7 @@ func Test_Search_OrderBy_Name_DESC(t *testing.T) {
 
 		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=name,DESC")
 
-		p := GetPager(app, res)
+		p := test.GetPager(app, res)
 
 		assert.Equal(t, 4, len(p.Elements))
 		assert.Equal(t, "User ZZ", p.Elements[0].(*base.Node).Name)
@@ -165,7 +165,7 @@ func Test_Search_OrderBy_Weight_DESC_Name_ASC(t *testing.T) {
 
 		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=weight,DESC&order_by=name,ASC")
 
-		p := GetPager(app, res)
+		p := test.GetPager(app, res)
 
 		assert.Equal(t, 4, len(p.Elements))
 		assert.Equal(t, "User AA", p.Elements[0].(*base.Node).Name)
@@ -184,7 +184,7 @@ func Test_Search_OrderBy_Meta_Username(t *testing.T) {
 
 		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=meta.username")
 
-		p := GetPager(app, res)
+		p := test.GetPager(app, res)
 
 		assert.Equal(t, 4, len(p.Elements))
 		assert.Equal(t, "User ZZ", p.Elements[0].(*base.Node).Name)
@@ -202,7 +202,7 @@ func Test_Search_OrderBy_Meta_Non_Existant_Meta(t *testing.T) {
 
 		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=meta.username.fake")
 
-		p := GetPager(app, res)
+		p := test.GetPager(app, res)
 
 		assert.Equal(t, 0, len(p.Elements))
 	})
@@ -217,7 +217,7 @@ func Test_Search_Meta(t *testing.T) {
 
 		assert.Equal(t, 200, res.StatusCode, "url: /nodes?data.username=user-a")
 
-		p := GetPager(app, res)
+		p := test.GetPager(app, res)
 
 		assert.Equal(t, 1, len(p.Elements))
 	})
@@ -232,7 +232,7 @@ func Test_Search_Slug(t *testing.T) {
 
 		assert.Equal(t, 200, res.StatusCode, "url: /nodes?slug=user-a")
 
-		p := GetPager(app, res)
+		p := test.GetPager(app, res)
 
 		assert.Equal(t, 1, len(p.Elements))
 	})
