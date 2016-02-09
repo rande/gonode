@@ -26,6 +26,7 @@ var (
 	InvalidFitOptionsError = errors.New("Invalid fit options")
 	InvalidWidthRangeError = errors.New("Invalid width range")
 	WidthNotAllowedError   = errors.New("Width is not allowed")
+	InvalidProcessStatus   = errors.New("Invalid process status")
 )
 
 func ContainsSize(size uint, allowed []uint) bool {
@@ -48,10 +49,18 @@ type MediaViewHandler struct {
 	MaxWidth      uint
 }
 
+func (m *MediaViewHandler) Support(node *base.Node, request *base.ViewRequest, response *base.ViewResponse) bool {
+	return request.Format == "jpg" || request.Format == "gif" || request.Format == "png"
+}
+
 func (m *MediaViewHandler) Execute(node *base.Node, request *base.ViewRequest, response *base.ViewResponse) error {
 	values := request.HttpRequest.URL.Query()
 
 	meta := node.Meta.(*ImageMeta)
+
+	if meta.SourceStatus != base.ProcessStatusDone {
+		return InvalidProcessStatus
+	}
 
 	response.HttpResponse.Header().Set("Content-Type", meta.ContentType)
 

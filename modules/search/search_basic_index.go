@@ -88,6 +88,10 @@ type IndexViewHandler struct {
 	MaxResult uint64
 }
 
+func (v *IndexViewHandler) Support(node *base.Node, request *base.ViewRequest, response *base.ViewResponse) bool {
+	return request.Format == "html"
+}
+
 func (v *IndexViewHandler) Execute(node *base.Node, request *base.ViewRequest, response *base.ViewResponse) error {
 	var err error
 

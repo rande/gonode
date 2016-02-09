@@ -10,6 +10,7 @@ import (
 	"github.com/rande/gonode/assets"
 	"github.com/zenazn/goji/web"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
@@ -30,7 +31,9 @@ func ConfigureBinDataMux(mux *web.Mux, publicPath, privatePath, index string, lo
 
 	lenPath := len(publicPath)
 
-	mux.Get(publicPath+"/*", func(c web.C, res http.ResponseWriter, req *http.Request) {
+	r := regexp.MustCompile(publicPath + "/(.*).(jpg|css|svg|eot|woff|woff2|ttf|png|jpg|gif)")
+
+	mux.Get(r, func(c web.C, res http.ResponseWriter, req *http.Request) {
 		var logger *log.Entry
 
 		if l, ok := c.Env["logger"]; ok {

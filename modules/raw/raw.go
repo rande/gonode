@@ -61,6 +61,10 @@ func (h *RawHandler) StoreStream(node *base.Node, r io.Reader) (int64, error) {
 type RawViewHandler struct {
 }
 
+func (v *RawViewHandler) Support(node *base.Node, request *base.ViewRequest, response *base.ViewResponse) bool {
+	return true
+}
+
 func (v *RawViewHandler) Execute(node *base.Node, request *base.ViewRequest, response *base.ViewResponse) error {
 	raw := node.Data.(*Raw)
 

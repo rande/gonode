@@ -44,10 +44,10 @@ func GetMiddleware(logger *log.Logger) func(c *web.C, h http.Handler) http.Handl
 
 func initFields(reqID string, r *http.Request) log.Fields {
 	fields := log.Fields{
-		"method":      r.Method,
-		"url":         r.URL.String(),
-		"remote_addr": r.RemoteAddr,
-		"host":        r.Host,
+		"request_method":      r.Method,
+		"request_url":         r.URL.String(),
+		"request_remote_addr": r.RemoteAddr,
+		"request_host":        r.Host,
 	}
 
 	if reqID != "" {

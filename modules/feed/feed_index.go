@@ -71,6 +71,10 @@ type FeedViewHandler struct {
 	Manager base.NodeManager
 }
 
+func (v *FeedViewHandler) Support(node *base.Node, request *base.ViewRequest, response *base.ViewResponse) bool {
+	return request.Format == "atom" || request.Format == "rss"
+}
+
 func (v *FeedViewHandler) Execute(node *base.Node, request *base.ViewRequest, response *base.ViewResponse) error {
 	feed := node.Data.(*Feed)
 

@@ -13,6 +13,10 @@ import (
 type DefaultViewHandler struct {
 }
 
+func (v *DefaultViewHandler) Support(node *base.Node, request *base.ViewRequest, response *base.ViewResponse) bool {
+	return request.Format == "html"
+}
+
 func (v *DefaultViewHandler) Execute(node *base.Node, request *base.ViewRequest, response *base.ViewResponse) error {
 
 	response.

@@ -48,7 +48,8 @@ func GetDriver() vault.VaultDriver {
 func Test_MediaViewHandler_NoError_And_NoParam(t *testing.T) {
 	n := base.NewNode()
 	n.Meta = &ImageMeta{
-		ContentType: "image/jpeg",
+		ContentType:  "image/jpeg",
+		SourceStatus: base.ProcessStatusDone,
 	}
 
 	m := &MediaViewHandler{
@@ -85,7 +86,8 @@ func Test_MediaViewHandler_VaultError(t *testing.T) {
 
 	n := base.NewNode()
 	n.Meta = &ImageMeta{
-		ContentType: "image/jpeg",
+		ContentType:  "image/jpeg",
+		SourceStatus: base.ProcessStatusDone,
 	}
 
 	m := &MediaViewHandler{
@@ -115,7 +117,8 @@ func Test_MediaViewHandler_VaultError(t *testing.T) {
 func Test_MediaViewHandler_InvalidResize_Width(t *testing.T) {
 	n := base.NewNode()
 	n.Meta = &ImageMeta{
-		ContentType: "image/jpeg",
+		ContentType:  "image/jpeg",
+		SourceStatus: base.ProcessStatusDone,
 	}
 
 	m := &MediaViewHandler{
@@ -146,7 +149,8 @@ func Test_MediaViewHandler_InvalidResize_Width(t *testing.T) {
 func Test_MediaViewHandler_Invalid_Crop_Width(t *testing.T) {
 	n := base.NewNode()
 	n.Meta = &ImageMeta{
-		ContentType: "image/jpeg",
+		ContentType:  "image/jpeg",
+		SourceStatus: base.ProcessStatusDone,
 	}
 
 	m := &MediaViewHandler{
@@ -177,7 +181,8 @@ func Test_MediaViewHandler_Invalid_Crop_Width(t *testing.T) {
 func Test_MediaViewHandler_Invalid_Resize_NotAllowedWidth(t *testing.T) {
 	n := base.NewNode()
 	n.Meta = &ImageMeta{
-		ContentType: "image/jpeg",
+		ContentType:  "image/jpeg",
+		SourceStatus: base.ProcessStatusDone,
 	}
 
 	m := &MediaViewHandler{
@@ -209,7 +214,8 @@ func Test_MediaViewHandler_Invalid_Resize_NotAllowedWidth(t *testing.T) {
 func Test_MediaViewHandler_Invalid_Crop_NotAllowedWidth(t *testing.T) {
 	n := base.NewNode()
 	n.Meta = &ImageMeta{
-		ContentType: "image/jpeg",
+		ContentType:  "image/jpeg",
+		SourceStatus: base.ProcessStatusDone,
 	}
 
 	m := &MediaViewHandler{
@@ -241,7 +247,8 @@ func Test_MediaViewHandler_Invalid_Crop_NotAllowedWidth(t *testing.T) {
 func Test_MediaViewHandler_Resize(t *testing.T) {
 	n := base.NewNode()
 	n.Meta = &ImageMeta{
-		ContentType: "image/jpeg",
+		ContentType:  "image/jpeg",
+		SourceStatus: base.ProcessStatusDone,
 	}
 
 	m := &MediaViewHandler{
@@ -274,7 +281,8 @@ func Test_MediaViewHandler_Resize(t *testing.T) {
 func Test_MediaViewHandler_Crop(t *testing.T) {
 	n := base.NewNode()
 	n.Meta = &ImageMeta{
-		ContentType: "image/jpeg",
+		ContentType:  "image/jpeg",
+		SourceStatus: base.ProcessStatusDone,
 	}
 
 	m := &MediaViewHandler{

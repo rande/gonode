@@ -6,6 +6,8 @@
 package prism
 
 import (
+	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/flosch/pongo2"
 	sq "github.com/lann/squirrel"
 	"github.com/rande/goapp"
@@ -37,7 +39,8 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 				format = c.URLParams["format"]
 			}
 
-		} else { // get the path
+		} else {
+			// get the path
 			path := req.URL.Path
 			s := strings.Split(req.URL.Path, ".")
 
@@ -59,12 +62,18 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 			Format:      format,
 		}
 
+		var logger *log.Entry
+
 		response := base.NewViewResponse(res)
 
 		if _, ok := c.Env["request_context"]; ok {
 			response.Add("request_context", c.Env["request_context"])
 		} else {
 			response.Add("request_context", nil)
+		}
+
+		if _, ok := c.Env["logger"]; ok {
+			logger = c.Env["logger"].(*log.Entry)
 		}
 
 		response.Add("request", req)
@@ -74,21 +83,61 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 
 			response.Add("node", node)
 
-			err := handlers.Get(node).Execute(node, request, response)
+			handler := handlers.Get(node)
 
-			helper.PanicOnError(err)
+			if !handler.Support(node, request, response) {
+				// the execute method already take care of the rendering, nothing to do
+				response.Template = "pages/bad_request.tpl"
+				response.StatusCode = http.StatusBadRequest
 
-			// the execute method already take care of the rendering, nothing to do
-			if response.Template == "" {
-				return
+				if logger != nil {
+					logger.WithFields(log.Fields{
+						"module":         "prism.view",
+						"node_uuid":      node.Uuid.String(),
+						"request_format": request.Format,
+					}).Debug("ViewHandler does not support current request")
+				}
+			} else {
+				err := handler.Execute(node, request, response)
+
+				if err != nil {
+					if logger != nil {
+						logger.WithFields(log.Fields{
+							"module":          "prism.view",
+							"node_uuid":       node.Uuid.String(),
+							"node_type":       node.Type,
+							"request_format":  request.Format,
+							"view_template":   response.Template,
+							"response_status": response.StatusCode,
+							"error":           err.Error(),
+							"view_handler":    fmt.Sprintf("%T", handler),
+						}).Warn("Error while executing ViewHandler")
+					}
+
+					response.Template = "pages/internal_error.tpl"
+					response.StatusCode = http.StatusInternalServerError
+				}
+
+				if response.Template == "" {
+					return
+				}
+				// pongo does not support template
+				// context["base_template"] = "layouts/base.tpl"
 			}
-
-			// pongo does not support template
-			// context["base_template"] = "layouts/base.tpl"
 
 		} else {
 			response.Template = "pages/not_found.tpl"
-			response.StatusCode = 404
+			response.StatusCode = http.StatusNotFound
+		}
+
+		if logger != nil {
+			logger.WithFields(log.Fields{
+				"module":            "prism.view",
+				"node_uuid":         node.Uuid.String(),
+				"request_format":    request.Format,
+				"response_template": response.Template,
+				"response_status":   response.StatusCode,
+			}).Debug("Render node from ViewHandler")
 		}
 
 		tpl, err := pongo.FromFile(response.Template)
