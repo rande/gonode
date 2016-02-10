@@ -133,7 +133,6 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 		if logger != nil {
 			logger.WithFields(log.Fields{
 				"module":            "prism.view",
-				"node_uuid":         node.Uuid.String(),
 				"request_format":    request.Format,
 				"response_template": response.Template,
 				"response_status":   response.StatusCode,

@@ -112,8 +112,8 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 	api.ConfigureServer(l, conf)
 	setup.ConfigureServer(l, conf)
 	node_guard.ConfigureServer(l, conf)
-	prism.ConfigureServer(l, conf)
 	bindata.ConfigureServer(l, conf)
+	prism.ConfigureServer(l, conf)
 	router.ConfigureServer(l, conf)
 	base.ConfigureServer(l, conf)
 

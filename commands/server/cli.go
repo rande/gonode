@@ -70,12 +70,11 @@ func (c *ServerCommand) Run(args []string) int {
 	search.ConfigureServer(l, conf)
 	api.ConfigureServer(l, conf)
 	node_guard.ConfigureServer(l, conf)
+	bindata.ConfigureServer(l, conf)
 	prism.ConfigureServer(l, conf)
 	router.ConfigureServer(l, conf)
 	base.ConfigureServer(l, conf)
 
-	// must be last for now
-	bindata.ConfigureServer(l, conf)
 
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 		mux := app.Get("goji.mux").(*web.Mux)

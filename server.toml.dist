@@ -1,5 +1,5 @@
 name= "GoNode - poc"
-bind= ":2405"
+bind= "localhost:2405"
 test= true
 
 [databases.master]
@@ -40,7 +40,7 @@ templates = [
 
         [bindata.assets.explorer]
         index = "index.html"
-        public = ""
+        public = "/explorer"
         private = "github.com/rande/gonode/explorer/dist"
 
 [media]

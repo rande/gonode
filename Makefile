@@ -14,6 +14,7 @@ GO_BINDATA_PACKAGE = assets
 default: clean test build
 
 clean:
+	rm -rf dist && mkdir dist
 	rm -rf explorer/dist/*
 
 install-backend:
@@ -42,9 +43,10 @@ run: bin
 bin:
 	cd $(GO_PATH)/src && go-bindata -dev -prefix $(GO_PATH)/src -o $(GO_BINDATA_OUTPUT) -pkg $(GO_BINDATA_PACKAGE) -ignore $(GO_BINDATA_IGNORE) $(GO_BINDATA_PATHS)
 
-build:
-	rm -rf dist && mkdir dist
+build-assets:
 	cd explorer && npm run-script build
+
+build: clean build-assets
 	cd $(GO_PATH)/src && go-bindata -prefix $(GO_PATH)/src -o $(GO_BINDATA_OUTPUT) -pkg $(GO_BINDATA_PACKAGE) -ignore $(GO_BINDATA_IGNORE)  $(GO_BINDATA_PATHS)
 	cd commands && go build -a -o ../dist/gonode
 
