@@ -8,6 +8,7 @@ package base
 import (
 	"container/list"
 	"encoding/json"
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	pq "github.com/lib/pq"
 	"github.com/rande/gonode/core/helper"
@@ -128,17 +129,33 @@ func (s *Subscriber) waitAndDispatch() {
 							"channel": notification.Channel,
 							"payload": notification.Extra,
 							"module":  "node.pubsub",
+							"handler": fmt.Sprintf("%T", f),
 						}).Debug("send payload to handler")
 
-						if state, _ := f(notification); state != PubSubListenContinue {
+						if state, err := f(notification); state != PubSubListenContinue {
 							// close listener
 							s.handlers[notification.Channel].Remove(e)
 							s.logger.WithFields(log.Fields{
 								"channel": notification.Channel,
 								"state":   state,
 								"module":  "node.pubsub",
-							}).Debug("removing on handler for channel - state != PubSubListenContinue")
+							}).Debug("removing handler for channel - state != PubSubListenContinue")
+						} else if err != nil {
+							s.logger.WithFields(log.Fields{
+								"channel": notification.Channel,
+								"payload": notification.Extra,
+								"module":  "node.pubsub",
+								"error":   err.Error(),
+							}).Debug("End processing message (ie: func return, goroutine started ?)")
 						}
+
+						s.logger.WithFields(log.Fields{
+							"channel": notification.Channel,
+							"payload": notification.Extra,
+							"module":  "node.pubsub",
+							"handler": fmt.Sprintf("%T", f),
+						}).Debug("End processing message (ie: func return, goroutine started ?)")
+
 					}(e.Value.(SubscriberHander))
 				}
 			} else {

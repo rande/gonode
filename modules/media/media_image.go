@@ -6,16 +6,13 @@
 package media
 
 import (
-	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/lib/pq"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/core/vault"
 	"github.com/rande/gonode/modules/base"
 	"io"
-	"net/http"
 )
-
-type ExifMeta map[string]string
 
 type ImageMeta struct {
 	Width        int      `json:"width"`
@@ -36,7 +33,8 @@ type Image struct {
 }
 
 type ImageHandler struct {
-	Vault *vault.Vault
+	Vault  *vault.Vault
+	Logger *log.Logger
 }
 
 func (h *ImageHandler) GetStruct() (base.NodeData, base.NodeMeta) {
@@ -111,36 +109,46 @@ func (h *ImageHandler) Load(data []byte, meta []byte, node *base.Node) error {
 	return base.HandlerLoad(h, data, meta, node)
 }
 
-func (h *ImageHandler) StoreStream(node *base.Node, r io.Reader) (written int64, err error) {
-	vaultmeta := base.GetVaultMetadata(node)
-
-	meta := node.Meta.(*ImageMeta)
-	meta.ContentType = "application/octet-stream"
-
-	if written, err = h.Vault.Put(node.UniqueId(), vaultmeta, r); err != nil {
-		helper.PanicOnError(err)
-	}
-
-	return
+func (h *ImageHandler) StoreStream(node *base.Node, r io.Reader) (int64, error) {
+	return HandleImageReader(node, h.Vault, r, h.Logger)
 }
 
 type ImageDownloadListener struct {
 	Vault      *vault.Vault
 	HttpClient base.HttpClient
+	Logger     *log.Logger
 }
 
 func (l *ImageDownloadListener) Handle(notification *pq.Notification, m base.NodeManager) (int, error) {
 	reference, err := base.GetReferenceFromString(notification.Extra)
 
-	if err != nil { // unable to parse the reference
+	if err != nil {
+		l.Logger.WithFields(log.Fields{
+			"module":    "media.downloader",
+			"node_uuid": notification.Extra,
+		}).Debug("Unable to parse reference")
+
+		// unable to parse the reference
 		return base.PubSubListenContinue, nil
 	}
 
-	fmt.Printf("Download binary from uuid: %s\n", notification.Extra)
+	if l.Logger != nil {
+		l.Logger.WithFields(log.Fields{
+			"module":    "media.downloader",
+			"node_uuid": notification.Extra,
+		}).Debug("Download binary from uuid")
+	}
+
 	node := m.Find(reference)
 
 	if node == nil {
-		fmt.Printf("Uuid does not exist: %s\n", notification.Extra)
+		if l.Logger != nil {
+			l.Logger.WithFields(log.Fields{
+				"module":    "media.downloader",
+				"node_uuid": notification.Extra,
+			}).Info("Unable to download file, uuid does not exist")
+		}
+
 		return base.PubSubListenContinue, nil
 	}
 
@@ -148,7 +156,13 @@ func (l *ImageDownloadListener) Handle(notification *pq.Notification, m base.Nod
 	meta := node.Meta.(*ImageMeta)
 
 	if meta.SourceStatus == base.ProcessStatusDone {
-		fmt.Printf("Nothing to update: %s\n", notification.Extra)
+		if l.Logger != nil {
+			l.Logger.WithFields(log.Fields{
+				"module":             "media.downloader",
+				"node_uuid":          notification.Extra,
+				"meta_source_status": base.ProcessStatusDone,
+			}).Warn("Stop downloading process, already done! (race condition ?)")
+		}
 
 		return base.PubSubListenContinue, nil
 	}
@@ -158,6 +172,16 @@ func (l *ImageDownloadListener) Handle(notification *pq.Notification, m base.Nod
 	if err != nil {
 		meta.SourceStatus = base.ProcessStatusError
 		meta.SourceError = "Unable to retrieve the remote file"
+
+		if l.Logger != nil {
+			l.Logger.WithFields(log.Fields{
+				"module":             "media.downloader",
+				"node_uuid":          notification.Extra,
+				"error":              err.Error(),
+				"meta_source_status": base.ProcessStatusError,
+			}).Warn("Unable to retrieve the remote file")
+		}
+
 		m.Save(node, false)
 
 		return base.PubSubListenContinue, err
@@ -165,23 +189,25 @@ func (l *ImageDownloadListener) Handle(notification *pq.Notification, m base.Nod
 
 	defer resp.Body.Close()
 
-	vaultmeta := base.GetVaultMetadata(node)
+	if _, err = HandleImageReader(node, l.Vault, resp.Body, l.Logger); err != nil {
+		meta.SourceStatus = base.ProcessStatusError
+		meta.SourceError = "Unable to analyse the image"
 
-	r := &helper.PartialReader{
-		Reader: resp.Body,
-		Size:   500,
-	}
+		m.Save(node, false)
 
-	_, err = l.Vault.Put(node.UniqueId(), vaultmeta, r)
-
-	if err != nil {
 		return base.PubSubListenContinue, err
 	}
 
-	meta.ContentType = http.DetectContentType(r.Data)
 	meta.SourceStatus = base.ProcessStatusDone
 
 	m.Save(node, false)
+
+	if l.Logger != nil {
+		l.Logger.WithFields(log.Fields{
+			"module":    "media.downloader",
+			"node_uuid": notification.Extra,
+		}).Debug("File downloaded!")
+	}
 
 	return base.PubSubListenContinue, nil
 }

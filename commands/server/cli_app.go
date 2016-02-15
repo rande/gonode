@@ -71,7 +71,8 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 			return base.HandlerCollection{
 				"default": &debug.DefaultHandler{},
 				"media.image": &media.ImageHandler{
-					Vault: app.Get("gonode.vault.fs").(*vault.Vault),
+					Vault:  app.Get("gonode.vault.fs").(*vault.Vault),
+					Logger: app.Get("logger").(*log.Logger),
 				},
 				"media.youtube": &media.YoutubeHandler{},
 				"blog.post":     &blog.PostHandler{},
@@ -167,6 +168,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 			return &media.ImageDownloadListener{
 				Vault:      app.Get("gonode.vault.fs").(*vault.Vault),
 				HttpClient: app.Get("gonode.http_client").(*http.Client),
+				Logger:     app.Get("logger").(*log.Logger),
 			}
 		})
 
