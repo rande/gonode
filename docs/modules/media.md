@@ -36,8 +36,6 @@ also be used, this entry point will provide crop and resize option.
  - ``http://localhost:2405/prism/bcb537ab-b349-4b3d-87e2-e43e17519af7?mr=250`` => resize the media with the provided width
  - ``http://localhost:2405/prism/bcb537ab-b349-4b3d-87e2-e43e17519af7?mf=200,200`` => crop the media using a 200x200 square from
    the center of the image.
- - ``http://localhost:2405/prism/bcb537ab-b349-4b3d-87e2-e43e17519af7?mf=200,200,50,50`` => crop the media using a 200x200 square from
- the 50x50 top left corner.
  
 The image resize and crop only works with: ``jpg``, ``png`` and ``jpg`` files.
  

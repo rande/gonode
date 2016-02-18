@@ -7,14 +7,17 @@ package media
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"github.com/rande/gonode/core/vault"
-	"github.com/rande/gonode/modules/base"
 	"github.com/rande/goexif/exif"
 	"github.com/rande/goexif/mknote"
 	"github.com/rande/goexif/tiff"
+	"github.com/rande/gonode/core/vault"
+	"github.com/rande/gonode/modules/base"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"strings"
 )
@@ -134,9 +137,10 @@ func HandleImageReader(node *base.Node, v *vault.Vault, r io.Reader, logger *log
 	d := make([]byte, 500)
 	f.Read(d)
 
-	meta.ContentType = http.DetectContentType(d)
+	f.Seek(0, 0)
+	conf, format, err := image.DecodeConfig(f)
 
-	if meta.ContentType == "image/jpeg" {
+	if format == "jpeg" {
 		f.Seek(0, 0)
 		em, err := GetExif(f)
 
@@ -154,6 +158,18 @@ func HandleImageReader(node *base.Node, v *vault.Vault, r io.Reader, logger *log
 		}
 
 		meta.Exif = em
+	}
+
+	meta.Width = conf.Width
+	meta.Height = conf.Height
+
+	switch format {
+	case "jpeg":
+		meta.ContentType = "image/jpeg"
+	case "png":
+		meta.ContentType = "image/png"
+	case "gif":
+		meta.ContentType = "image/gif"
 	}
 
 	if logger != nil {
