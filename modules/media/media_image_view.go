@@ -7,8 +7,7 @@ package media
 
 import (
 	"errors"
-	"github.com/nfnt/resize"
-	"github.com/oliamb/cutter"
+	"github.com/disintegration/imaging"
 	"github.com/rande/gonode/core/vault"
 	"github.com/rande/gonode/modules/base"
 	"image"
@@ -58,7 +57,7 @@ func (m *MediaViewHandler) Execute(node *base.Node, request *base.ViewRequest, r
 
 	meta := node.Meta.(*ImageMeta)
 
-	if meta.SourceStatus != base.ProcessStatusDone {
+	if meta.SourceStatus != base.ProcessStatusInit && meta.SourceStatus != base.ProcessStatusDone {
 		return InvalidProcessStatus
 	}
 
@@ -100,7 +99,7 @@ func (m *MediaViewHandler) imageResize(node *base.Node, request *base.ViewReques
 		return err
 	}
 
-	imageDst := resize.Resize(uint(width), 0, imageSrc, resize.Bicubic)
+	imageDst := imaging.Resize(imageSrc, int(width), 0, imaging.Lanczos)
 
 	return m.encode(imageDst, node, response.HttpResponse)
 }
@@ -130,36 +129,13 @@ func (m *MediaViewHandler) imageFit(node *base.Node, request *base.ViewRequest, 
 		return WidthNotAllowedError
 	}
 
-	var cropCenterX, cropCenterY int64
-	var mode cutter.AnchorMode
-	mode = cutter.Centered
-
-	if len(options) == 4 {
-		cropCenterX, err = strconv.ParseInt(options[2], 10, 0)
-		if err != nil {
-			return err
-		}
-
-		cropCenterY, err = strconv.ParseInt(options[3], 10, 0)
-		if err != nil {
-			return err
-		}
-
-		mode = cutter.TopLeft
-	}
-
 	imageSrc, err := m.getImage(node)
 
 	if err != nil {
 		return InvalidFitOptionsError
 	}
 
-	croppedImg, err := cutter.Crop(imageSrc, cutter.Config{
-		Width:  int(width),
-		Height: int(height),
-		Anchor: image.Point{int(cropCenterX), int(cropCenterY)},
-		Mode:   mode,
-	})
+	croppedImg := imaging.Fill(imageSrc, int(width), int(height), imaging.Center, imaging.Lanczos)
 
 	return m.encode(croppedImg, node, response.HttpResponse)
 }
@@ -173,15 +149,37 @@ func (m *MediaViewHandler) getImage(node *base.Node) (image.Image, error) {
 
 	meta := node.Meta.(*ImageMeta)
 
+	var img image.Image
+	var err error
 	if meta.ContentType == "image/jpeg" {
-		return jpeg.Decode(source)
+		img, err = jpeg.Decode(source)
+	} else if meta.ContentType == "image/png" {
+		img, err = png.Decode(source)
+	} else {
+		img, err = gif.Decode(source)
 	}
 
-	if meta.ContentType == "image/png" {
-		return png.Decode(source)
+	if _, ok := meta.Exif["Orientation"]; ok {
+		// http://piexif.readthedocs.org/en/latest/sample.html#rotate-image-by-exif-orientation
+		switch meta.Exif["Orientation"] {
+		case "2":
+			img = imaging.FlipH(img)
+		case "3":
+			img = imaging.Rotate180(img)
+		case "4":
+			img = imaging.FlipH(imaging.Rotate180(img))
+		case "5":
+			img = imaging.FlipH(imaging.Rotate90(img))
+		case "6":
+			img = imaging.Rotate270(img)
+		case "7":
+			img = imaging.FlipH(imaging.Rotate90(img))
+		case "8":
+			img = imaging.Rotate90(img)
+		}
 	}
 
-	return gif.Decode(source)
+	return img, err
 }
 
 func (m *MediaViewHandler) encode(image image.Image, node *base.Node, w io.Writer) error {

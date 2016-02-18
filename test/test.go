@@ -89,7 +89,7 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 		app.Set("logger", func(app *goapp.App) interface{} {
 			logger := log.New()
 			logger.Out = os.Stdout
-			logger.Level = log.WarnLevel
+			logger.Level = log.DebugLevel
 
 			return logger
 		})

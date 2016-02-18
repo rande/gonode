@@ -326,6 +326,9 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 				_, err = handler_collection.Get(node).StoreStream(node, req.Body)
 
+				// we don't save a new revision as we just need to attach binary to current node
+				manager.Save(node, false)
+
 				if err != nil {
 					helper.SendWithHttpCode(res, http.StatusInternalServerError, err.Error())
 				} else {

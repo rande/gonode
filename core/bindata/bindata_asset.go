@@ -32,8 +32,8 @@ func ConfigureBinDataMux(mux *web.Mux, publicPath, privatePath, index string, lo
 
 	if logger != nil {
 		logger.WithFields(log.Fields{
-			"module": "bindata.mux",
-			"public_path": publicPath,
+			"module":       "bindata.mux",
+			"public_path":  publicPath,
 			"private_path": privatePath,
 		}).Debug("Configure bindata assets")
 	}

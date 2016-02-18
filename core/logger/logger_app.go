@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"github.com/Abramovic/logrus_influxdb"
 	log "github.com/Sirupsen/logrus"
-	influxdb "github.com/influxdb/influxdb/client/v2"
+	influxdb "github.com/influxdata/influxdb/client/v2"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/helper"

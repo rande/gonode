@@ -42,5 +42,5 @@ templates = [
 
 [media]
     [media.image]
-    allowed_widths = [100, 250, 500, 1024]
+    allowed_widths = [20, 100, 250, 500, 1024]
     max_width = 1024

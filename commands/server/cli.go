@@ -75,7 +75,6 @@ func (c *ServerCommand) Run(args []string) int {
 	router.ConfigureServer(l, conf)
 	base.ConfigureServer(l, conf)
 
-
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 		mux := app.Get("goji.mux").(*web.Mux)
 		conf := app.Get("gonode.configuration").(*config.ServerConfig)

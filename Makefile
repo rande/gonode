@@ -21,7 +21,6 @@ install-backend:
 	go get -u github.com/jteeuwen/go-bindata/...
 	go list -f '{{range .Imports}}{{.}} {{end}}' ./... | xargs go get -v
 	go list -f '{{range .TestImports}}{{.}} {{end}}' ./... | xargs go get -v
-	go build -v ./...
 
 install-frontend:
 	cd explorer && npm install
@@ -53,6 +52,7 @@ build: clean build-assets
 format:
 	gofmt -l -w -s .
 	go fix ./...
+	go vet ./...
 
 test-backend: bin
 	go test $(GONODE_CORE) $(GONODE_MODULES) ./test/modules ./commands/server
