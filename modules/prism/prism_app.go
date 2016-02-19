@@ -28,6 +28,11 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		var node *base.Node
+		var logger *log.Entry
+
+		if _, ok := c.Env["logger"]; ok {
+			logger = c.Env["logger"].(*log.Entry)
+		}
 
 		format := "html"
 		if uuid, ok := c.URLParams["uuid"]; ok {
@@ -41,17 +46,43 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 
 		} else {
 			// get the path
+			lookupPaths := []string{req.URL.Path}
+
 			path := req.URL.Path
 			s := strings.Split(req.URL.Path, ".")
 
 			if len(s) > 1 {
 				format = s[len(s)-1]
 				path = strings.Join(s[0:len(s)-1], "/")
+				lookupPaths = append(lookupPaths, path)
 			}
 
-			query := manager.SelectBuilder(base.NewSelectOptions()).Where(sq.Eq{"path": path})
+			if logger != nil {
+				logger.WithFields(log.Fields{
+					"module":           "prism.view",
+					"node_lookup_path": lookupPaths,
+				}).Debug("Search valid node")
+			}
 
-			node = manager.FindOneBy(query)
+			query := manager.SelectBuilder(base.NewSelectOptions()).Where(sq.Eq{"path": lookupPaths})
+
+			nodes := manager.FindBy(query, 0, 2)
+
+			switch nodes.Len() {
+			case 0:
+				node = nil
+			case 1:
+				node = nodes.Front().Value.(*base.Node)
+			case 2:
+				for e := nodes.Front(); e != nil; e = e.Next() {
+					n := e.Value.(*base.Node)
+					if n.Path == req.URL.Path {
+						node = n
+						break
+					}
+				}
+
+			}
 		}
 
 		res.Header().Set("Content-Type", "text/html; charset=UTF-8")
@@ -62,18 +93,12 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 			Format:      format,
 		}
 
-		var logger *log.Entry
-
 		response := base.NewViewResponse(res)
 
 		if _, ok := c.Env["request_context"]; ok {
 			response.Add("request_context", c.Env["request_context"])
 		} else {
 			response.Add("request_context", nil)
-		}
-
-		if _, ok := c.Env["logger"]; ok {
-			logger = c.Env["logger"].(*log.Entry)
 		}
 
 		response.Add("request", req)
