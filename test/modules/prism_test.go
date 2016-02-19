@@ -20,7 +20,6 @@ import (
 func Test_Prism_Blog_Archive(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		// WITH
-		// create a valid user into the database ...
 		manager := app.Get("gonode.manager").(*base.PgNodeManager)
 
 		node := app.Get("gonode.handler_collection").(base.HandlerCollection).NewNode("blog.post")
@@ -55,5 +54,37 @@ func Test_Prism_Bad_Request(t *testing.T) {
 		res, _ := test.RunRequest("GET", fmt.Sprintf("%s/prism/%s.json", ts.URL, node.Uuid))
 
 		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	})
+}
+
+func Test_Prism_Format(t *testing.T) {
+	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
+		manager := app.Get("gonode.manager").(*base.PgNodeManager)
+
+		home := app.Get("gonode.handler_collection").(base.HandlerCollection).NewNode("core.root")
+		home.Name = "Homepage"
+		manager.Save(home, false)
+
+		raw := app.Get("gonode.handler_collection").(base.HandlerCollection).NewNode("core.raw")
+		raw.Name = "Human.txt"
+		raw.Slug = "human.txt"
+
+		manager.Save(raw, false)
+		manager.Move(raw.Uuid, home.Uuid)
+
+		raw2 := app.Get("gonode.handler_collection").(base.HandlerCollection).NewNode("core.raw")
+		raw2.Name = "Human"
+		raw2.Slug = "human"
+
+		manager.Save(raw2, false)
+		manager.Move(raw2.Uuid, home.Uuid)
+
+		res, _ := test.RunRequest("GET", fmt.Sprintf("%s/human", ts.URL))
+
+		assert.Equal(t, http.StatusOK, res.StatusCode, "Cannot find /human")
+
+		res, _ = test.RunRequest("GET", fmt.Sprintf("%s/human.txt", ts.URL))
+
+		assert.Equal(t, http.StatusOK, res.StatusCode, "Cannot find /human.txt")
 	})
 }
