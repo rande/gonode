@@ -9,14 +9,19 @@ Documentation
 -------------
  
  * [Install](docs/install.md)
- * [Node](docs/node.md)
- * [Modules](docs/modules)
-    * [Router](docs/modules/router.md): named routes with goji
-    * [Vault](docs/modules/vault.md): Binary storage with secure option
-    * [Guard](docs/modules/guard.md): Authentification
-    * [Security](docs/modules/security.md): CORS
-    * [Search](docs/modules/search.md): Search filters
-    * [Bindata](docs/modules/bindata.md): Provide http handler to server static file from ``go-bindata`` assets
-    * [Raw](docs/modules/raw.md): Send raw content
-    * [Logger](docs/modules/logger.md): Logger
  * [Contributing](docs/contributing.md)
+ * [Core](docs/core)
+    * [Router](docs/core/router.md): named routes with goji
+    * [Vault](docs/core/vault.md): Binary storage with secure option
+    * [Guard](docs/core/guard.md): Authentification
+    * [Security](docs/core/security.md): CORS 
+    * [Logger](docs/core/logger.md): Logger
+    * [Bindata](docs/core/bindata.md): Provide http handler to server static file from ``go-bindata`` assets
+ * [Modules](docs/modules)
+    * [Node](docs/modules/node.md): Node principles
+    * [Search](docs/modules/search.md): Search filters
+    * [Raw](docs/modules/raw.md): Send raw content
+    * [Prism](docs/modules/prism.md)
+    * [Feed](docs/modules/feed.md)
+    * [Media](docs/modules/media.md)
+ 
