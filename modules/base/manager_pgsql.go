@@ -185,7 +185,12 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 
 	node.Parents = pUuids
 
-	m.Handlers.Get(node).Load(data, meta, node)
+	handler := m.Handlers.Get(node)
+	if h, ok := handler.(LoadNodeHandler); ok {
+		h.Load(data, meta, node)
+	} else {
+		HandlerLoad(handler, data, meta, node)
+	}
 
 	err = json.Unmarshal(modules, &node.Modules)
 	helper.PanicOnError(err)
@@ -436,7 +441,10 @@ func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 	handler := m.Handlers.Get(node)
 
 	if node.Id == 0 {
-		handler.PreInsert(node, m)
+
+		if h, ok := handler.(DatabaseNodeHandler); ok {
+			h.PreInsert(node, m)
+		}
 
 		node, err = m.insertNode(node, m.Prefix+"_nodes_audit")
 		helper.PanicOnError(err)
@@ -450,7 +458,9 @@ func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 			contextLogger.Debug("creating node")
 		}
 
-		handler.PostInsert(node, m)
+		if h, ok := handler.(DatabaseNodeHandler); ok {
+			h.PostInsert(node, m)
+		}
 
 		m.sendNotification(m.Prefix+"_manager_action", &ModelEvent{
 			Type:        node.Type,
@@ -465,7 +475,9 @@ func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 		return node, err
 	}
 
-	handler.PreUpdate(node, m)
+	if h, ok := handler.(DatabaseNodeHandler); ok {
+		h.PreUpdate(node, m)
+	}
 
 	// 1. check if the one in the datastore is older
 	saved := m.FindOneBy(m.SelectBuilder(NewSelectOptions()).Where(sq.Eq{"uuid": node.Uuid.String()}))
@@ -499,7 +511,9 @@ func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 	node, err = m.updateNode(node, m.Prefix+"_nodes")
 	helper.PanicOnError(err)
 
-	handler.PostUpdate(node, m)
+	if h, ok := handler.(DatabaseNodeHandler); ok {
+		h.PostUpdate(node, m)
+	}
 
 	if revision {
 		node.UpdatedAt = saved.UpdatedAt
@@ -550,7 +564,9 @@ func (m *PgNodeManager) Validate(node *Node) (bool, Errors) {
 		errors.AddError("status", "Invalid status")
 	}
 
-	m.Handlers.Get(node).Validate(node, m, errors)
+	if h, ok := m.Handlers.Get(node).(ValidateNodeHandler); ok {
+		h.Validate(node, m, errors)
+	}
 
 	return !errors.HasErrors(), errors
 }

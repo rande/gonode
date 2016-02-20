@@ -7,7 +7,6 @@ package node_guard
 
 import (
 	"github.com/rande/gonode/modules/base"
-	"io"
 	"time"
 )
 
@@ -26,36 +25,4 @@ type JwtTokentHandler struct {
 
 func (h *JwtTokentHandler) GetStruct() (base.NodeData, base.NodeMeta) {
 	return &JwtToken{}, &JwtTokenMeta{}
-}
-
-func (h *JwtTokentHandler) PreInsert(node *base.Node, m base.NodeManager) error {
-	return nil
-}
-
-func (h *JwtTokentHandler) PreUpdate(node *base.Node, m base.NodeManager) error {
-	return nil
-}
-
-func (h *JwtTokentHandler) PostInsert(node *base.Node, m base.NodeManager) error {
-	return nil
-}
-
-func (h *JwtTokentHandler) PostUpdate(node *base.Node, m base.NodeManager) error {
-	return nil
-}
-
-func (h *JwtTokentHandler) Validate(node *base.Node, m base.NodeManager, errors base.Errors) {
-
-}
-
-func (h *JwtTokentHandler) GetDownloadData(node *base.Node) *base.DownloadData {
-	return base.GetDownloadData()
-}
-
-func (h *JwtTokentHandler) Load(data []byte, meta []byte, node *base.Node) error {
-	return base.HandlerLoad(h, data, meta, node)
-}
-
-func (h *JwtTokentHandler) StoreStream(node *base.Node, r io.Reader) (int64, error) {
-	return base.DefaultHandlerStoreStream(node, r)
 }

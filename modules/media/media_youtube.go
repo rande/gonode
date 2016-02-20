@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/rande/gonode/modules/base"
-	"io"
 )
 
 type YoutubeMeta struct {
@@ -74,22 +73,6 @@ func (h *YoutubeHandler) PostUpdate(node *base.Node, m base.NodeManager) error {
 	}
 
 	return nil
-}
-
-func (h *YoutubeHandler) Validate(node *base.Node, m base.NodeManager, errors base.Errors) {
-
-}
-
-func (h *YoutubeHandler) GetDownloadData(node *base.Node) *base.DownloadData {
-	return base.GetDownloadData()
-}
-
-func (h *YoutubeHandler) Load(data []byte, meta []byte, node *base.Node) error {
-	return base.HandlerLoad(h, data, meta, node)
-}
-
-func (h *YoutubeHandler) StoreStream(node *base.Node, r io.Reader) (int64, error) {
-	return base.DefaultHandlerStoreStream(node, r)
 }
 
 type YoutubeListener struct {

@@ -35,7 +35,11 @@ func Test_UserHandler_Validate_EmptyData(t *testing.T) {
 	errors := base.NewErrors()
 	manager := &base.MockedManager{}
 
-	handler.Validate(node, manager, errors)
+	if h, ok := handler.(base.ValidateNodeHandler); ok {
+		h.Validate(node, manager, errors)
+	} else {
+		a.Fail("handler does not implement base.ValidateNodeHandler")
+	}
 
 	a.Equal(3, len(errors))
 	a.True(errors.HasErrors())
@@ -60,7 +64,11 @@ func GeneratePasswordTest(t *testing.T) {
 
 	a.False(len(node.Data.(*User).Password) > 0)
 
-	handler.PreInsert(node, manager)
+	if h, ok := handler.(base.DatabaseNodeHandler); ok {
+		h.PreInsert(node, manager)
+	} else {
+		a.Fail("handler does not implement base.DatabaseNodeHandler")
+	}
 
 	a.Equal(0, len(node.Data.(*User).NewPassword))
 	a.True(len(node.Data.(*User).Password) > 0)

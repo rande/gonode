@@ -8,7 +8,6 @@ package raw
 import (
 	"fmt"
 	"github.com/rande/gonode/modules/base"
-	"io"
 )
 
 type Raw struct {
@@ -25,37 +24,6 @@ type RawHandler struct {
 
 func (h *RawHandler) GetStruct() (base.NodeData, base.NodeMeta) {
 	return &Raw{}, &RawMeta{}
-}
-
-func (h *RawHandler) PreInsert(node *base.Node, m base.NodeManager) error {
-	return nil
-}
-
-func (h *RawHandler) PreUpdate(node *base.Node, m base.NodeManager) error {
-	return nil
-}
-
-func (h *RawHandler) PostInsert(node *base.Node, m base.NodeManager) error {
-	return nil
-}
-
-func (h *RawHandler) PostUpdate(node *base.Node, m base.NodeManager) error {
-	return nil
-}
-
-func (h *RawHandler) Validate(node *base.Node, m base.NodeManager, errors base.Errors) {
-}
-
-func (h *RawHandler) GetDownloadData(node *base.Node) *base.DownloadData {
-	return base.GetDownloadData()
-}
-
-func (h *RawHandler) Load(data []byte, meta []byte, node *base.Node) error {
-	return base.HandlerLoad(h, data, meta, node)
-}
-
-func (h *RawHandler) StoreStream(node *base.Node, r io.Reader) (int64, error) {
-	return base.DefaultHandlerStoreStream(node, r)
 }
 
 type RawViewHandler struct {
