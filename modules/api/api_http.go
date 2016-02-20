@@ -224,13 +224,16 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 					return
 				}
 
-				data := handler_collection.Get(node).GetDownloadData(node)
+				handler := handler_collection.Get(node)
+				var data *base.DownloadData
+
+				if h, ok := handler.(base.DownloadNodeHandler); ok {
+					data = h.GetDownloadData(node)
+				} else {
+					data = base.GetDownloadData()
+				}
 
 				res.Header().Set("Content-Type", data.ContentType)
-
-				//			if download {
-				//				res.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", data.Filename));
-				//			}
 
 				data.Stream(node, res)
 			} else {
@@ -324,7 +327,13 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 					return
 				}
 
-				_, err = handler_collection.Get(node).StoreStream(node, req.Body)
+				handler := handler_collection.Get(node)
+
+				if h, ok := handler.(base.StoreStreamNodeHandler); ok {
+					_, err = h.StoreStream(node, req.Body)
+				} else {
+					_, err = base.DefaultHandlerStoreStream(node, req.Body)
+				}
 
 				// we don't save a new revision as we just need to attach binary to current node
 				manager.Save(node, false)

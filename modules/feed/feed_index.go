@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/search"
-	"io"
 )
 
 var (
@@ -33,37 +32,6 @@ func (h *FeedHandler) GetStruct() (base.NodeData, base.NodeMeta) {
 		},
 		Title: "Feed",
 	}, &search.IndexMeta{}
-}
-
-func (h *FeedHandler) PreInsert(node *base.Node, m base.NodeManager) error {
-	return nil
-}
-
-func (h *FeedHandler) PreUpdate(node *base.Node, m base.NodeManager) error {
-	return nil
-}
-
-func (h *FeedHandler) PostInsert(node *base.Node, m base.NodeManager) error {
-	return nil
-}
-
-func (h *FeedHandler) PostUpdate(node *base.Node, m base.NodeManager) error {
-	return nil
-}
-
-func (h *FeedHandler) Validate(node *base.Node, m base.NodeManager, errors base.Errors) {
-}
-
-func (h *FeedHandler) GetDownloadData(node *base.Node) *base.DownloadData {
-	return base.GetDownloadData()
-}
-
-func (h *FeedHandler) Load(data []byte, meta []byte, node *base.Node) error {
-	return base.HandlerLoad(h, data, meta, node)
-}
-
-func (h *FeedHandler) StoreStream(node *base.Node, r io.Reader) (int64, error) {
-	return base.DefaultHandlerStoreStream(node, r)
 }
 
 type FeedViewHandler struct {

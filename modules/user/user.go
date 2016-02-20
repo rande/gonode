@@ -9,7 +9,6 @@ import (
 	v "github.com/asaskevich/govalidator"
 	"github.com/rande/gonode/modules/base"
 	"golang.org/x/crypto/bcrypt"
-	"io"
 	"regexp"
 )
 
@@ -101,18 +100,6 @@ func (h *UserHandler) Validate(node *base.Node, m base.NodeManager, errors base.
 	if data.Gender != "" && (data.Gender != USER_GENDER_FEMALE && data.Gender != USER_GENDER_MALE) {
 		errors.AddError("data.gender", "Invalid gender code")
 	}
-}
-
-func (h *UserHandler) GetDownloadData(node *base.Node) *base.DownloadData {
-	return base.GetDownloadData()
-}
-
-func (h *UserHandler) Load(data []byte, meta []byte, node *base.Node) error {
-	return base.HandlerLoad(h, data, meta, node)
-}
-
-func (h *UserHandler) StoreStream(node *base.Node, r io.Reader) (int64, error) {
-	return base.DefaultHandlerStoreStream(node, r)
 }
 
 func updatePassword(node *base.Node) error {

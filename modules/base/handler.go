@@ -67,13 +67,28 @@ type DownloadData struct {
 
 type Handler interface {
 	GetStruct() (NodeData, NodeMeta) // Data, Meta
+}
+
+type DatabaseNodeHandler interface {
 	PreUpdate(node *Node, m NodeManager) error
 	PostUpdate(node *Node, m NodeManager) error
 	PreInsert(node *Node, m NodeManager) error
 	PostInsert(node *Node, m NodeManager) error
+}
+
+type ValidateNodeHandler interface {
 	Validate(node *Node, m NodeManager, e Errors)
+}
+
+type LoadNodeHandler interface {
 	Load(data []byte, meta []byte, node *Node) error
+}
+
+type DownloadNodeHandler interface {
 	GetDownloadData(node *Node) *DownloadData
+}
+
+type StoreStreamNodeHandler interface {
 	StoreStream(node *Node, r io.Reader) (int64, error)
 }
 

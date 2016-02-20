@@ -87,10 +87,6 @@ func (h *ImageHandler) PostUpdate(node *base.Node, m base.NodeManager) error {
 	return nil
 }
 
-func (h *ImageHandler) Validate(node *base.Node, m base.NodeManager, errors base.Errors) {
-
-}
-
 func (h *ImageHandler) GetDownloadData(node *base.Node) *base.DownloadData {
 	meta := node.Meta.(*ImageMeta)
 
@@ -103,10 +99,6 @@ func (h *ImageHandler) GetDownloadData(node *base.Node) *base.DownloadData {
 	}
 
 	return data
-}
-
-func (h *ImageHandler) Load(data []byte, meta []byte, node *base.Node) error {
-	return base.HandlerLoad(h, data, meta, node)
 }
 
 func (h *ImageHandler) StoreStream(node *base.Node, r io.Reader) (int64, error) {
