@@ -24,4 +24,3 @@ Documentation
     * [Prism](docs/modules/prism.md)
     * [Feed](docs/modules/feed.md)
     * [Media](docs/modules/media.md)
- 

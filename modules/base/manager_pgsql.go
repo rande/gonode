@@ -272,33 +272,33 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 
 	query := sq.Insert(table).
 		Columns(
-		"uuid", "type", "revision", "version", "name", "created_at", "updated_at", "set_uuid",
-		"parent_uuid", "parents", "slug", "path", "created_by", "updated_by", "data", "meta", "modules",
-		"deleted", "enabled", "source", "status", "weight").
+			"uuid", "type", "revision", "version", "name", "created_at", "updated_at", "set_uuid",
+			"parent_uuid", "parents", "slug", "path", "created_by", "updated_by", "data", "meta", "modules",
+			"deleted", "enabled", "source", "status", "weight").
 		Values(
-		node.Uuid.CleanString(),
-		node.Type,
-		node.Revision,
-		node.Version,
-		node.Name,
-		node.CreatedAt,
-		node.UpdatedAt,
-		node.SetUuid.CleanString(),
-		node.ParentUuid.CleanString(),
-		Parents,
-		node.Slug,
-		node.Path,
-		node.CreatedBy.CleanString(),
-		node.UpdatedBy.CleanString(),
-		string(InterfaceToJsonMessage(node.Type, node.Data)[:]),
-		string(InterfaceToJsonMessage(node.Type, node.Meta)[:]),
-		string(InterfaceToJsonMessage(node.Type, node.Modules)[:]),
-		node.Deleted,
-		node.Enabled,
-		node.Source.CleanString(),
-		node.Status,
-		node.Weight,
-	).
+			node.Uuid.CleanString(),
+			node.Type,
+			node.Revision,
+			node.Version,
+			node.Name,
+			node.CreatedAt,
+			node.UpdatedAt,
+			node.SetUuid.CleanString(),
+			node.ParentUuid.CleanString(),
+			Parents,
+			node.Slug,
+			node.Path,
+			node.CreatedBy.CleanString(),
+			node.UpdatedBy.CleanString(),
+			string(InterfaceToJsonMessage(node.Type, node.Data)[:]),
+			string(InterfaceToJsonMessage(node.Type, node.Meta)[:]),
+			string(InterfaceToJsonMessage(node.Type, node.Modules)[:]),
+			node.Deleted,
+			node.Enabled,
+			node.Source.CleanString(),
+			node.Status,
+			node.Weight,
+		).
 		Suffix("RETURNING \"id\"").
 		RunWith(m.Db).
 		PlaceholderFormat(sq.Dollar)
