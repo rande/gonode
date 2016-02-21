@@ -12,9 +12,9 @@ import (
 	"github.com/zenazn/goji/web"
 )
 
-func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
+func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
 	l.Prepare(func(app *goapp.App) error {
-		conf := app.Get("gonode.configuration").(*config.ServerConfig)
+		conf := app.Get("gonode.configuration").(*config.Config)
 
 		if conf.Security == nil {
 			return nil // nothing setup

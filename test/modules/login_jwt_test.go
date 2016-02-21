@@ -25,7 +25,7 @@ import (
 func Test_Create_Username(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 
-		configuration := app.Get("gonode.configuration").(*config.ServerConfig)
+		configuration := app.Get("gonode.configuration").(*config.Config)
 
 		// WITH
 		// create a valid user into the database ...

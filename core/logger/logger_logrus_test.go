@@ -74,8 +74,8 @@ func Test_Config_Influx(t *testing.T) {
 }
 
 func Test_Config_Influx_From_Config(t *testing.T) {
-	conf := &config.ServerConfig{
-		Databases: make(map[string]*config.ServerDatabase),
+	conf := &config.Config{
+		Databases: make(map[string]*config.Database),
 	}
 
 	err := config.LoadConfigurationFromString(`

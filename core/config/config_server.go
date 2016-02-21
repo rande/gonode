@@ -9,11 +9,11 @@ import (
 	"os"
 )
 
-type ServerSearch struct {
+type Search struct {
 	MaxResult uint64 `toml:"max_result"`
 }
 
-type ServerGuard struct {
+type Guard struct {
 	Key string `toml:"key"`
 	Jwt struct {
 		Validity int64 `toml:"validity"`
@@ -26,19 +26,19 @@ type ServerGuard struct {
 	} `toml:"jwt"`
 }
 
-type ServerBinDataAsset struct {
+type BinDataAsset struct {
 	Index   string `toml:"index"`
 	Public  string `toml:"public"`
 	Private string `toml:"private"`
 }
 
-type ServerBinData struct {
-	BasePath  string                         `toml:"base_path"`
-	Assets    map[string]*ServerBinDataAsset `toml:"assets"`
-	Templates []string                       `toml:"templates"`
+type BinData struct {
+	BasePath  string                   `toml:"base_path"`
+	Assets    map[string]*BinDataAsset `toml:"assets"`
+	Templates []string                 `toml:"templates"`
 }
 
-type ServerSecurity struct {
+type Security struct {
 	Cors struct {
 		AllowedOrigins     []string `toml:"allowed_origins"`
 		AllowedMethods     []string `toml:"allowed_methods"`
@@ -50,16 +50,16 @@ type ServerSecurity struct {
 	} `toml:"cors"`
 }
 
-type ServerMediaImage struct {
+type MediaImage struct {
 	AllowedWidths []uint `toml:"allowed_widths"`
 	MaxWidth      uint   `toml:"max_width"`
 }
 
-type ServerMedia struct {
-	Image *ServerMediaImage `toml:"image"`
+type Media struct {
+	Image *MediaImage `toml:"image"`
 }
 
-type ServerDatabase struct {
+type Database struct {
 	Name    string `toml:"name"`
 	DSN     string `toml:"dsn"`
 	Type    string `toml:"type"`
@@ -67,54 +67,54 @@ type ServerDatabase struct {
 	Enabled bool   `toml:"enabled"`
 }
 
-type ServerFilesystem struct {
+type Filesystem struct {
 	Type string `toml:"type"`
 	Path string `toml:"path"`
 }
 
-type ServerHandler struct {
+type Handler struct {
 	Type    string `toml:"type"`
 	Enabled bool   `toml:"enabled"`
 }
 
-type ServerLogger struct {
+type Logger struct {
 	Level  string                            `toml:"level"`
 	Fields map[string]string                 `toml:"fields"`
 	Hooks  map[string]map[string]interface{} `toml:"hooks"`
 }
 
-type ServerConfig struct {
-	Name       string                     `toml:"name"`
-	Databases  map[string]*ServerDatabase `toml:"databases"`
-	Filesystem ServerFilesystem           `toml:"filesystem"`
-	Test       bool                       `toml:"test"`
-	Bind       string                     `toml:"bind"`
-	Guard      *ServerGuard               `toml:"guard"`
-	Security   *ServerSecurity            `toml:"security"`
-	Search     *ServerSearch              `toml:"search"`
-	BinData    *ServerBinData             `toml:"bindata"`
-	Media      *ServerMedia               `toml:"media"`
-	Logger     *ServerLogger              `toml:"logger"`
+type Config struct {
+	Name       string               `toml:"name"`
+	Databases  map[string]*Database `toml:"databases"`
+	Filesystem Filesystem           `toml:"filesystem"`
+	Test       bool                 `toml:"test"`
+	Bind       string               `toml:"bind"`
+	Guard      *Guard               `toml:"guard"`
+	Security   *Security            `toml:"security"`
+	Search     *Search              `toml:"search"`
+	BinData    *BinData             `toml:"bindata"`
+	Media      *Media               `toml:"media"`
+	Logger     *Logger              `toml:"logger"`
 }
 
-func NewServerConfig() *ServerConfig {
-	return &ServerConfig{
-		Databases: make(map[string]*ServerDatabase),
+func NewConfig() *Config {
+	return &Config{
+		Databases: make(map[string]*Database),
 		Bind:      ":2408",
 		Test:      false,
-		Search: &ServerSearch{
+		Search: &Search{
 			MaxResult: 128,
 		},
-		BinData: &ServerBinData{
+		BinData: &BinData{
 			BasePath: os.Getenv("GOPATH") + "/src",
-			Assets:   make(map[string]*ServerBinDataAsset, 0),
+			Assets:   make(map[string]*BinDataAsset, 0),
 		},
-		Media: &ServerMedia{
-			Image: &ServerMediaImage{
+		Media: &Media{
+			Image: &MediaImage{
 				MaxWidth: uint(1024),
 			},
 		},
-		Logger: &ServerLogger{
+		Logger: &Logger{
 			Level: "warn",
 		},
 	}

@@ -31,11 +31,11 @@ func (g *GuardManager) GetUser(username string) (guard.GuardUser, error) {
 	return nil, nil
 }
 
-func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
+func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
 
 	l.Prepare(func(app *goapp.App) error {
 		mux := app.Get("goji.mux").(*web.Mux)
-		conf := app.Get("gonode.configuration").(*config.ServerConfig)
+		conf := app.Get("gonode.configuration").(*config.Config)
 		manager := app.Get("gonode.manager").(*base.PgNodeManager)
 		logger := app.Get("logger").(*log.Logger)
 

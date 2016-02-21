@@ -72,7 +72,7 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 
 	l := goapp.NewLifecycle()
 
-	conf := config.NewServerConfig()
+	conf := config.NewConfig()
 	conf.Test = true
 
 	config.LoadConfigurationFromFile(file, conf)

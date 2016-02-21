@@ -51,7 +51,7 @@ func (c *ServerCommand) Run(args []string) int {
 
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 		mux := app.Get("goji.mux").(*web.Mux)
-		conf := app.Get("gonode.configuration").(*config.ServerConfig)
+		conf := app.Get("gonode.configuration").(*config.Config)
 
 		mux.Compile()
 

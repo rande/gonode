@@ -16,7 +16,7 @@ import (
 	"net/http"
 )
 
-func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
+func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
 
 	l.Prepare(func(app *goapp.App) error {
 		if !conf.Test {

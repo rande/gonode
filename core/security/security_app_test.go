@@ -18,7 +18,7 @@ import (
 func Test_Cors_Default_Values(t *testing.T) {
 
 	l := goapp.NewLifecycle()
-	conf := config.NewServerConfig()
+	conf := config.NewConfig()
 
 	config.LoadConfigurationFromString(`[security]
     [security.cors]

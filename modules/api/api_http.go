@@ -40,7 +40,7 @@ func readLoop(c *websocket.Conn) {
 	}
 }
 
-func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
+func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
 
 	l.Prepare(func(app *goapp.App) error {
 		app.Set("gonode.websocket.clients", func(app *goapp.App) interface{} {

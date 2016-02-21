@@ -24,7 +24,7 @@ func GetValue(source interface{}, field string) interface{} {
 	return v.Interface()
 }
 
-func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
+func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
 
 	l.Prepare(func(app *goapp.App) error {
 		pongo := app.Get("gonode.pongo").(*pongo2.TemplateSet)

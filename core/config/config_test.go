@@ -22,8 +22,8 @@ func Test_Server_LoadConfigurationFromFile(t *testing.T) {
 		os.Unsetenv("PG_PASSWORD")
 	}()
 
-	config := &ServerConfig{
-		Databases: make(map[string]*ServerDatabase),
+	config := &Config{
+		Databases: make(map[string]*Database),
 	}
 
 	err := LoadConfigurationFromString(`

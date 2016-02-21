@@ -86,7 +86,7 @@ import (
 	"github.com/rande/gonode/modules/router"
 )
 
-func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
+func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
 
 	l.Prepare(func(app *goapp.App) error {
 		r := app.Get("gonode.router").(*router.Router)

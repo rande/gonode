@@ -13,7 +13,7 @@ import (
 	"net/url"
 )
 
-func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
+func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
 	l.Register(func(app *goapp.App) error {
 
 		app.Set("gonode.router", func(app *goapp.App) interface{} {
