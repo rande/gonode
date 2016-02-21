@@ -4,28 +4,44 @@ PID = .pid
 GO_FILES = $(shell find . -type f -name "*.go")
 GONODE_MODULES = $(shell ls -d ./modules/* | grep -v go)
 GONODE_CORE = $(shell ls -d ./core/* | grep -v go)
-
 GO_PATH = $(shell go env GOPATH)
 GO_BINDATA_PATHS = $(GO_PATH)/src/github.com/rande/gonode/modules/... $(GO_PATH)/src/github.com/rande/gonode/explorer/dist/...
 GO_BINDATA_IGNORE = "(.*)\.(go|DS_Store)"
-GO_BINDATA_OUTPUT = $(GO_PATH)/src/github.com/rande/gonode/assets/bindata.go
+GO_BINDATA_OUTPUT = $(shell pwd)/assets/bindata.go
 GO_BINDATA_PACKAGE = assets
 
-default: clean test build
+default: test
 
-clean:
-	rm -rf dist && mkdir dist
-	rm -rf explorer/dist/*
+format:
+	gofmt -l -w -s .
+	go fix ./...
+	go vet ./...
+
+bin:
+	cd $(GO_PATH)/src && go-bindata -dev -prefix $(GO_PATH)/src -o $(GO_BINDATA_OUTPUT) -pkg $(GO_BINDATA_PACKAGE) -ignore $(GO_BINDATA_IGNORE) $(GO_BINDATA_PATHS)
+
+run: bin
+	cd ../gonode-skeleton && go run main.go server -config=./server.toml.dist
+
+test: bin test-backend test-frontend
+
+test-backend: bin
+	go test $(GONODE_CORE) $(GONODE_MODULES) ./test/modules
+	go vet ./...
+
+test-frontend:
+	cd explorer && npm test
+
+install: install-backend install-frontend
 
 install-backend:
 	go get -u github.com/jteeuwen/go-bindata/...
 	go list -f '{{range .Imports}}{{.}} {{end}}' ./... | xargs go get -v
 	go list -f '{{range .TestImports}}{{.}} {{end}}' ./... | xargs go get -v
+	git clone https://github.com/rande/gonode-skeleton.git $(GO_PATH)/src/github.com/rande/gonode-skeleton
 
 install-frontend:
 	cd explorer && npm install
-
-install: install-backend install-frontend
 
 update:
 	go get -u all
@@ -36,32 +52,8 @@ load:
 	curl -XPOST http://localhost:2405/setup/install
 	curl -XPOST http://localhost:2405/setup/data/load
 
-run: bin
-	cd commands && go run main.go server -config=../server.toml.dist
-
-bin:
-	cd $(GO_PATH)/src && go-bindata -dev -prefix $(GO_PATH)/src -o $(GO_BINDATA_OUTPUT) -pkg $(GO_BINDATA_PACKAGE) -ignore $(GO_BINDATA_IGNORE) $(GO_BINDATA_PATHS)
-
-build-assets:
-	cd explorer && npm run-script build
-
-build: clean build-assets
-	cd $(GO_PATH)/src && go-bindata -prefix $(GO_PATH)/src -o $(GO_BINDATA_OUTPUT) -pkg $(GO_BINDATA_PACKAGE) -ignore $(GO_BINDATA_IGNORE)  $(GO_BINDATA_PATHS)
-	cd commands && go build -a -o ../dist/gonode
-
-format:
-	gofmt -l -w -s .
-	go fix ./...
-	go vet ./...
-
-test-backend: bin
-	go test $(GONODE_CORE) $(GONODE_MODULES) ./test/modules ./commands/server
-	go vet ./...
-
-test-frontend:
-	cd explorer && npm test
-
-test: test-backend test-frontend
+build:
+	cd ../gonode-skeleton && make build
 
 kill:
 	kill `cat $(PID)` || true

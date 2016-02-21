@@ -1,7 +1,5 @@
 # Created by .ignore support plugin (hsz.mobi)
 explorer/node_modules
 explorer/dist
-.idea
 dist/*
 assets/bindata.go
-.DS_Store

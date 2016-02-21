@@ -3,7 +3,7 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package server
+package commands
 
 import (
 	"flag"
@@ -13,17 +13,8 @@ import (
 	"net/http"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/rande/gonode/core/bindata"
 	"github.com/rande/gonode/core/config"
-	"github.com/rande/gonode/core/logger"
-	"github.com/rande/gonode/core/router"
-	"github.com/rande/gonode/core/security"
-	"github.com/rande/gonode/modules/api"
-	"github.com/rande/gonode/modules/base"
-	"github.com/rande/gonode/modules/guard"
-	"github.com/rande/gonode/modules/prism"
-	"github.com/rande/gonode/modules/search"
-	"github.com/rande/gonode/modules/setup"
+
 	"github.com/zenazn/goji/bind"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
@@ -34,6 +25,7 @@ type ServerCommand struct {
 	ConfigFile string
 	Test       bool
 	Verbose    bool
+	Configure  func(configFile string) *goapp.Lifecycle
 }
 
 func (c *ServerCommand) Help() string {
@@ -43,7 +35,9 @@ func (c *ServerCommand) Help() string {
 func (c *ServerCommand) Run(args []string) int {
 
 	cmdFlags := flag.NewFlagSet("server", flag.ContinueOnError)
-	cmdFlags.Usage = func() { c.Ui.Output(c.Help()) }
+	cmdFlags.Usage = func() {
+		c.Ui.Output(c.Help())
+	}
 
 	cmdFlags.StringVar(&c.ConfigFile, "config", "server.toml.dist", "")
 	cmdFlags.BoolVar(&c.Verbose, "verbose", false, "")
@@ -53,27 +47,7 @@ func (c *ServerCommand) Run(args []string) int {
 		return 1
 	}
 
-	conf := config.NewServerConfig()
-
-	config.LoadConfigurationFromFile(c.ConfigFile, conf)
-
-	c.Ui.Info("Starting GoNode Server on: " + conf.Bind)
-
-	l := goapp.NewLifecycle()
-
-	ConfigureServer(l, conf)
-
-	// add modules
-	logger.ConfigureServer(l, conf)
-	setup.ConfigureServer(l, conf)
-	security.ConfigureServer(l, conf)
-	search.ConfigureServer(l, conf)
-	api.ConfigureServer(l, conf)
-	node_guard.ConfigureServer(l, conf)
-	bindata.ConfigureServer(l, conf)
-	prism.ConfigureServer(l, conf)
-	router.ConfigureServer(l, conf)
-	base.ConfigureServer(l, conf)
+	l := c.Configure(c.ConfigFile)
 
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 		mux := app.Get("goji.mux").(*web.Mux)

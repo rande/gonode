@@ -7,7 +7,6 @@ package bindata
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"github.com/rande/gonode/assets"
 	"github.com/zenazn/goji/web"
 	"net/http"
 	"strings"
@@ -26,7 +25,7 @@ var contentTypes = map[string]string{
 	"gif":   "image/gif",
 }
 
-func ConfigureBinDataMux(mux *web.Mux, publicPath, privatePath, index string, logger *log.Logger) {
+func ConfigureBinDataMux(mux *web.Mux, Asset func(name string) ([]byte, error), publicPath, privatePath, index string, logger *log.Logger) {
 
 	lenPath := len(publicPath)
 
@@ -63,7 +62,7 @@ func ConfigureBinDataMux(mux *web.Mux, publicPath, privatePath, index string, lo
 				logger.Debug("GET:", path)
 			}
 
-			asset, err := assets.Asset(path)
+			asset, err := Asset(path)
 
 			if err != nil {
 				if logger != nil {

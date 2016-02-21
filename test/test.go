@@ -11,8 +11,9 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/commands/server"
+	"github.com/rande/gonode/assets"
 	"github.com/rande/gonode/core/bindata"
+	"github.com/rande/gonode/core/commands"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/core/router"
@@ -81,6 +82,12 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 			return conf
 		})
 
+		assets.UpdateRootDir(conf.BinData.BasePath)
+
+		app.Set("gonode.asset", func(app *goapp.App) interface{} {
+			return assets.Asset
+		})
+
 		return nil
 	})
 
@@ -106,7 +113,7 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 		return nil
 	})
 
-	server.ConfigureServer(l, conf)
+	commands.ConfigureServer(l, conf)
 	security.ConfigureServer(l, conf)
 	search.ConfigureServer(l, conf)
 	api.ConfigureServer(l, conf)

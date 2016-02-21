@@ -9,24 +9,16 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/flosch/pongo2"
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/assets"
 	"github.com/rande/gonode/core/config"
 	"github.com/zenazn/goji/web"
 )
 
 func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
-
-	l.Config(func(app *goapp.App) error {
-		assets.UpdateRootDir(conf.BinData.BasePath)
-
-		return nil
-	})
-
 	l.Register(func(app *goapp.App) error {
 		app.Set("gonode.pongo", func(app *goapp.App) interface{} {
 
 			return pongo2.NewSet("gonode.bindata", &PongoTemplateLoader{
-				Asset: assets.Asset,
+				Asset: app.Get("gonode.asset").(func(name string) ([]byte, error)),
 				Paths: conf.BinData.Templates,
 			})
 		})
@@ -42,9 +34,10 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.ServerConfig) {
 
 		mux := app.Get("goji.mux").(*web.Mux)
 		logger := app.Get("logger").(*log.Logger)
+		asset := app.Get("gonode.asset").(func(name string) ([]byte, error))
 
 		for _, bindata := range conf.BinData.Assets {
-			ConfigureBinDataMux(mux, bindata.Public, bindata.Private, bindata.Index, logger)
+			ConfigureBinDataMux(mux, asset, bindata.Public, bindata.Private, bindata.Index, logger)
 		}
 
 		return nil
