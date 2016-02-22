@@ -41,7 +41,7 @@ func Test_Cors_Default_Values(t *testing.T) {
 		return nil
 	})
 
-	ConfigureServer(l, conf)
+	Configure(l, conf)
 
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 

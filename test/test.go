@@ -114,17 +114,17 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 		return nil
 	})
 
-	logger.ConfigureServer(l, conf)
-	commands.ConfigureServer(l, conf)
-	security.ConfigureServer(l, conf)
-	search.ConfigureServer(l, conf)
-	api.ConfigureServer(l, conf)
-	setup.ConfigureServer(l, conf)
-	node_guard.ConfigureServer(l, conf)
-	bindata.ConfigureServer(l, conf)
-	prism.ConfigureServer(l, conf)
-	router.ConfigureServer(l, conf)
-	base.ConfigureServer(l, conf)
+	logger.Configure(l, conf)
+	commands.Configure(l, conf)
+	security.Configure(l, conf)
+	search.Configure(l, conf)
+	api.Configure(l, conf)
+	setup.Configure(l, conf)
+	node_guard.Configure(l, conf)
+	bindata.Configure(l, conf)
+	prism.Configure(l, conf)
+	router.Configure(l, conf)
+	base.Configure(l, conf)
 
 	return l
 }

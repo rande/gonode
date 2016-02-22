@@ -13,7 +13,7 @@ import (
 	"github.com/zenazn/goji/web"
 )
 
-func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
+func Configure(l *goapp.Lifecycle, conf *config.Config) {
 	l.Register(func(app *goapp.App) error {
 		app.Set("gonode.pongo", func(app *goapp.App) interface{} {
 

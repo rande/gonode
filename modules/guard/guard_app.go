@@ -31,7 +31,7 @@ func (g *GuardManager) GetUser(username string) (guard.GuardUser, error) {
 	return nil, nil
 }
 
-func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
+func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
 	l.Prepare(func(app *goapp.App) error {
 		mux := app.Get("goji.mux").(*web.Mux)

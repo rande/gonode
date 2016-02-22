@@ -73,7 +73,7 @@ func GetHook(conf map[string]interface{}) (log.Hook, error) {
 	return nil, NoHookHandlerError
 }
 
-func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
+func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
 	l.Register(func(app *goapp.App) error {
 		// configure main services
