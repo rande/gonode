@@ -22,3 +22,11 @@ func Test_Hello(t *testing.T) {
 		assert.Equal(t, res.GetBody(), []byte("Hello!"))
 	})
 }
+
+func Test_Invalid_Request(t *testing.T) {
+	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
+		res, _ := test.RunRequest("GET", ts.URL+"/api/v01/hello", nil)
+
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	})
+}
