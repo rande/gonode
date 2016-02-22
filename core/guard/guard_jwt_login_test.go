@@ -16,13 +16,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"regexp"
 	"strings"
 	"testing"
 )
 
 func Test_JwtLoginGuardAuthenticator_getCredentials_Valid_Request(t *testing.T) {
 	a := &JwtLoginGuardAuthenticator{
-		LoginPath: "/login",
+		LoginPath: regexp.MustCompile("/login"),
 		Manager:   &MockedManager{},
 		Validity:  12,
 		Key:       []byte("ZeKey"),
@@ -49,7 +50,7 @@ func Test_JwtLoginGuardAuthenticator_getCredentials_Valid_Request(t *testing.T) 
 
 func Test_JwtLoginGuardAuthenticator_checkCredentials_Valid_Password(t *testing.T) {
 	a := &JwtLoginGuardAuthenticator{
-		LoginPath: "/login",
+		LoginPath: regexp.MustCompile("/login"),
 		Manager:   &MockedManager{},
 		Validity:  12,
 		Key:       []byte("ZeKey"),
@@ -67,7 +68,7 @@ func Test_JwtLoginGuardAuthenticator_checkCredentials_Valid_Password(t *testing.
 
 func Test_JwtLoginGuardAuthenticator_createAuthenticatedToken(t *testing.T) {
 	a := &JwtLoginGuardAuthenticator{
-		LoginPath: "/login",
+		LoginPath: regexp.MustCompile("/login"),
 		Manager:   &MockedManager{},
 		Validity:  12,
 		Key:       []byte("ZeKey"),
@@ -89,7 +90,7 @@ func Test_JwtLoginGuardAuthenticator_createAuthenticatedToken(t *testing.T) {
 
 func Test_JwtLoginGuardAuthenticator_onAuthenticationSuccess(t *testing.T) {
 	a := &JwtLoginGuardAuthenticator{
-		LoginPath: "/login",
+		LoginPath: regexp.MustCompile("/login"),
 		Manager:   &MockedManager{},
 		Validity:  12,
 		Key:       []byte("ZeKey"),
@@ -137,7 +138,7 @@ func Test_JwtLoginGuardAuthenticator_onAuthenticationSuccess(t *testing.T) {
 
 func Test_JwtLoginGuardAuthenticator_onAuthenticationFailure(t *testing.T) {
 	a := &JwtLoginGuardAuthenticator{
-		LoginPath: "/login",
+		LoginPath: regexp.MustCompile("/login"),
 		Manager:   &MockedManager{},
 		Validity:  12,
 		Key:       []byte("ZeKey"),

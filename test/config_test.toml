@@ -7,6 +7,8 @@ dsn     = "postgres://safre:safre@192.168.30.20/gonode?sslmode=disable"
 enabled = true
 prefix  = "test"
 
+[api]
+prefix = "/api"
 
 [filesystem]
 path = "/tmp/gnode"
@@ -16,10 +18,10 @@ key = "ZeSecretKey0oo"
 
     [guard.jwt]
         [guard.jwt.login]
-        path = "/login"
+        path = "\\/api\\/v([0-9\\.]*)\\/login"
 
         [guard.jwt.token]
-        path = "^\\/nodes\\/(.*)$"
+        path = "^\\/api\\/v([0-9\\.]*)\\/nodes\\/(.*)$"
 
 [security]
     [security.cors]
@@ -44,3 +46,6 @@ templates = [
     [media.image]
     allowed_widths = [20, 100, 250, 500, 1024]
     max_width = 1024
+
+[logger]
+    level = "debug"

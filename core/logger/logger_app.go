@@ -73,14 +73,14 @@ func GetHook(conf map[string]interface{}) (log.Hook, error) {
 	return nil, NoHookHandlerError
 }
 
-func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
+func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
 	l.Register(func(app *goapp.App) error {
 		// configure main services
 		app.Set("logger", func(app *goapp.App) interface{} {
 
 			logger := log.New()
-			logger.Out = os.Stderr
+			logger.Out = os.Stdout
 			logger.Level, _ = log.ParseLevel(strings.ToLower(conf.Logger.Level))
 
 			d := &DispatchHook{

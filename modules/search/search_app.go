@@ -10,7 +10,7 @@ import (
 	"github.com/rande/gonode/core/config"
 )
 
-func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
+func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
 	l.Config(func(app *goapp.App) error {
 

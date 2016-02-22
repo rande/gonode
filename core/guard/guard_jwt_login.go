@@ -12,12 +12,13 @@ import (
 	"github.com/gorilla/schema"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
+	"regexp"
 	"time"
 )
 
 // this authenticator will create a JWT Token from a standard form
 type JwtLoginGuardAuthenticator struct {
-	LoginPath string
+	LoginPath *regexp.Regexp
 	Manager   GuardManager
 	Validity  int64
 	Key       []byte
@@ -25,7 +26,11 @@ type JwtLoginGuardAuthenticator struct {
 }
 
 func (a *JwtLoginGuardAuthenticator) GetCredentials(req *http.Request) (interface{}, error) {
-	if !(req.Method == "POST" && req.URL.Path == a.LoginPath) {
+	if req.Method != "POST" {
+		return nil, nil
+	}
+
+	if !a.LoginPath.Match([]byte(req.URL.Path)) {
 		return nil, nil
 	}
 

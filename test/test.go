@@ -16,6 +16,7 @@ import (
 	"github.com/rande/gonode/core/commands"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/core/logger"
 	"github.com/rande/gonode/core/router"
 	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/modules/api"
@@ -113,16 +114,17 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 		return nil
 	})
 
-	commands.ConfigureServer(l, conf)
-	security.ConfigureServer(l, conf)
-	search.ConfigureServer(l, conf)
-	api.ConfigureServer(l, conf)
-	setup.ConfigureServer(l, conf)
-	node_guard.ConfigureServer(l, conf)
-	bindata.ConfigureServer(l, conf)
-	prism.ConfigureServer(l, conf)
-	router.ConfigureServer(l, conf)
-	base.ConfigureServer(l, conf)
+	logger.Configure(l, conf)
+	commands.Configure(l, conf)
+	security.Configure(l, conf)
+	search.Configure(l, conf)
+	api.Configure(l, conf)
+	setup.Configure(l, conf)
+	node_guard.Configure(l, conf)
+	bindata.Configure(l, conf)
+	prism.Configure(l, conf)
+	router.Configure(l, conf)
+	base.Configure(l, conf)
 
 	return l
 }
@@ -156,7 +158,7 @@ func GetAuthHeader(t *testing.T, ts *httptest.Server) map[string]string {
 }
 
 func GetAuthToken(t *testing.T, ts *httptest.Server) string {
-	res, _ := RunRequest("POST", fmt.Sprintf("%s/login", ts.URL), url.Values{
+	res, _ := RunRequest("POST", fmt.Sprintf("%s/api/v1/login", ts.URL), url.Values{
 		"username": {"test-admin"},
 		"password": {"admin"},
 	})
