@@ -9,8 +9,6 @@ import (
 	"bufio"
 	"container/list"
 	log "github.com/Sirupsen/logrus"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/gorilla/schema"
 	"github.com/gorilla/websocket"
 	"github.com/lib/pq"
 	"github.com/rande/goapp"
@@ -18,10 +16,8 @@ import (
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/search"
-	"github.com/rande/gonode/modules/user"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
-	"golang.org/x/crypto/bcrypt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -120,60 +116,12 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
 		handler_collection := app.Get("gonode.handler_collection").(base.Handlers)
 		searchBuilder := app.Get("gonode.search.pgsql").(*search.SearchPGSQL)
 		searchParser := app.Get("gonode.search.parser.http").(*search.HttpSearchParser)
-		prefix := ""
 
-		mux.Get(prefix+"/hello", func(c web.C, res http.ResponseWriter, req *http.Request) {
+		mux.Get(conf.Api.Prefix+"/:version/hello", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			res.Write([]byte("Hello!"))
 		})
 
-		mux.Post(prefix+"/login", func(c web.C, res http.ResponseWriter, req *http.Request) {
-			res.Header().Set("Content-Type", "application/json")
-
-			req.ParseForm()
-
-			loginForm := &struct {
-				Username string `schema:"username"`
-				Password string `schema:"password"`
-			}{}
-
-			decoder := schema.NewDecoder()
-			err := decoder.Decode(loginForm, req.Form)
-
-			helper.PanicOnError(err)
-
-			query := manager.SelectBuilder(base.NewSelectOptions()).Where("type = 'core.user' AND data->>'username' = ?", loginForm.Username)
-
-			node := manager.FindOneBy(query)
-
-			password := []byte("$2a$10$KDobsZdRDVnuMqvimYH82.Tnu3suk5xP7QzhQjlCo7Wy7d67xtYay")
-
-			if node != nil {
-				data := node.Data.(*user.User)
-				password = []byte(data.Password)
-			}
-
-			if err := bcrypt.CompareHashAndPassword([]byte(password), []byte(loginForm.Password)); err == nil { // equal
-				token := jwt.New(jwt.SigningMethodHS256)
-				token.Header["kid"] = "the sha1"
-
-				// Set some claims
-				token.Claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
-				// Sign and get the complete encoded token as a string
-				tokenString, err := token.SignedString([]byte(conf.Guard.Key))
-
-				if err != nil {
-					helper.SendWithHttpCode(res, http.StatusInternalServerError, "Unable to sign the token")
-					return
-				}
-
-				helper.PanicOnError(err)
-				res.Write([]byte(tokenString))
-			} else {
-				helper.SendWithHttpCode(res, http.StatusForbidden, "Unable to authenticate request: "+err.Error())
-			}
-		})
-
-		mux.Get(prefix+"/nodes/stream", func(res http.ResponseWriter, req *http.Request) {
+		mux.Get(conf.Api.Prefix+"/:version/nodes/stream", func(res http.ResponseWriter, req *http.Request) {
 			webSocketList := app.Get("gonode.websocket.clients").(*list.List)
 
 			upgrader.CheckOrigin = func(r *http.Request) bool {
@@ -204,7 +152,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
 			}
 		})
 
-		mux.Get(prefix+"/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
+		mux.Get(conf.Api.Prefix+"/:version/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			values := req.URL.Query()
 
 			if _, raw := values["raw"]; raw { // ask for binary content
@@ -251,7 +199,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
 			}
 		})
 
-		mux.Get(prefix+"/nodes/:uuid/revisions", func(c web.C, res http.ResponseWriter, req *http.Request) {
+		mux.Get(conf.Api.Prefix+"/:version/nodes/:uuid/revisions", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
 
 			searchForm := searchParser.HandleSearch(res, req)
@@ -265,7 +213,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
 			apiHandler.Find(res, searchBuilder.BuildQuery(searchForm, query), searchForm.Page, searchForm.PerPage)
 		})
 
-		mux.Get(prefix+"/nodes/:uuid/revisions/:rev", func(c web.C, res http.ResponseWriter, req *http.Request) {
+		mux.Get(conf.Api.Prefix+"/:version/nodes/:uuid/revisions/:rev", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
 
 			options := base.NewSelectOptions()
@@ -286,7 +234,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
 			}
 		})
 
-		mux.Post(prefix+"/nodes", func(res http.ResponseWriter, req *http.Request) {
+		mux.Post(conf.Api.Prefix+"/:version/nodes", func(res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
 
 			w := bufio.NewWriter(res)
@@ -306,7 +254,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
 			w.Flush()
 		})
 
-		mux.Put(prefix+"/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
+		mux.Put(conf.Api.Prefix+"/:version/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
 
 			values := req.URL.Query()
@@ -363,7 +311,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
 			}
 		})
 
-		mux.Put(prefix+"/nodes/move/:uuid/:parentUuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
+		mux.Put(conf.Api.Prefix+"/:version/nodes/move/:uuid/:parentUuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
 
 			err := apiHandler.Move(c.URLParams["uuid"], c.URLParams["parentUuid"], res)
@@ -373,7 +321,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
 			}
 		})
 
-		mux.Delete(prefix+"/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
+		mux.Delete(conf.Api.Prefix+"/:version/nodes/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			err := apiHandler.RemoveOne(c.URLParams["uuid"], res)
 
 			if err == base.NotFoundError {
@@ -391,13 +339,13 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
 			}
 		})
 
-		mux.Put(prefix+"/notify/:name", func(c web.C, res http.ResponseWriter, req *http.Request) {
+		mux.Put(conf.Api.Prefix+"/:version/notify/:name", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			body, _ := ioutil.ReadAll(req.Body)
 
 			manager.Notify(c.URLParams["name"], string(body[:]))
 		})
 
-		mux.Get(prefix+"/nodes", func(c web.C, res http.ResponseWriter, req *http.Request) {
+		mux.Get(conf.Api.Prefix+"/:version/nodes", func(c web.C, res http.ResponseWriter, req *http.Request) {
 			res.Header().Set("Content-Type", "application/json")
 
 			searchForm := searchParser.HandleSearch(res, req)

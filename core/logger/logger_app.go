@@ -80,7 +80,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
 		app.Set("logger", func(app *goapp.App) interface{} {
 
 			logger := log.New()
-			logger.Out = os.Stderr
+			logger.Out = os.Stdout
 			logger.Level, _ = log.ParseLevel(strings.ToLower(conf.Logger.Level))
 
 			d := &DispatchHook{

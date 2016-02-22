@@ -16,6 +16,7 @@ import (
 	"github.com/rande/gonode/core/commands"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/core/logger"
 	"github.com/rande/gonode/core/router"
 	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/modules/api"
@@ -113,6 +114,7 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 		return nil
 	})
 
+	logger.ConfigureServer(l, conf)
 	commands.ConfigureServer(l, conf)
 	security.ConfigureServer(l, conf)
 	search.ConfigureServer(l, conf)
@@ -156,7 +158,7 @@ func GetAuthHeader(t *testing.T, ts *httptest.Server) map[string]string {
 }
 
 func GetAuthToken(t *testing.T, ts *httptest.Server) string {
-	res, _ := RunRequest("POST", fmt.Sprintf("%s/login", ts.URL), url.Values{
+	res, _ := RunRequest("POST", fmt.Sprintf("%s/api/v1/login", ts.URL), url.Values{
 		"username": {"test-admin"},
 		"password": {"admin"},
 	})

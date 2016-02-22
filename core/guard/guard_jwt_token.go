@@ -24,7 +24,7 @@ type JwtTokenGuardAuthenticator struct {
 }
 
 func (a *JwtTokenGuardAuthenticator) GetCredentials(req *http.Request) (interface{}, error) {
-	if !a.Path.Match([]byte(req.RequestURI)) {
+	if !a.Path.Match([]byte(req.URL.Path)) {
 		return nil, nil
 	}
 

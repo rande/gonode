@@ -9,14 +9,16 @@ import (
 	. "github.com/rande/goapp"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
 func Test_Hello(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
-		res, _ := test.RunRequest("GET", ts.URL+"/hello", nil)
+		res, _ := test.RunRequest("GET", ts.URL+"/api/v1/hello", nil)
 
+		assert.Equal(t, http.StatusOK, res.StatusCode)
 		assert.Equal(t, res.GetBody(), []byte("Hello!"))
 	})
 }

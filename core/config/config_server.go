@@ -43,7 +43,7 @@ type Security struct {
 		AllowedOrigins     []string `toml:"allowed_origins"`
 		AllowedMethods     []string `toml:"allowed_methods"`
 		AllowedHeaders     []string `toml:"allowed_headers"`
-		ExposedHeaders     []string `toml:"exposes_headers"`
+		ExposedHeaders     []string `toml:"exposed_headers"`
 		AllowCredentials   bool     `toml:"allow_credentials"`
 		MaxAge             int      `toml:"max_age"`
 		OptionsPassthrough bool     `toml:"options_passthrough"`
@@ -77,6 +77,10 @@ type Handler struct {
 	Enabled bool   `toml:"enabled"`
 }
 
+type Api struct {
+	Prefix string `toml:"prefix"`
+}
+
 type Logger struct {
 	Level  string                            `toml:"level"`
 	Fields map[string]string                 `toml:"fields"`
@@ -95,6 +99,7 @@ type Config struct {
 	BinData    *BinData             `toml:"bindata"`
 	Media      *Media               `toml:"media"`
 	Logger     *Logger              `toml:"logger"`
+	Api        *Api                 `toml:"api"`
 }
 
 func NewConfig() *Config {
@@ -116,6 +121,9 @@ func NewConfig() *Config {
 		},
 		Logger: &Logger{
 			Level: "warn",
+		},
+		Api: &Api{
+			Prefix: "/api",
 		},
 	}
 }

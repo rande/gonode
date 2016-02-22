@@ -63,7 +63,7 @@ func Test_Search_Revision_Basic(t *testing.T) {
 		helper.PanicOnError(err)
 		assert.Equal(t, 5, u.Revision, "revision should be 5")
 
-		baseUrl := fmt.Sprintf("%s/nodes/%s/revisions", ts.URL, u.Uuid.CleanString())
+		baseUrl := fmt.Sprintf("%s/api/v1/nodes/%s/revisions", ts.URL, u.Uuid.CleanString())
 
 		values := []struct {
 			Url string

@@ -48,7 +48,7 @@ func ConfigureServer(l *goapp.Lifecycle, conf *config.Config) {
 				Logger:   logger,
 			},
 			&guard.JwtLoginGuardAuthenticator{
-				LoginPath: conf.Guard.Jwt.Login.Path,
+				LoginPath: regexp.MustCompile(conf.Guard.Jwt.Login.Path),
 				Key:       []byte(conf.Guard.Key),
 				Validity:  conf.Guard.Jwt.Validity,
 				Manager:   &GuardManager{manager},

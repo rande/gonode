@@ -29,11 +29,11 @@ func Test_Search_Basic(t *testing.T) {
 		Url string
 		Len int
 	}{
-		{"/nodes", 2},
-		{"/nodes?type=core.user", 2},
-		{"/nodes?type=core.user&data.username=user12", 1},
-		{"/nodes?type=core.user&data.username=user12&data.username=user13", 1},
-		{"/nodes?&page=-1&page=1", 2}, // the last occurrence erase first values
+		{"/api/v1/nodes", 2},
+		{"/api/v1/nodes?type=core.user", 2},
+		{"/api/v1/nodes?type=core.user&data.username=user12", 1},
+		{"/api/v1/nodes?type=core.user&data.username=user12&data.username=user13", 1},
+		{"/api/v1/nodes?&page=-1&page=1", 2}, // the last occurrence erase first values
 	}
 
 	for _, v := range values {
@@ -41,7 +41,7 @@ func Test_Search_Basic(t *testing.T) {
 			// WITH
 			auth := test.GetAuthHeader(t, ts)
 			file, _ := os.Open("../fixtures/new_user.json")
-			test.RunRequest("POST", ts.URL+"/nodes", file, auth)
+			test.RunRequest("POST", ts.URL+"/api/v1/nodes", file, auth)
 
 			// WHEN
 			res, _ := test.RunRequest("GET", ts.URL+v.Url, nil, auth)
@@ -68,10 +68,10 @@ func Test_Search_NoResult(t *testing.T) {
 		// WITH
 		auth := test.GetAuthHeader(t, ts)
 		file, _ := os.Open("../fixtures/new_user.json")
-		test.RunRequest("POST", ts.URL+"/nodes", file)
+		test.RunRequest("POST", ts.URL+"/api/v1/nodes", file)
 
 		// WHEN
-		res, _ := test.RunRequest("GET", ts.URL+"/nodes?type=other", nil, auth)
+		res, _ := test.RunRequest("GET", ts.URL+"/api/v1/nodes?type=other", nil, auth)
 
 		p := test.GetPager(app, res)
 
@@ -82,12 +82,12 @@ func Test_Search_NoResult(t *testing.T) {
 
 func Test_Search_Invalid_Pagination(t *testing.T) {
 	urls := []string{
-		"/nodes?per_page=-1",
-		"/nodes?per_page=-1&page=-1",
-		"/nodes?per_page=256",
-		"/nodes?per_page=256&page=1",
-		"/nodes?per_page=127&page=1&page=-1",
-		// "/nodes?per_page=127&page=-1&page=1", // the last occurrence erase first values
+		"/api/v1/nodes?per_page=-1",
+		"/api/v1/nodes?per_page=-1&page=-1",
+		"/api/v1/nodes?per_page=256",
+		"/api/v1/nodes?per_page=256&page=1",
+		"/api/v1/nodes?per_page=127&page=1&page=-1",
+		// "/api/v1/nodes?per_page=127&page=-1&page=1", // the last occurrence erase first values
 	}
 
 	for _, url := range urls {
@@ -95,7 +95,7 @@ func Test_Search_Invalid_Pagination(t *testing.T) {
 			// WITH
 			auth := test.GetAuthHeader(t, ts)
 			file, _ := os.Open("../fixtures/new_user.json")
-			test.RunRequest("POST", ts.URL+"/nodes", file, auth)
+			test.RunRequest("POST", ts.URL+"/api/v1/nodes", file, auth)
 
 			// WHEN
 			res, _ := test.RunRequest("GET", ts.URL+url, nil, auth)
@@ -110,12 +110,12 @@ func Test_Search_Invalid_OrderBy(t *testing.T) {
 		auth := test.GetAuthHeader(t, ts)
 
 		// seems goji or golang block this request
-		res, _ := test.RunRequest("GET", ts.URL+"/nodes?order_by=\"1 = 1\"; DELETE * FROM node,ASC", nil, auth)
-		assert.Equal(t, 400, res.StatusCode, "url: /nodes?order_by=\"1 = 1\"; DELETE * FROM node,ASC")
+		res, _ := test.RunRequest("GET", ts.URL+"/api/v1/nodes?order_by=\"1 = 1\"; DELETE * FROM node,ASC", nil, auth)
+		assert.Equal(t, 400, res.StatusCode, "url: /api/v1/nodes?order_by=\"1 = 1\"; DELETE * FROM node,ASC")
 
 		// seems goji or golang block this request
-		res, _ = test.RunRequest("GET", ts.URL+"/nodes?order_by=DELETE%20*%20FROM%20node,ASC", nil, auth)
-		assert.Equal(t, 412, res.StatusCode, "url: /nodes?order_by=DELETE%20*%20FROM%20node,ASC")
+		res, _ = test.RunRequest("GET", ts.URL+"/api/v1/nodes?order_by=DELETE%20*%20FROM%20node,ASC", nil, auth)
+		assert.Equal(t, 412, res.StatusCode, "url: /api/v1/nodes?order_by=DELETE%20*%20FROM%20node,ASC")
 	})
 }
 
@@ -124,9 +124,9 @@ func Test_Search_OrderBy_Name_ASC(t *testing.T) {
 		auth := test.GetAuthHeader(t, ts)
 		InitSearchFixture(app)
 
-		res, _ := test.RunRequest("GET", ts.URL+"/nodes?order_by=name,ASC", nil, auth)
+		res, _ := test.RunRequest("GET", ts.URL+"/api/v1/nodes?order_by=name,ASC", nil, auth)
 
-		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=name,ASC")
+		assert.Equal(t, 200, res.StatusCode, "url: /api/v1/nodes?order_by=name,ASC")
 
 		p := test.GetPager(app, res)
 
@@ -142,9 +142,9 @@ func Test_Search_OrderBy_Name_DESC(t *testing.T) {
 		auth := test.GetAuthHeader(t, ts)
 		InitSearchFixture(app)
 
-		res, _ := test.RunRequest("GET", ts.URL+"/nodes?order_by=name,DESC", nil, auth)
+		res, _ := test.RunRequest("GET", ts.URL+"/api/v1/nodes?order_by=name,DESC", nil, auth)
 
-		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=name,DESC")
+		assert.Equal(t, 200, res.StatusCode, "url: /api/v1/nodes?order_by=name,DESC")
 
 		p := test.GetPager(app, res)
 
@@ -161,9 +161,9 @@ func Test_Search_OrderBy_Weight_DESC_Name_ASC(t *testing.T) {
 		InitSearchFixture(app)
 
 		// TESTING WITH 2 ORDERING OPTION
-		res, _ := test.RunRequest("GET", ts.URL+"/nodes?order_by=weight,DESC&order_by=name,ASC", nil, auth)
+		res, _ := test.RunRequest("GET", ts.URL+"/api/v1/nodes?order_by=weight,DESC&order_by=name,ASC", nil, auth)
 
-		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=weight,DESC&order_by=name,ASC")
+		assert.Equal(t, 200, res.StatusCode, "url: /api/v1/nodes?order_by=weight,DESC&order_by=name,ASC")
 
 		p := test.GetPager(app, res)
 
@@ -180,9 +180,9 @@ func Test_Search_OrderBy_Meta_Username(t *testing.T) {
 		InitSearchFixture(app)
 
 		// TESTING WITH 2 ORDERING OPTION
-		res, _ := test.RunRequest("GET", ts.URL+"/nodes?order_by=meta.username,DESC", nil, auth)
+		res, _ := test.RunRequest("GET", ts.URL+"/api/v1/nodes?order_by=meta.username,DESC", nil, auth)
 
-		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=meta.username")
+		assert.Equal(t, 200, res.StatusCode, "url: /api/v1/nodes?order_by=meta.username")
 
 		p := test.GetPager(app, res)
 
@@ -198,9 +198,9 @@ func Test_Search_OrderBy_Meta_Non_Existant_Meta(t *testing.T) {
 		auth := test.GetAuthHeader(t, ts)
 		InitSearchFixture(app)
 
-		res, _ := test.RunRequest("GET", ts.URL+"/nodes?meta.username.fake=foo&order_by=meta.username.fake,DESC", nil, auth)
+		res, _ := test.RunRequest("GET", ts.URL+"/api/v1/nodes?meta.username.fake=foo&order_by=meta.username.fake,DESC", nil, auth)
 
-		assert.Equal(t, 200, res.StatusCode, "url: /nodes?order_by=meta.username.fake")
+		assert.Equal(t, 200, res.StatusCode, "url: /api/v1/nodes?order_by=meta.username.fake")
 
 		p := test.GetPager(app, res)
 
@@ -213,9 +213,9 @@ func Test_Search_Meta(t *testing.T) {
 		auth := test.GetAuthHeader(t, ts)
 		InitSearchFixture(app)
 
-		res, _ := test.RunRequest("GET", ts.URL+"/nodes?data.username=user-a", nil, auth)
+		res, _ := test.RunRequest("GET", ts.URL+"/api/v1/nodes?data.username=user-a", nil, auth)
 
-		assert.Equal(t, 200, res.StatusCode, "url: /nodes?data.username=user-a")
+		assert.Equal(t, 200, res.StatusCode, "url: /api/v1/nodes?data.username=user-a")
 
 		p := test.GetPager(app, res)
 
@@ -228,9 +228,9 @@ func Test_Search_Slug(t *testing.T) {
 		auth := test.GetAuthHeader(t, ts)
 		InitSearchFixture(app)
 
-		res, _ := test.RunRequest("GET", ts.URL+"/nodes?slug=user-a", nil, auth)
+		res, _ := test.RunRequest("GET", ts.URL+"/api/v1/nodes?slug=user-a", nil, auth)
 
-		assert.Equal(t, 200, res.StatusCode, "url: /nodes?slug=user-a")
+		assert.Equal(t, 200, res.StatusCode, "url: /api/v1/nodes?slug=user-a")
 
 		p := test.GetPager(app, res)
 
