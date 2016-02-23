@@ -1,4 +1,4 @@
-// Copyright © 2014-2015 Thomas Rabaix <thomas.rabaix@gmail.com>.
+// Copyright © 2014-2016 Thomas Rabaix <thomas.rabaix@gmail.com>.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -21,8 +21,13 @@ import (
 	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/modules/api"
 	"github.com/rande/gonode/modules/base"
+	"github.com/rande/gonode/modules/blog"
+	"github.com/rande/gonode/modules/debug"
+	"github.com/rande/gonode/modules/feed"
 	"github.com/rande/gonode/modules/guard"
+	"github.com/rande/gonode/modules/media"
 	"github.com/rande/gonode/modules/prism"
+	"github.com/rande/gonode/modules/raw"
 	"github.com/rande/gonode/modules/search"
 	"github.com/rande/gonode/modules/setup"
 	"github.com/rande/gonode/modules/user"
@@ -35,7 +40,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
-	"runtime/debug"
+	godebug "runtime/debug"
 	"strings"
 	"testing"
 )
@@ -114,17 +119,24 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 		return nil
 	})
 
+	base.Configure(l, conf)
+	debug.Configure(l, conf)
+	user.Configure(l, conf)
+	raw.Configure(l, conf)
+	blog.Configure(l, conf)
+	media.Configure(l, conf)
+	search.Configure(l, conf)
+	feed.Configure(l, conf)
+
 	logger.Configure(l, conf)
 	commands.Configure(l, conf)
 	security.Configure(l, conf)
-	search.Configure(l, conf)
 	api.Configure(l, conf)
 	setup.Configure(l, conf)
 	node_guard.Configure(l, conf)
 	bindata.Configure(l, conf)
 	prism.Configure(l, conf)
 	router.Configure(l, conf)
-	base.Configure(l, conf)
 
 	return l
 }
@@ -242,7 +254,7 @@ func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *go
 			ts.Close()
 
 			if r := recover(); r != nil {
-				assert.Equal(t, false, true, fmt.Sprintf("RunHttpTest: Panic recovered, message=%s\n\n%s", r, string(debug.Stack()[:])))
+				assert.Equal(t, false, true, fmt.Sprintf("RunHttpTest: Panic recovered, message=%s\n\n%s", r, string(godebug.Stack()[:])))
 			}
 		}()
 

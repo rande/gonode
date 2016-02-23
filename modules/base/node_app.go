@@ -1,4 +1,4 @@
-// Copyright © 2014-2015 Thomas Rabaix <thomas.rabaix@gmail.com>.
+// Copyright © 2014-2016 Thomas Rabaix <thomas.rabaix@gmail.com>.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -6,6 +6,8 @@
 package base
 
 import (
+	"database/sql"
+	log "github.com/Sirupsen/logrus"
 	"github.com/flosch/pongo2"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
@@ -25,6 +27,39 @@ func GetValue(source interface{}, field string) interface{} {
 }
 
 func Configure(l *goapp.Lifecycle, conf *config.Config) {
+
+	l.Register(func(app *goapp.App) error {
+		app.Set("gonode.handler_collection", func(app *goapp.App) interface{} {
+			return HandlerCollection{}
+		})
+
+		app.Set("gonode.view_handler_collection", func(app *goapp.App) interface{} {
+			return ViewHandlerCollection{}
+		})
+
+		return nil
+	})
+
+	l.Prepare(func(app *goapp.App) error {
+		app.Set("gonode.manager", func(app *goapp.App) interface{} {
+			return &PgNodeManager{
+				Logger:   app.Get("logger").(*log.Logger),
+				Db:       app.Get("gonode.postgres.connection").(*sql.DB),
+				ReadOnly: false,
+				Handlers: app.Get("gonode.handler_collection").(Handlers),
+				Prefix:   conf.Databases["master"].Prefix,
+			}
+		})
+
+		app.Set("gonode.node.serializer", func(app *goapp.App) interface{} {
+			s := NewSerializer()
+			s.Handlers = app.Get("gonode.handler_collection").(Handlers)
+
+			return s
+		})
+
+		return nil
+	})
 
 	l.Prepare(func(app *goapp.App) error {
 		pongo := app.Get("gonode.pongo").(*pongo2.TemplateSet)

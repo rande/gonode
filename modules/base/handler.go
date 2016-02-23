@@ -1,4 +1,4 @@
-// Copyright © 2014-2015 Thomas Rabaix <thomas.rabaix@gmail.com>.
+// Copyright © 2014-2016 Thomas Rabaix <thomas.rabaix@gmail.com>.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -54,6 +54,10 @@ func (c HandlerCollection) GetKeys() []string {
 	}
 
 	return keys
+}
+
+func (c HandlerCollection) Add(code string, h Handler) {
+	c[code] = h
 }
 
 type DownloadData struct {
@@ -143,6 +147,10 @@ func (c ViewHandlerCollection) GetKeys() []string {
 	}
 
 	return keys
+}
+
+func (c ViewHandlerCollection) Add(code string, h ViewHandler) {
+	c[code] = h
 }
 
 type ViewHandler interface {

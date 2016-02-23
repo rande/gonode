@@ -1,4 +1,4 @@
-// Copyright © 2014-2015 Thomas Rabaix <thomas.rabaix@gmail.com>.
+// Copyright © 2014-2016 Thomas Rabaix <thomas.rabaix@gmail.com>.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -7,17 +7,14 @@ package commands
 
 import (
 	"flag"
+	log "github.com/Sirupsen/logrus"
 	"github.com/mitchellh/cli"
 	"github.com/rande/goapp"
-
-	"net/http"
-
-	log "github.com/Sirupsen/logrus"
 	"github.com/rande/gonode/core/config"
-
 	"github.com/zenazn/goji/bind"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
+	"net/http"
 )
 
 type ServerCommand struct {
@@ -52,6 +49,7 @@ func (c *ServerCommand) Run(args []string) int {
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 		mux := app.Get("goji.mux").(*web.Mux)
 		conf := app.Get("gonode.configuration").(*config.Config)
+		logger := app.Get("logger").(*log.Logger)
 
 		mux.Compile()
 
@@ -60,20 +58,20 @@ func (c *ServerCommand) Run(args []string) int {
 		http.Handle("/", mux)
 
 		listener := bind.Socket(conf.Bind)
-		log.WithFields(log.Fields{
+		logger.WithFields(log.Fields{
 			"module": "command.cli",
-		}).Debug("Starting Goji on %s", listener.Addr())
+		}).Debugf("Starting Goji on %s", listener.Addr())
 
 		graceful.HandleSignals()
 		bind.Ready()
 
 		graceful.PreHook(func() {
-			log.WithFields(log.Fields{
+			logger.WithFields(log.Fields{
 				"module": "command.cli",
 			}).Debug("Goji received signal, gracefully stopping")
 		})
 		graceful.PostHook(func() {
-			log.WithFields(log.Fields{
+			logger.WithFields(log.Fields{
 				"module": "command.cli",
 			}).Debug("Goji stopped")
 		})

@@ -1,4 +1,4 @@
-// Copyright © 2014-2015 Thomas Rabaix <thomas.rabaix@gmail.com>.
+// Copyright © 2014-2016 Thomas Rabaix <thomas.rabaix@gmail.com>.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -8,6 +8,7 @@ package search
 import (
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/modules/base"
 )
 
 func Configure(l *goapp.Lifecycle, conf *config.Config) {
@@ -22,6 +23,20 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 			return &HttpSearchParser{
 				MaxResult: conf.Search.MaxResult,
 			}
+		})
+
+		return nil
+	})
+
+	l.Prepare(func(app *goapp.App) error {
+		c := app.Get("gonode.handler_collection").(base.HandlerCollection)
+		c.Add("core.index", &IndexHandler{})
+
+		cv := app.Get("gonode.view_handler_collection").(base.ViewHandlerCollection)
+		cv.Add("core.index", &IndexViewHandler{
+			Search:    app.Get("gonode.search.pgsql").(*SearchPGSQL),
+			Manager:   app.Get("gonode.manager").(*base.PgNodeManager),
+			MaxResult: 128,
 		})
 
 		return nil

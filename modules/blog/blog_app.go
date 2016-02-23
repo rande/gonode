@@ -3,7 +3,7 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package raw
+package blog
 
 import (
 	"github.com/rande/goapp"
@@ -14,11 +14,7 @@ import (
 func Configure(l *goapp.Lifecycle, conf *config.Config) {
 	l.Prepare(func(app *goapp.App) error {
 
-		c := app.Get("gonode.handler_collection").(base.HandlerCollection)
-		c.Add("core.raw", &RawHandler{})
-
-		cv := app.Get("gonode.view_handler_collection").(base.ViewHandlerCollection)
-		cv.Add("core.raw", &RawViewHandler{})
+		app.Get("gonode.handler_collection").(base.HandlerCollection).Add("blog.post", &PostHandler{})
 
 		return nil
 	})
