@@ -7,17 +7,14 @@ package commands
 
 import (
 	"flag"
+	log "github.com/Sirupsen/logrus"
 	"github.com/mitchellh/cli"
 	"github.com/rande/goapp"
-
-	"net/http"
-
-	log "github.com/Sirupsen/logrus"
 	"github.com/rande/gonode/core/config"
-
 	"github.com/zenazn/goji/bind"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
+	"net/http"
 )
 
 type ServerCommand struct {

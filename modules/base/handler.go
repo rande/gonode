@@ -56,6 +56,10 @@ func (c HandlerCollection) GetKeys() []string {
 	return keys
 }
 
+func (c HandlerCollection) Add(code string, h Handler) {
+	c[code] = h
+}
+
 type DownloadData struct {
 	ContentType  string
 	Filename     string
@@ -143,6 +147,10 @@ func (c ViewHandlerCollection) GetKeys() []string {
 	}
 
 	return keys
+}
+
+func (c ViewHandlerCollection) Add(code string, h ViewHandler) {
+	c[code] = h
 }
 
 type ViewHandler interface {
