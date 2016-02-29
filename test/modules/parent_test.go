@@ -90,16 +90,16 @@ func Test_Create_Parents_With_Api(t *testing.T) {
 		node4 := handlers.NewNode("default")
 		manager.Save(node4, false)
 
-		res, _ := test.RunRequest("PUT", fmt.Sprintf("%s/api/v1/nodes/move/%s/%s", ts.URL, node2.Uuid, node1.Uuid), nil, auth)
+		res, _ := test.RunRequest("PUT", fmt.Sprintf("%s/api/v1.0/nodes/move/%s/%s", ts.URL, node2.Uuid, node1.Uuid), nil, auth)
 		assert.Equal(t, 200, res.StatusCode, "Move node2.Uuid to node1.Uuid")
 
-		res, _ = test.RunRequest("PUT", fmt.Sprintf("%s/api/v1/nodes/move/%s/%s", ts.URL, node3.Uuid, node2.Uuid), nil, auth)
+		res, _ = test.RunRequest("PUT", fmt.Sprintf("%s/api/v1.0/nodes/move/%s/%s", ts.URL, node3.Uuid, node2.Uuid), nil, auth)
 		assert.Equal(t, 200, res.StatusCode, "Move node3.Uuid to node2.Uuid")
 
-		res, _ = test.RunRequest("PUT", fmt.Sprintf("%s/api/v1/nodes/move/%s/%s", ts.URL, node4.Uuid, node3.Uuid), nil, auth)
+		res, _ = test.RunRequest("PUT", fmt.Sprintf("%s/api/v1.0/nodes/move/%s/%s", ts.URL, node4.Uuid, node3.Uuid), nil, auth)
 		assert.Equal(t, 200, res.StatusCode, "Move node4.Uuid to node3.Uuid")
 
-		res, _ = test.RunRequest("PUT", fmt.Sprintf("%s/api/v1/nodes/move/%s/%s", ts.URL, node1.Uuid, node4.Uuid), nil, auth)
+		res, _ = test.RunRequest("PUT", fmt.Sprintf("%s/api/v1.0/nodes/move/%s/%s", ts.URL, node1.Uuid, node4.Uuid), nil, auth)
 		assert.Equal(t, 200, res.StatusCode, "Move node1.Uuid to node4.Uuid")
 
 		serializer := app.Get("gonode.node.serializer").(*base.Serializer)

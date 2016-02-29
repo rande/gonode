@@ -20,6 +20,7 @@ Documentation
  * [Modules](docs/modules)
     * [Node](docs/modules/node.md): Node principles
     * [Search](docs/modules/search.md): Search filters
+    * [Restful API](docs/modules/restful_api.md): Restful API 
     * [Raw](docs/modules/raw.md): Send raw content
     * [Prism](docs/modules/prism.md)
     * [Feed](docs/modules/feed.md)

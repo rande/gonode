@@ -19,7 +19,7 @@ func Test_Delete_Non_Existant_Node(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
 		auth := test.GetAuthHeader(t, ts)
 
-		res, _ := test.RunRequest("DELETE", ts.URL+"/api/v1/nodes/d703a3ab-8374-4c30-a8a4-2c22aa67763b", nil, auth)
+		res, _ := test.RunRequest("DELETE", ts.URL+"/api/v1.0/nodes/d703a3ab-8374-4c30-a8a4-2c22aa67763b", nil, auth)
 
 		assert.Equal(t, 404, res.StatusCode, "Delete non existant node")
 	})
@@ -30,7 +30,7 @@ func Test_Delete_Existant_Node(t *testing.T) {
 		auth := test.GetAuthHeader(t, ts)
 
 		file, _ := os.Open("../fixtures/new_user.json")
-		res, _ := test.RunRequest("POST", ts.URL+"/api/v1/nodes", file, auth)
+		res, _ := test.RunRequest("POST", ts.URL+"/api/v1.0/nodes", file, auth)
 
 		assert.Equal(t, 201, res.StatusCode, "Node created")
 
@@ -41,7 +41,7 @@ func Test_Delete_Existant_Node(t *testing.T) {
 
 		assert.Equal(t, "core.user", node.Type)
 
-		res, _ = test.RunRequest("DELETE", ts.URL+"/api/v1/nodes/"+node.Uuid.CleanString(), nil, auth)
+		res, _ = test.RunRequest("DELETE", ts.URL+"/api/v1.0/nodes/"+node.Uuid.CleanString(), nil, auth)
 		assert.Equal(t, 200, res.StatusCode)
 
 		serializer.Deserialize(res.Body, node)
@@ -49,7 +49,7 @@ func Test_Delete_Existant_Node(t *testing.T) {
 		assert.Equal(t, node.Deleted, true)
 
 		// test if we can delete a deleted node ...
-		res, _ = test.RunRequest("DELETE", ts.URL+"/api/v1/nodes/"+node.Uuid.CleanString(), nil, auth)
+		res, _ = test.RunRequest("DELETE", ts.URL+"/api/v1.0/nodes/"+node.Uuid.CleanString(), nil, auth)
 		assert.Equal(t, 410, res.StatusCode)
 	})
 }
@@ -59,15 +59,15 @@ func Test_Delete_Find_Filter(t *testing.T) {
 		auth := test.GetAuthHeader(t, ts)
 		nodes := InitSearchFixture(app)
 
-		res, _ := test.RunRequest("GET", ts.URL+"/api/v1/nodes", nil, auth)
+		res, _ := test.RunRequest("GET", ts.URL+"/api/v1.0/nodes", nil, auth)
 		p := test.GetPager(app, res)
 
 		assert.Equal(t, 4, len(p.Elements))
 
-		res, _ = test.RunRequest("DELETE", ts.URL+"/api/v1/nodes/"+nodes[0].Uuid.CleanString(), nil, auth)
+		res, _ = test.RunRequest("DELETE", ts.URL+"/api/v1.0/nodes/"+nodes[0].Uuid.CleanString(), nil, auth)
 		assert.Equal(t, 200, res.StatusCode)
 
-		res, _ = test.RunRequest("GET", ts.URL+"/api/v1/nodes", nil, auth)
+		res, _ = test.RunRequest("GET", ts.URL+"/api/v1.0/nodes", nil, auth)
 		assert.Equal(t, 200, res.StatusCode)
 
 		p = test.GetPager(app, res)

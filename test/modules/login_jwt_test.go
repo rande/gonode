@@ -45,7 +45,7 @@ func Test_Create_Username(t *testing.T) {
 
 		manager.Save(u, false)
 
-		res, _ := test.RunRequest("POST", fmt.Sprintf("%s/api/v1/login", ts.URL), url.Values{
+		res, _ := test.RunRequest("POST", fmt.Sprintf("%s/api/v1.0/login", ts.URL), url.Values{
 			"username": {data.Username},
 			"password": {"ZePassword"},
 		})
