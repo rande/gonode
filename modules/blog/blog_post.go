@@ -30,3 +30,13 @@ func (h *PostHandler) GetStruct() (base.NodeData, base.NodeMeta) {
 		PublicationDate: time.Now(),
 	}, &PostMeta{}
 }
+
+func (h *PostHandler) GetMetadata() *base.HandlerMetadata {
+	meta := base.NewHandlerMetadata()
+
+	meta.Authors = []string{"Thomas Rabaix <thomas.rabaix@gmail.com>"}
+	meta.Description = "Blog post engine"
+	meta.Name = "Blog post"
+
+	return meta
+}

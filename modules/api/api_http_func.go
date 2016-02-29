@@ -381,3 +381,31 @@ func Api_GET_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 		apiHandler.Find(res, query, searchForm.Page, searchForm.PerPage)
 	}
 }
+
+func Api_GET_Handlers(app *goapp.App) func(c web.C, res http.ResponseWriter, req *http.Request) {
+	collections := app.Get("gonode.handler_collection").(base.HandlerCollection)
+	serializer := app.Get("gonode.node.serializer").(*base.Serializer)
+
+	return func(c web.C, res http.ResponseWriter, req *http.Request) {
+		res.Header().Set("Content-Type", "application/json")
+
+		ch := make([]*base.HandlerMetadata, 0)
+
+		for code, h := range collections {
+			var m *base.HandlerMetadata
+
+			if cm, ok := h.(base.MetadataHandler); ok {
+				m = cm.GetMetadata()
+			} else {
+				m = base.NewHandlerMetadata()
+				m.Name = code
+			}
+
+			m.Code = code
+
+			ch = append(ch, m)
+		}
+
+		serializer.Serialize(res, ch)
+	}
+}

@@ -71,7 +71,6 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
 		mux := app.Get("goji.mux").(*web.Mux)
 
-		mux.Get(conf.Api.Prefix+"/:version/hello", Api_GET_Hello(app))
 		mux.Get(conf.Api.Prefix+"/:version/nodes/stream", Api_GET_Stream(app))
 		mux.Get(conf.Api.Prefix+"/:version/nodes/:uuid", Api_GET_Node(app))
 		mux.Get(conf.Api.Prefix+"/:version/nodes/:uuid/revisions", Api_GET_Node_Revisions(app))
@@ -80,8 +79,11 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		mux.Put(conf.Api.Prefix+"/:version/nodes/:uuid", Api_PUT_Nodes(app))
 		mux.Put(conf.Api.Prefix+"/:version/nodes/move/:uuid/:parentUuid", Api_PUT_Nodes_Move(app))
 		mux.Delete(conf.Api.Prefix+"/:version/nodes/:uuid", Api_DELETE_Nodes(app))
-		mux.Put(conf.Api.Prefix+"/:version/notify/:name", Api_PUT_Notify(app))
 		mux.Get(conf.Api.Prefix+"/:version/nodes", Api_GET_Nodes(app))
+
+		mux.Get(conf.Api.Prefix+"/:version/hello", Api_GET_Hello(app))
+		mux.Put(conf.Api.Prefix+"/:version/notify/:name", Api_PUT_Notify(app))
+		mux.Get(conf.Api.Prefix+"/:version/handlers", Api_GET_Handlers(app))
 
 		return nil
 	})
