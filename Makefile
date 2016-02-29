@@ -48,9 +48,9 @@ update:
 	cd explorer && npm update
 
 load:
-	curl -XPOST http://localhost:2405/setup/uninstall && exit 0
-	curl -XPOST http://localhost:2405/setup/install
-	curl -XPOST http://localhost:2405/setup/data/load
+	curl -XPOST http://localhost:2508/setup/uninstall && exit 0
+	curl -XPOST http://localhost:2508/setup/install
+	curl -XPOST http://localhost:2508/setup/data/load
 
 build:
 	cd ../gonode-skeleton && make build

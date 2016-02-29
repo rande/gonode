@@ -83,7 +83,9 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
 		mux.Get(conf.Api.Prefix+"/:version/hello", Api_GET_Hello(app))
 		mux.Put(conf.Api.Prefix+"/:version/notify/:name", Api_PUT_Notify(app))
-		mux.Get(conf.Api.Prefix+"/:version/handlers", Api_GET_Handlers(app))
+		mux.Get(conf.Api.Prefix+"/:version/handlers/node", Api_GET_Handlers_Node(app))
+		mux.Get(conf.Api.Prefix+"/:version/handlers/view", Api_GET_Handlers_View(app))
+		mux.Get(conf.Api.Prefix+"/:version/services", Api_GET_Services(app))
 
 		return nil
 	})

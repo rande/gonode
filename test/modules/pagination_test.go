@@ -26,9 +26,9 @@ func Test_Pagination(t *testing.T) {
 			Previous uint64
 			Next     uint64
 		}{
-			{"/api/v1/nodes?per_page=6", 6, 6, 1, 0, 2},
-			{"/api/v1/nodes?per_page=13", 13, 12, 1, 0, 0},
-			{"/api/v1/nodes?per_page=2&page=6", 2, 2, 6, 5, 0},
+			{"/api/v1.0/nodes?per_page=6", 6, 6, 1, 0, 2},
+			{"/api/v1.0/nodes?per_page=13", 13, 12, 1, 0, 0},
+			{"/api/v1.0/nodes?per_page=2&page=6", 2, 2, 6, 5, 0},
 		}
 
 		// WITH

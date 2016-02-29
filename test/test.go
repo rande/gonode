@@ -170,7 +170,7 @@ func GetAuthHeader(t *testing.T, ts *httptest.Server) map[string]string {
 }
 
 func GetAuthToken(t *testing.T, ts *httptest.Server) string {
-	res, _ := RunRequest("POST", fmt.Sprintf("%s/api/v1/login", ts.URL), url.Values{
+	res, _ := RunRequest("POST", fmt.Sprintf("%s/api/v1.0/login", ts.URL), url.Values{
 		"username": {"test-admin"},
 		"password": {"admin"},
 	})

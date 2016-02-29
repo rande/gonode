@@ -13,11 +13,11 @@ Usage
 
 You can get the raw node through the prism url: 
 
-    http://localhost:2405/prism/f226ac37-459b-4ab0-a391-1a8998db39c5
+    http://localhost:2508/prism/f226ac37-459b-4ab0-a391-1a8998db39c5
 
 Or download the file with: 
 
-    http://localhost:2405/prism/f226ac37-459b-4ab0-a391-1a8998db39c5?dl=1
+    http://localhost:2508/prism/f226ac37-459b-4ab0-a391-1a8998db39c5?dl=1
     
 Node Meta
 ---------

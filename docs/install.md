@@ -16,6 +16,6 @@ Installation steps
 1. Retrieve the code source: ``go get github.com/rande/gonode/core``
 2. Configure the ``server.toml`` configuration file
 3. Start the webserver: ``make run``
-4. Create a valid schema: ``curl -XPOST http://localhost:2405/setup/install`` 
-5. Load some fixtures: ``curl -XPOST http://localhost:2405/setup/data/load`` 
+4. Create a valid schema: ``curl -XPOST http://localhost:2508/setup/install`` 
+5. Load some fixtures: ``curl -XPOST http://localhost:2508/setup/data/load`` 
  

@@ -16,7 +16,7 @@ import (
 
 func Test_Hello(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
-		res, _ := test.RunRequest("GET", ts.URL+"/api/v1/hello", nil)
+		res, _ := test.RunRequest("GET", ts.URL+"/api/v1.0/hello", nil)
 
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		assert.Equal(t, res.GetBody(), []byte("Hello!"))
