@@ -32,9 +32,9 @@ Data:
 You can retrieve the binary through an api call by adding the ``?raw=1`` into the query string. The prism handler can
 also be used, this entry point will provide crop and resize option.
 
- - ``http://localhost:2405/prism/bcb537ab-b349-4b3d-87e2-e43e17519af7`` => get the original image 
- - ``http://localhost:2405/prism/bcb537ab-b349-4b3d-87e2-e43e17519af7?mr=250`` => resize the media with the provided width
- - ``http://localhost:2405/prism/bcb537ab-b349-4b3d-87e2-e43e17519af7?mf=200,200`` => crop the media using a 200x200 square from
+ - ``http://localhost:2508/prism/bcb537ab-b349-4b3d-87e2-e43e17519af7`` => get the original image 
+ - ``http://localhost:2508/prism/bcb537ab-b349-4b3d-87e2-e43e17519af7?mr=250`` => resize the media with the provided width
+ - ``http://localhost:2508/prism/bcb537ab-b349-4b3d-87e2-e43e17519af7?mf=200,200`` => crop the media using a 200x200 square from
    the center of the image.
  
 The image resize and crop only works with: ``jpg``, ``png`` and ``jpg`` files.
