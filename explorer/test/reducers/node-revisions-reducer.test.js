@@ -1,6 +1,10 @@
 import expect               from 'expect';
 import nodeRevisionsReducer from '../../src/reducers/node-revisions-reducer';
-import * as types           from '../../src/constants/ActionTypes';
+import {
+    REQUEST_NODE_REVISIONS,
+    RECEIVE_NODE_REVISIONS,
+    INVALIDATE_NODE_REVISIONS
+} from '../../src/constants/ActionTypes';
 
 
 describe('node revisions reducer', () => {
@@ -12,7 +16,7 @@ describe('node revisions reducer', () => {
 
     it('should handle the REQUEST_NODE_REVISIONS action', () => {
         expect(nodeRevisionsReducer({}, {
-            type: types.REQUEST_NODE_REVISIONS,
+            type: REQUEST_NODE_REVISIONS,
             uuid
         }))
             .toEqual({
@@ -29,7 +33,7 @@ describe('node revisions reducer', () => {
         const expectedRevisions = [1, 2, 3];
 
         expect(nodeRevisionsReducer({}, {
-            type: types.RECEIVE_NODE_REVISIONS,
+            type: RECEIVE_NODE_REVISIONS,
             uuid,
             items: expectedRevisions
         }))
@@ -43,9 +47,9 @@ describe('node revisions reducer', () => {
         ;
     });
 
-    it('should handle the RECEIVE_NODE_UPDATE action', () => {
+    it('should handle the INVALIDATE_NODE_REVISIONS action', () => {
         expect(nodeRevisionsReducer({}, {
-            type: types.RECEIVE_NODE_UPDATE,
+            type: INVALIDATE_NODE_REVISIONS,
             uuid
         }))
             .toEqual({
