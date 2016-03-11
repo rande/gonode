@@ -3,7 +3,6 @@ import {
     fetchNodeIfNeeded,
     logout
 } from '../actions';
-import history from './history';
 
 
 export function ensureAuthenticated(store, execIfAuthenticated = null) {
@@ -33,12 +32,5 @@ export function onEnterNode(store) {
 
         store.dispatch(selectNode(node_uuid));
         store.dispatch(fetchNodeIfNeeded(node_uuid));
-    });
-}
-
-export function onEnterNodeEdit(store) {
-    return ensureAuthenticated(store, nextState => {
-        const { node_uuid } = nextState.params;
-        store.dispatch(selectNode(node_uuid));
     });
 }

@@ -1,6 +1,5 @@
 @require 'settings/colors.styl'
 @require 'settings/dimensions.styl'
-@require 'fonts.styl'
 @require 'button.styl'
 @require 'loader.styl'
 @require 'side-panel.styl'
@@ -35,7 +34,7 @@ a
 
 html, body
   font-size: 16px
-  font-family: 'Raleway', sans-serif;
+  font-family: 'Open Sans', sans-serif
   line-height: 22px
   margin: 0
   background: $color-main-background
@@ -71,16 +70,21 @@ html, body
     display: block
 
 .page-header
-  position: relative
+  position: absolute
+  top   0
+  right 0
+  left  0
+  height $header-height
   border-bottom: 1px solid darken($color-main-background, 10)
   padding: 17px 20px
 
   &_title
     vertical-align: middle
-    font-weight: 500
+    font-weight: 300
     margin:  0
     padding: 0
     display: inline-block
+    font-family: 'Open Sans', sans-serif
 
   &_button
     margin-left: 12px
@@ -98,14 +102,27 @@ html, body
 .panel-title
   padding: 20px
   margin: 0
+  position: absolute
+  top   0
+  right 0
+  left  0
+  height $header-height
   background: lighten($color-second-panel-background, 4)
   font-weight: 300
   text-transform: uppercase
   font-size: 24px
   color: #fff
+  font-family: 'Open Sans', sans-serif
+  box-shadow 0 1px 2px rgba(0, 0, 0, .35)
 
 .panel-body
   padding: 0 20px
+  position absolute
+  top    $header-height
+  right  0
+  bottom 0
+  left   0
+  overflow-y auto
 
 .second-panel
   position: absolute
@@ -126,7 +143,7 @@ html, body
   right:  $node-revision-size
   left:   0
   bottom: 0
-  overflow-y: auto
+  overflow: hidden
 
 .nodes-wrapper
   display: flex

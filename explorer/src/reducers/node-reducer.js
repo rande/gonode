@@ -12,7 +12,8 @@ function node(state = {
     switch (action.type) {
         case types.REQUEST_NODE:
             return assign({}, state, {
-                isFetching: true
+                isFetching:    true,
+                didInvalidate: false
             });
 
         case types.RECEIVE_NODE:

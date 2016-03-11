@@ -55,7 +55,7 @@ class Nodes extends Component {
         );
 
         return (
-            <div className="content">
+            <div>
                 <div className="nodes-wrapper">
                     <div className="page-header">
                         <h2 className="page-header_title">

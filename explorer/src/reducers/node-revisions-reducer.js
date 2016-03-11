@@ -15,7 +15,8 @@ function nodeRevisions(state = {
     switch (action.type) {
         case REQUEST_NODE_REVISIONS:
             return assign({}, state, {
-                isFetching: true
+                isFetching:    true,
+                didInvalidate: false
             });
 
         case RECEIVE_NODE_REVISIONS:
