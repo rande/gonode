@@ -1,62 +1,47 @@
-import React, { Component, PropTypes } from 'react';
-import { connect }                     from 'react-redux';
-import { FormattedMessage }            from 'react-intl';
-import LoginForm                       from './LoginForm.jsx';
-import { login }                       from '../../actions';
+import React, { PropTypes } from 'react';
+import { connect }          from 'react-redux';
+import { FormattedMessage } from 'react-intl';
+import LoginForm            from './LoginForm.jsx';
+import { login }            from '../../actions';
 
 
-class Login extends Component {
-    handleSubmit(data) {
-        const { dispatch } = this.props;
-        dispatch(login(data));
-    }
-
-    render() {
-        const { isFetching, loginFailed } = this.props;
-
-        let loginError = null;
-        if (loginFailed) {
-            loginError = (
+const Login = ({ isFetching, failed, onLogin }) => (
+    <div className="login">
+        <div className="login_wrapper">
+            <div className="login_header">
+                <h2 className="login_header_brand">
+                    <strong>GO</strong>NODE
+                </h2>
+            </div>
+            {failed && (
                 <div className="login_error">
                     <FormattedMessage id="login.failed"/>
                 </div>
-            );
-        }
-
-        return (
-            <div className="login">
-                <div className="login_wrapper">
-                    <div className="login_header">
-                        <h2 className="login_header_brand">
-                            <strong>GO</strong>NODE
-                        </h2>
-                    </div>
-                    {loginError}
-                    <LoginForm
-                        isFetching={isFetching}
-                        onSubmit={this.handleSubmit.bind(this)}
-                    />
-                </div>
-            </div>
-        )
-    }
-}
+            )}
+            <LoginForm
+                isFetching={isFetching}
+                onSubmit={onLogin}
+            />
+        </div>
+    </div>
+);
 
 Login.propTypes = {
-    isFetching:  PropTypes.bool.isRequired,
-    loginFailed: PropTypes.bool.isRequired,
-    dispatch:    PropTypes.func.isRequired
+    isFetching: PropTypes.bool.isRequired,
+    failed:     PropTypes.bool.isRequired,
+    onLogin:    PropTypes.func.isRequired
 };
 
+const mapStateToProps = ({ security: { isFetching, failed } }) => {
+    return { isFetching, failed };
+};
 
-export default connect(state => {
-    const { security: {
-        isFetching,
-        failed
-    } } = state;
+const mapDispatchToProps = dispatch => ({
+    onLogin: (data) => dispatch(login(data))
+});
 
-    return {
-        isFetching,
-        loginFailed: failed
-    };
-})(Login);
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(Login);

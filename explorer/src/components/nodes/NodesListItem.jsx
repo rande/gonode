@@ -1,13 +1,19 @@
 import React, { Component, PropTypes }         from 'react';
 import { Link }                                from 'react-router';
 import { FormattedMessage, FormattedRelative } from 'react-intl';
-import classNames                              from 'classnames';
 import { history }                             from '../../routing';
 
 
 class NodesListItem extends Component {
+    static displayName = 'NodesListItem';
+
+    static propTypes = {
+        node: PropTypes.object.isRequired
+    };
+
     constructor(props) {
         super(props);
+
         this.handleClick = this.handleClick.bind(this);
     }
 
@@ -57,10 +63,6 @@ class NodesListItem extends Component {
         );
     }
 }
-
-NodesListItem.propTypes = {
-    node: PropTypes.object.isRequired
-};
 
 
 export default NodesListItem;

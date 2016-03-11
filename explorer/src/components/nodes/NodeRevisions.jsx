@@ -4,9 +4,16 @@ import { fetchNodeRevisionsIfNeeded }  from '../../actions';
 
 
 class NodeRevisions extends Component {
+    static displayName = 'NodeRevisions';
+
+    static propTypes = {
+        uuid:      PropTypes.string.isRequired,
+        revisions: PropTypes.array.isRequired,
+        dispatch:  PropTypes.func.isRequired
+    };
+
     fetchRevisions() {
         const { dispatch, uuid } = this.props;
-
         dispatch(fetchNodeRevisionsIfNeeded(uuid));
     }
 
@@ -20,21 +27,16 @@ class NodeRevisions extends Component {
         return (
             <div className="node_revisions">
                 {revisions.map(revision => (
-                   <NodeRevisionsItem
-                       key={`revision.${revision.revision}`}
-                       uuid={uuid}
-                       revision={revision}
-                   />
+                    <NodeRevisionsItem
+                        key={`revision.${revision.revision}`}
+                        uuid={uuid}
+                        revision={revision}
+                    />
                 ))}
             </div>
         );
     }
 }
 
-NodeRevisions.propTypes = {
-    uuid:      PropTypes.string.isRequired,
-    revisions: PropTypes.array.isRequired,
-    dispatch:  PropTypes.func.isRequired
-};
 
 export default NodeRevisions;

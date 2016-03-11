@@ -129,7 +129,13 @@ html, body
   overflow-y: auto
 
 .nodes-wrapper
-  display: block
+  display: flex
+  flex-direction: column
+  width: 100%
+  height: 100%
+
+  .nodes-list
+    flex-grow: 1
 
 .node-raw
   background-color: darken($color-second-panel-background, 7)

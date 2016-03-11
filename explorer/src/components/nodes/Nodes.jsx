@@ -10,6 +10,15 @@ import { history }                     from '../../routing';
 
 
 class Nodes extends Component {
+    static displayName = 'Nodes';
+
+    static propTypes = {
+        nodes:        PropTypes.array.isRequired,
+        itemsPerPage: PropTypes.number.isRequired,
+        currentPage:  PropTypes.number.isRequired,
+        dispatch:     PropTypes.func.isRequired
+    };
+
     handlePagerChange(pagerData) {
         history.push(`/nodes?p=1&pp=${pagerData.perPage}`);
     }
@@ -46,7 +55,7 @@ class Nodes extends Component {
         );
 
         return (
-            <div>
+            <div className="content">
                 <div className="nodes-wrapper">
                     <div className="page-header">
                         <h2 className="page-header_title">
@@ -77,12 +86,6 @@ class Nodes extends Component {
     }
 }
 
-Nodes.propTypes = {
-    nodes:        PropTypes.array.isRequired,
-    itemsPerPage: PropTypes.number.isRequired,
-    currentPage:  PropTypes.number.isRequired,
-    dispatch:     PropTypes.func.isRequired
-};
 
 export default connect((state) => {
     const { nodes: {

@@ -97,6 +97,8 @@ export function updateNode(nodeData) {
         Api.updateNode(nodeData, getState().security.token)
             .then(node => {
                 dispatch(receiveNodeUpdate(node));
+                dispatch(invalidateNodeRevisions(node.uuid));
+                dispatch(fetchNodeRevisionsIfNeeded(node.uuid));
                 history.push(`/nodes/${node.uuid}`);
             })
         ;
@@ -147,5 +149,12 @@ export function fetchNodeRevisionsIfNeeded(uuid) {
         if (shouldFetchNodeRevisions(getState(), uuid)) {
             return dispatch(fetchNodeRevisions(uuid));
         }
+    };
+}
+
+export function invalidateNodeRevisions(uuid) {
+    return {
+        type: types.INVALIDATE_NODE_REVISIONS,
+        uuid
     };
 }

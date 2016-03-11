@@ -1,23 +1,20 @@
-import React, { Component, PropTypes } from 'react';
+import React, { PropTypes } from 'react';
 
 
-class NodeRevisionsItem extends Component {
-    render() {
-        const { revision } = this.props;
+const NodeRevisionsItem = ({ revision }) => (
+    <div className="node_revisions_item">
+        <span className="node_revisions_item_circle">
+            {revision.revision}
+        </span>
+    </div>
+);
 
-        return (
-            <div className="node_revisions_item">
-                <span className="node_revisions_item_circle">
-                    {revision.revision}
-                </span>
-            </div>
-        );
-    }
-}
+NodeRevisionsItem.displayName = 'NodeRevisionsItem';
 
 NodeRevisionsItem.propTypes = {
     uuid:     PropTypes.string.isRequired,
     revision: PropTypes.object.isRequired
 };
+
 
 export default NodeRevisionsItem;

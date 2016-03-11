@@ -1,5 +1,8 @@
-import _          from 'lodash';
-import * as types from '../constants/ActionTypes';
+import {
+    REQUEST_NODE_REVISIONS,
+    RECEIVE_NODE_REVISIONS,
+    INVALIDATE_NODE_REVISIONS
+} from '../constants/ActionTypes';
 
 const assign = Object.assign || require('object.assign');
 
@@ -10,19 +13,19 @@ function nodeRevisions(state = {
     didInvalidate: false
 }, action) {
     switch (action.type) {
-        case types.REQUEST_NODE_REVISIONS:
+        case REQUEST_NODE_REVISIONS:
             return assign({}, state, {
                 isFetching: true
             });
 
-        case types.RECEIVE_NODE_REVISIONS:
+        case RECEIVE_NODE_REVISIONS:
             return assign({}, state, {
                 isFetching:    false,
                 didInvalidate: false,
                 items:         action.items
             });
 
-        case types.RECEIVE_NODE_UPDATE:
+        case INVALIDATE_NODE_REVISIONS:
             return assign({}, state, {
                 didInvalidate: true
             });
@@ -32,11 +35,12 @@ function nodeRevisions(state = {
     }
 }
 
+
 export default function nodesRevisionsByUuid(state = {}, action) {
     switch (action.type) {
-        case types.REQUEST_NODE_REVISIONS:
-        case types.RECEIVE_NODE_REVISIONS:
-        case types.RECEIVE_NODE_UPDATE:
+        case REQUEST_NODE_REVISIONS:
+        case RECEIVE_NODE_REVISIONS:
+        case INVALIDATE_NODE_REVISIONS:
             return assign({}, state, {
                 [action.uuid]: nodeRevisions(state[action.uuid], action)
             });
