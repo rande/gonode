@@ -10,6 +10,7 @@ class NodeRevisions extends Component {
 
     static propTypes = {
         uuid:           PropTypes.string.isRequired,
+        node:           PropTypes.object,
         isFetching:     PropTypes.bool.isRequired,
         revisions:      PropTypes.array.isRequired,
         fetchRevisions: PropTypes.func.isRequired
@@ -21,7 +22,7 @@ class NodeRevisions extends Component {
     }
 
     render() {
-        const { uuid, revisions } = this.props;
+        const { uuid, node, revisions } = this.props;
 
         return (
             <div className="node_revisions">
@@ -33,6 +34,7 @@ class NodeRevisions extends Component {
                     {revisions.map(revision => (
                         <NodeRevisionsItem
                             key={`revision.${revision.revision}`}
+                            isCurrent={!!(node && node.revision === revision.revision)}
                             uuid={uuid}
                             revision={revision}
                         />
@@ -43,18 +45,24 @@ class NodeRevisions extends Component {
     }
 }
 
-const mapStateToProps = ({ nodes, nodesRevisionsByUuid }) => {
+const mapStateToProps = ({ nodesByUuid, nodesRevisionsByUuid }, { uuid }) => {
+    let node = null;
+    if (nodesByUuid[uuid]) {
+        node = nodesByUuid[uuid].node;
+    }
+
     let revisions = {
         items:      [],
         isFetching: true
     };
-    if (nodesRevisionsByUuid[nodes.currentUuid]) {
-        revisions = nodesRevisionsByUuid[nodes.currentUuid];
+    if (nodesRevisionsByUuid[uuid]) {
+        revisions = nodesRevisionsByUuid[uuid];
     }
 
     return {
         isFetching: revisions.isFetching,
-        revisions:  revisions.items
+        revisions:  revisions.items,
+        node
     };
 };
 
