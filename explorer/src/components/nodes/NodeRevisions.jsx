@@ -1,5 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import { connect }                     from 'react-redux';
+import ReactCSSTransitionGroup         from 'react-addons-css-transition-group';
 import NodeRevisionsItem               from './NodeRevisionsItem.jsx';
 import { fetchNodeRevisionsIfNeeded }  from '../../actions';
 
@@ -24,13 +25,19 @@ class NodeRevisions extends Component {
 
         return (
             <div className="node_revisions">
-                {revisions.map(revision => (
-                    <NodeRevisionsItem
-                        key={`revision.${revision.revision}`}
-                        uuid={uuid}
-                        revision={revision}
-                    />
-                ))}
+                <ReactCSSTransitionGroup
+                    transitionName="node_revisions_item"
+                    transitionEnterTimeout={400}
+                    transitionLeaveTimeout={400}
+                >
+                    {revisions.map(revision => (
+                        <NodeRevisionsItem
+                            key={`revision.${revision.revision}`}
+                            uuid={uuid}
+                            revision={revision}
+                        />
+                    ))}
+                </ReactCSSTransitionGroup>
             </div>
         );
     }

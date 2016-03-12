@@ -28,7 +28,7 @@ const NodeForm = ({
                     <input type="text" placeholder="node slug" {...slug}/>
                 </div>
             </div>
-            <button className="button" onClick={handleSubmit}>Submit</button>
+            <button className="button button-large" onClick={handleSubmit}>Submit</button>
         </form>
     </div>
 );

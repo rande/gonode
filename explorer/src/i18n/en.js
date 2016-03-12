@@ -1,4 +1,7 @@
 export default {
+    'yes': 'yes',
+    'no': 'no',
+
     'nav.home': 'home',
     'nav.nodes': 'nodes',
 
@@ -17,6 +20,9 @@ export default {
 
     'node.edit.link': 'edit',
     'node.edit.title': 'edit node {name}',
+
+    'node.delete.link': 'delete',
+    'node.delete.confirm': 'are you sure ?',
 
     'node.status.0': 'new',       // 0 - New: The node has been created
     'node.status.1': 'draft',     // 1 - Draft: The node is currently being edited

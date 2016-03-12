@@ -1,7 +1,8 @@
 import React, { PropTypes }                from 'react';
 import { connect }                         from 'react-redux';
 import { FormattedMessage, FormattedDate } from 'react-intl';
-import NodeRevisions                       from './NodeRevisions.jsx';
+import { Link }                            from 'react-router';
+import NodeDeleteButton                    from './NodeDeleteButton.jsx';
 
 
 const NodeShow = ({ nodeObject }) => {
@@ -13,7 +14,17 @@ const NodeShow = ({ nodeObject }) => {
 
     return (
         <div className="node-main">
-            <h1 className="panel-title">{node.name}</h1>
+            <header className="panel-header">
+                <Link to={`/nodes`} className="panel-header_close">
+                    <i className="fa fa-angle-left" />
+                </Link>
+                <h1 className="panel-title">{node.name}</h1>
+                <Link to={`/nodes/${node.uuid}/edit`} className="button button-large">
+                    <i className="fa fa-pencil" />
+                    <FormattedMessage id="node.edit.link"/>
+                </Link>
+                <NodeDeleteButton uuid={node.uuid} size="large" />
+            </header>
             <div className="panel-body">
                 <ul className="node-properties">
                     <li>

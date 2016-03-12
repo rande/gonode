@@ -2,6 +2,7 @@ import React, { Component, PropTypes }         from 'react';
 import { Link }                                from 'react-router';
 import { FormattedMessage, FormattedRelative } from 'react-intl';
 import { history }                             from '../../routing';
+import NodeDeleteButton                        from './NodeDeleteButton.jsx';
 
 
 class NodesListItem extends Component {
@@ -53,10 +54,12 @@ class NodesListItem extends Component {
                             }}
                         />
                     </div>
-                    <div className="nodes-list_item_actions">
-                        <Link to={`/nodes/${node.uuid}/edit`} className="button" onClick={e => e.stopPropagation()}>
+                    <div className="nodes-list_item_actions" onClick={e => e.stopPropagation()}>
+                        <Link to={`/nodes/${node.uuid}/edit`} className="button">
+                            <i className="fa fa-pencil" />
                             <FormattedMessage id="node.edit.link"/>
                         </Link>
+                        <NodeDeleteButton uuid={node.uuid} />
                     </div>
                 </div>
             </div>

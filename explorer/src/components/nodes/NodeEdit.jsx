@@ -39,9 +39,14 @@ class NodeEdit extends Component {
 
         return (
             <div className="node-main">
-                <h1 className="panel-title">
-                    <FormattedMessage id="node.edit.title" values={{ name: node.name }}/>
-                </h1>
+                <div className="panel-header">
+                    <Link to={`/nodes/${node.uuid}`} className="panel-header_close">
+                        <i className="fa fa-angle-left" />
+                    </Link>
+                    <h1 className="panel-title">
+                        <FormattedMessage id="node.edit.title" values={{ name: node.name }}/>
+                    </h1>
+                </div>
                 <div className="panel-body">
                     <NodeForm onSubmit={this.handleSubmit} initialValues={node}/>
                 </div>
