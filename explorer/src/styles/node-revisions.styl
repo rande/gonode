@@ -18,10 +18,10 @@
     left: ($node-revision-size / 2 - $node-revisions-stroke-width / 2)
 
   &_item
-    position: relative
-    cursor: pointer
-    width:  $node-revision-size
-    height: $node-revision-size
+    position relative
+    width  $node-revision-size
+    height $node-revision-size
+    color $color-node-revs-text
 
     &-enter
       opacity 0.01
@@ -46,8 +46,8 @@
     &_current
       display block
       position absolute
-      bottom 32px
-      right  32px
+      bottom 24px
+      right  24px
       width  16px
       height 16px
       background $color-node-revs-current
@@ -55,15 +55,20 @@
       border 2px solid $color-node-revs-background
 
     &_circle
-      display: block
-      position: absolute
-      top:  (($node-revision-size - $node-revision-circle-size) / 2)
-      left: (($node-revision-size - $node-revision-circle-size) / 2)
-      width:  $node-revision-circle-size
-      height: $node-revision-circle-size
-      line-height: $node-revision-circle-size
-      font-weight: 900
-      font-size: 14px
-      border-radius: ($node-revision-circle-size / 2)
-      text-align: center
-      background-color: $color-node-rev-circle-background
+      cursor pointer
+      display block
+      position absolute
+      font-weight 800
+      top  (($node-revision-size - $node-revision-circle-size) / 2)
+      left (($node-revision-size - $node-revision-circle-size) / 2)
+      width  $node-revision-circle-size
+      height $node-revision-circle-size
+      line-height $node-revision-circle-size
+      font-size 12px
+      border-radius ($node-revision-circle-size / 2)
+      text-align center
+      background-color $color-node-rev-circle-background
+
+      &:hover
+        background-color $color-node-rev-circle-background-hover
+        color            $color-node-revs-text-hover

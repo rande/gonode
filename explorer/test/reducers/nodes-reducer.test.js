@@ -1,6 +1,12 @@
 import expect       from 'expect';
 import nodesReducer from '../../src/reducers/nodes-reducer';
-import * as types   from '../../src/constants/ActionTypes';
+import {
+    REQUEST_NODES,
+    RECEIVE_NODES,
+    SELECT_NODE,
+    RECEIVE_NODE_CREATION,
+    RECEIVE_NODE_UPDATE
+} from '../../src/constants/ActionTypes';
 
 
 describe('nodes reducer', () => {
@@ -21,7 +27,7 @@ describe('nodes reducer', () => {
 
     it('should handle the REQUEST_NODES action', () => {
         expect(nodesReducer({}, {
-            type:    types.REQUEST_NODES,
+            type:    REQUEST_NODES,
             perPage: 10,
             page:    1
         }))
@@ -33,9 +39,9 @@ describe('nodes reducer', () => {
         ;
     });
 
-    it('should handle the RECEIVE_NODES action', () => {
+    it('should store API results when receiving a RECEIVE_NODES action', () => {
         expect(nodesReducer({}, {
-            type:         types.RECEIVE_NODES,
+            type:         RECEIVE_NODES,
             items:        [],
             itemsPerPage: 20,
             page:         1,
@@ -54,9 +60,9 @@ describe('nodes reducer', () => {
         ;
     });
 
-    it('should handle the SELECT_NODE action', () => {
+    it('should store the current node uuid when receiving a SELECT_NODE action', () => {
         expect(nodesReducer({}, {
-            type:     types.SELECT_NODE,
+            type:     SELECT_NODE,
             nodeUuid: 'plouc'
         }))
             .toEqual({
@@ -65,9 +71,9 @@ describe('nodes reducer', () => {
         ;
     });
 
-    it('should handle the RECEIVE_NODE_CREATION action', () => {
+    it('should set current state as invalid when receiving a RECEIVE_NODE_CREATION action', () => {
         expect(nodesReducer({}, {
-            type: types.RECEIVE_NODE_CREATION,
+            type: RECEIVE_NODE_CREATION,
             node: {}
         }))
             .toEqual({
@@ -76,13 +82,15 @@ describe('nodes reducer', () => {
         ;
     });
 
-    it('should handle the RECEIVE_NODE_UPDATE action', () => {
-        expect(nodesReducer({}, {
-            type: types.RECEIVE_NODE_UPDATE,
-            node: {}
+    it('should replace an already fetched node with the updated one when receiving a RECEIVE_NODE_UPDATE action', () => {
+        expect(nodesReducer({
+            items: [{ uuid: 1, name: 'old' }]
+        }, {
+            type: RECEIVE_NODE_UPDATE,
+            node: { uuid: 1, name: 'new' }
         }))
             .toEqual({
-                didInvalidate: true
+                items: [{ uuid: 1, name: 'new' }]
             })
         ;
     });
