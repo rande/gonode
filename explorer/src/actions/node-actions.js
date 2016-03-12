@@ -97,6 +97,8 @@ export function updateNode(nodeData) {
         Api.updateNode(nodeData, getState().security.token)
             .then(node => {
                 dispatch(receiveNodeUpdate(node));
+                dispatch(invalidateNodeRevisions(node.uuid));
+                dispatch(fetchNodeRevisionsIfNeeded(node.uuid));
                 history.push(`/nodes/${node.uuid}`);
             })
         ;
