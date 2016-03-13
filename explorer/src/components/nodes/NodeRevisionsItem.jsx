@@ -4,7 +4,11 @@ import { Link }             from 'react-router';
 
 const NodeRevisionsItem = ({ uuid, revision, isCurrent }) => (
     <div className="node_revisions_item">
-        <Link to={`/nodes/${uuid}/revisions/${revision.revision}`} className="node_revisions_item_circle">
+        <Link
+            to={`/nodes/${uuid}/revisions/${revision.revision}`}
+            className="node_revisions_item_circle"
+            activeClassName="node_revisions_item_circle-active"
+        >
             {revision.revision}
         </Link>
         {isCurrent && <span className="node_revisions_item_current" />}

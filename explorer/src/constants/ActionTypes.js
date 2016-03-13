@@ -29,3 +29,10 @@ export const RECEIVE_NODE_UPDATE      = 'RECEIVE_NODE_UPDATE';
 export const REQUEST_NODE_REVISIONS    = 'REQUEST_NODE_REVISIONS';
 export const RECEIVE_NODE_REVISIONS    = 'RECEIVE_NODE_REVISIONS';
 export const INVALIDATE_NODE_REVISIONS = 'INVALIDATE_NODE_REVISIONS';
+
+//--------------------------------------------------------------------------------
+// Node revision
+//--------------------------------------------------------------------------------
+export const SELECT_NODE_REVISION      = 'SELECT_NODE_REVISION';
+export const REQUEST_NODE_REVISION     = 'REQUEST_NODE_REVISION';
+export const RECEIVE_NODE_REVISION     = 'RECEIVE_NODE_REVISION';

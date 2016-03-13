@@ -111,6 +111,19 @@ const Api = {
         ;
     },
 
+    nodeRevision(uuid, id, token = null) {
+        const url = `${API_BASE_URL}/nodes/${uuid}/revisions/${id}`;
+
+        const req = request.get(url);
+        if (token !== null) {
+            req.set('Authorization', `Bearer ${token}`);
+        }
+
+        return req
+            .then(response => response.body)
+        ;
+    },
+
     createNode(nodeData, token = null) {
         const url = `${API_BASE_URL}/nodes`;
 

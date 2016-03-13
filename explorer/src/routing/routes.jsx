@@ -10,12 +10,14 @@ import Node                  from '../components/nodes/Node.jsx';
 import NodeCreate            from '../components/nodes/NodeCreate.jsx';
 import NodeShow              from '../components/nodes/NodeShow.jsx';
 import NodeEdit              from '../components/nodes/NodeEdit.jsx';
+import NodeRevision          from '../components/nodes/NodeRevision.jsx';
 
 
 import {
     ensureAuthenticated,
     onEnterApp,
     onEnterNode,
+    onEnterNodeRevision,
     onEnterLogout
 } from './hooks';
 
@@ -32,6 +34,7 @@ export default function getRoutes(store) {
                     <Route path=":node_uuid" components={{ content: Node }}>
                         <IndexRoute onEnter={onEnterNode(store)} components={{ content: NodeShow }}/>
                         <Route path="edit" onEnter={onEnterNode(store)} components={{ content: NodeEdit }}/>
+                        <Route path="revisions/:revision_id" onEnter={onEnterNodeRevision(store)} components={{ content: NodeRevision }}/>
                     </Route>
                 </Route>
             </Route>

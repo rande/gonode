@@ -4,6 +4,7 @@ import { Link }                        from 'react-router';
 import { FormattedMessage }            from 'react-intl';
 import NodeForm                        from './NodeForm.jsx';
 import { updateNode }                  from '../../actions';
+import { nodeSelector }                from '../../selectors/nodes-selector';
 
 const assign = Object.assign || require('object.assign');
 
@@ -25,48 +26,35 @@ class NodeEdit extends Component {
 
     handleSubmit(data) {
         const { dispatchNodeUpdate, node } = this.props;
-        const edited = assign({}, node, data);
+        const edited = assign({}, node.node, data);
 
         dispatchNodeUpdate(edited);
     }
 
     render() {
-        const { isFetching, node } = this.props;
+        const { node } = this.props;
 
-        if (isFetching) {
+        if (node.isFetching) {
             return null;
         }
 
         return (
             <div className="node-main">
                 <div className="panel-header">
-                    <Link to={`/nodes/${node.uuid}`} className="panel-header_close">
+                    <Link to={`/nodes/${node.node.uuid}`} className="panel-header_close">
                         <i className="fa fa-angle-left" />
                     </Link>
                     <h1 className="panel-title">
-                        <FormattedMessage id="node.edit.title" values={{ name: node.name }}/>
+                        <FormattedMessage id="node.edit.title" values={{ name: node.node.name }}/>
                     </h1>
                 </div>
                 <div className="panel-body">
-                    <NodeForm onSubmit={this.handleSubmit} initialValues={node}/>
+                    <NodeForm onSubmit={this.handleSubmit} initialValues={node.node}/>
                 </div>
             </div>
         );
     }
 }
-
-const mapStateToProps = ({ nodes, nodesByUuid }) => {
-    let node = {
-        isFetching: true,
-        node:       null
-    };
-
-    if (nodesByUuid[nodes.currentUuid]) {
-        node = nodesByUuid[nodes.currentUuid];
-    }
-
-    return node;
-};
 
 const mapDispatchToProps = dispatch => ({
     dispatchNodeUpdate: (node) => dispatch(updateNode(node))
@@ -74,6 +62,6 @@ const mapDispatchToProps = dispatch => ({
 
 
 export default connect(
-    mapStateToProps,
+    nodeSelector,
     mapDispatchToProps
 )(NodeEdit);

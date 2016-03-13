@@ -1,17 +1,5 @@
-export {
-    login,
-    logout
-} from './security-actions';
-
-export {
-    fetchNodesIfNeeded,
-    selectNode,
-    setNodesPagerOptions
-} from './nodes-actions';
-
-export {
-    fetchNodeIfNeeded,
-    createNode,
-    updateNode,
-    fetchNodeRevisionsIfNeeded
-} from './node-actions';
+export * from './security-actions';
+export * from './nodes-actions';
+export * from './node-actions';
+export * from './node-revisions-actions';
+export default {}; // required for wildcard export… babel bug

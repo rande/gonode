@@ -3,25 +3,26 @@ import nodesReducer from '../../src/reducers/nodes-reducer';
 import {
     REQUEST_NODES,
     RECEIVE_NODES,
-    SELECT_NODE,
-    RECEIVE_NODE_CREATION,
-    RECEIVE_NODE_UPDATE
+    SELECT_NODE
 } from '../../src/constants/ActionTypes';
+
+
+const defaultState = {
+    isFetching:    false,
+    uuids:         [],
+    uuid:          null,
+    itemsPerPage:  10,
+    currentPage:   1,
+    previousPage:  null,
+    nextPage:      null,
+    didInvalidate: true
+};
 
 
 describe('nodes reducer', () => {
     it('should return the initial state', () => {
         expect(nodesReducer(undefined, {}))
-            .toEqual({
-                didInvalidate: true,
-                isFetching:    false,
-                items:         [],
-                itemsPerPage:  10,
-                previousPage:  null,
-                currentPage:   1,
-                nextPage:      null,
-                currentUuid:   null
-            })
+            .toEqual(defaultState)
         ;
     });
 
@@ -39,59 +40,45 @@ describe('nodes reducer', () => {
         ;
     });
 
-    it('should store API results when receiving a RECEIVE_NODES action', () => {
+    it('should store API results on RECEIVE_NODES action', () => {
+        const nodes = [
+            { uuid: 1 },
+            { uuid: 2 },
+            { uuid: 3 }
+        ];
+
+        const expectedState = {
+            isFetching:    false,
+            uuids:         nodes.map(node => node.uuid),
+            itemsPerPage:  20,
+            currentPage:   1,
+            previousPage:  null,
+            nextPage:      2,
+            didInvalidate: false
+        };
+
         expect(nodesReducer({}, {
             type:         RECEIVE_NODES,
-            items:        [],
+            items:        nodes,
             itemsPerPage: 20,
             page:         1,
             previous:     0,
             next:         2
         }))
-            .toEqual({
-                isFetching:    false,
-                items:         [],
-                itemsPerPage:  20,
-                currentPage:   1,
-                previousPage:  null,
-                nextPage:      2,
-                didInvalidate: false
-            })
+            .toEqual(expectedState)
         ;
     });
 
-    it('should store the current node uuid when receiving a SELECT_NODE action', () => {
+    it('should store the current node uuid on SELECT_NODE action', () => {
+        const expectedState = {
+            uuid: 'plouc'
+        };
+
         expect(nodesReducer({}, {
             type:     SELECT_NODE,
             nodeUuid: 'plouc'
         }))
-            .toEqual({
-                currentUuid: 'plouc'
-            })
-        ;
-    });
-
-    it('should set current state as invalid when receiving a RECEIVE_NODE_CREATION action', () => {
-        expect(nodesReducer({}, {
-            type: RECEIVE_NODE_CREATION,
-            node: {}
-        }))
-            .toEqual({
-                didInvalidate: true
-            })
-        ;
-    });
-
-    it('should replace an already fetched node with the updated one when receiving a RECEIVE_NODE_UPDATE action', () => {
-        expect(nodesReducer({
-            items: [{ uuid: 1, name: 'old' }]
-        }, {
-            type: RECEIVE_NODE_UPDATE,
-            node: { uuid: 1, name: 'new' }
-        }))
-            .toEqual({
-                items: [{ uuid: 1, name: 'new' }]
-            })
+            .toEqual(expectedState)
         ;
     });
 });

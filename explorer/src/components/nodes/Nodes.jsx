@@ -7,6 +7,7 @@ import Pager                           from '../Pager.jsx';
 import NodesList                       from './NodesList.jsx';
 import { fetchNodesIfNeeded }          from '../../actions';
 import { history }                     from '../../routing';
+import { nodesSelector }               from '../../selectors/nodes-selector';
 
 
 class Nodes extends Component {
@@ -87,22 +88,4 @@ class Nodes extends Component {
 }
 
 
-export default connect((state) => {
-    const { nodes: {
-        items,
-        itemsPerPage,
-        currentPage,
-        previousPage,
-        nextPage,
-        isFetching
-    } } = state;
-
-    return {
-        nodes: items,
-        itemsPerPage,
-        currentPage,
-        previousPage,
-        nextPage,
-        isFetching
-    };
-})(Nodes);
+export default connect(nodesSelector)(Nodes);

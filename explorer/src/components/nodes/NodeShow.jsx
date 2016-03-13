@@ -4,14 +4,13 @@ import { FormattedMessage, FormattedDate } from 'react-intl';
 import { Link }                            from 'react-router';
 import NodeInfo                            from './NodeInfo.jsx';
 import NodeDeleteButton                    from './NodeDeleteButton.jsx';
+import { nodeSelector }                    from '../../selectors/nodes-selector';
 
 
-const NodeShow = ({ nodeObject }) => {
-    if (nodeObject.isFetching) {
+const NodeShow = ({ node }) => {
+    if (node.isFetching) {
         return <div className="node-main"/>;
     }
-
-    const { node } = nodeObject;
 
     return (
         <div className="node-main">
@@ -19,15 +18,15 @@ const NodeShow = ({ nodeObject }) => {
                 <Link to={`/nodes`} className="panel-header_close">
                     <i className="fa fa-angle-left" />
                 </Link>
-                <h1 className="panel-title">{node.name}</h1>
-                <Link to={`/nodes/${node.uuid}/edit`} className="button button-large">
+                <h1 className="panel-title">{node.node.name}</h1>
+                <Link to={`/nodes/${node.node.uuid}/edit`} className="button button-large">
                     <i className="fa fa-pencil" />
                     <FormattedMessage id="node.edit.link"/>
                 </Link>
-                <NodeDeleteButton uuid={node.uuid} size="large" />
+                <NodeDeleteButton uuid={node.node.uuid} size="large" />
             </header>
             <div className="panel-body">
-                <NodeInfo node={node} />
+                <NodeInfo node={node.node} />
             </div>
         </div>
     );
@@ -36,20 +35,8 @@ const NodeShow = ({ nodeObject }) => {
 Node.displayName = 'NodeShow';
 
 Node.propTypes = {
-    nodeObject: PropTypes.object.isRequired
+    node: PropTypes.object.isRequired
 };
 
 
-export default connect((state) => {
-    const { nodes, nodesByUuid } = state;
-
-    let nodeObject = {
-        isFetching: true,
-        node:       null
-    };
-    if (nodesByUuid[nodes.currentUuid]) {
-        nodeObject = nodesByUuid[nodes.currentUuid];
-    }
-
-    return { nodeObject };
-})(NodeShow);
+export default connect(nodeSelector)(NodeShow);

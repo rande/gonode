@@ -2,9 +2,7 @@ import { UPDATE_PATH } from 'redux-simple-router';
 import {
     REQUEST_NODES,
     RECEIVE_NODES,
-    SELECT_NODE,
-    RECEIVE_NODE_UPDATE,
-    RECEIVE_NODE_CREATION
+    SELECT_NODE
 } from '../constants/ActionTypes';
 
 const assign = Object.assign || require('object.assign');
@@ -12,12 +10,12 @@ const assign = Object.assign || require('object.assign');
 
 export default function nodes(state = {
     isFetching:    false,
-    items:         [],
+    uuids:         [],
+    uuid:          null,
     itemsPerPage:  10,
     currentPage:   1,
     previousPage:  null,
     nextPage:      null,
-    currentUuid:   null,
     didInvalidate: true
 }, action) {
     switch (action.type) {
@@ -30,8 +28,8 @@ export default function nodes(state = {
 
         case RECEIVE_NODES:
             return assign({}, state, {
+                uuids:         action.items.map(item => item.uuid),
                 isFetching:    false,
-                items:         action.items,
                 itemsPerPage:  action.itemsPerPage,
                 currentPage:   action.page,
                 previousPage:  (action.previous !== 0 ? action.previous : null),
@@ -41,26 +39,7 @@ export default function nodes(state = {
 
         case SELECT_NODE:
             return assign({}, state, {
-                currentUuid: action.nodeUuid
-            });
-
-        case RECEIVE_NODE_UPDATE:
-            const { items } = state;
-            const updatedItems = items.map(item => {
-                if (item.uuid === action.node.uuid) {
-                    return action.node;
-                }
-
-                return item;
-            });
-
-            return assign({}, state, {
-                items: updatedItems
-            });
-
-        case RECEIVE_NODE_CREATION:
-            return assign({}, state, {
-                didInvalidate: true
+                uuid: action.nodeUuid
             });
 
         default:

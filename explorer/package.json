@@ -61,6 +61,7 @@
     "redux-logger": "^2.0.4",
     "redux-simple-router": "0.0.10",
     "redux-thunk": "^1.0.0",
+    "reselect": "2.0.3",
     "superagent": "^1.6.1",
     "superagent-promise": "^1.0.3"
   },

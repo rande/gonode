@@ -20,4 +20,4 @@ Node.propTypes = {
 };
 
 
-export default connect(({ nodes: { currentUuid } }) => ({ uuid: currentUuid }))(Node);
+export default connect(({ nodes: { uuid } }) => ({ uuid }))(Node);
