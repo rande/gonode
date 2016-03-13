@@ -25,10 +25,18 @@ class NodeRevision extends Component {
         return (
             <div className="node-main">
                 <header className="panel-header">
-                    <Link to={`/nodes/${nodeUuid}`} className="panel-header_close">
-                        <i className="fa fa-angle-left" />
+                    <Link to={`/nodes`} className="panel-header_close">
+                        <i className="fa fa-close" />
                     </Link>
-                    <h1 className="panel-title">{revision.name} [rev. {revisionId}]</h1>
+                    <h1 className="panel-title">
+                        <Link to={`/nodes/${nodeUuid}`}>
+                            {revision.name}
+                        </Link>
+                        &nbsp;&nbsp;|&nbsp;&nbsp;
+                        <span>
+                            revision {revisionId}
+                        </span>
+                    </h1>
                 </header>
                 <div className="panel-body">
                     <NodeInfo node={revision} />

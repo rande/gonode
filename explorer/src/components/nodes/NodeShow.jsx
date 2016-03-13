@@ -16,7 +16,7 @@ const NodeShow = ({ node }) => {
         <div className="node-main">
             <header className="panel-header">
                 <Link to={`/nodes`} className="panel-header_close">
-                    <i className="fa fa-angle-left" />
+                    <i className="fa fa-close" />
                 </Link>
                 <h1 className="panel-title">{node.node.name}</h1>
                 <Link to={`/nodes/${node.node.uuid}/edit`} className="button button-large">

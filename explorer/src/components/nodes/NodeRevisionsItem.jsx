@@ -10,8 +10,8 @@ const NodeRevisionsItem = ({ uuid, revision, isCurrent }) => (
             activeClassName="node_revisions_item_circle-active"
         >
             {revision.revision}
+            {isCurrent && <span className="node_revisions_item_current" />}
         </Link>
-        {isCurrent && <span className="node_revisions_item_current" />}
     </div>
 );
 

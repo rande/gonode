@@ -96,7 +96,8 @@ const Api = {
      */
     nodeRevisions(uuid, token = null) {
         const searchParams = [
-            'per_page=10'
+            'per_page=10',
+            'order_by=revision,DESC'
         ];
 
         const url = `${API_BASE_URL}/nodes/${uuid}/revisions?${searchParams.join('&')}`;

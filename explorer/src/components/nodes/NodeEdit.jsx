@@ -41,10 +41,14 @@ class NodeEdit extends Component {
         return (
             <div className="node-main">
                 <div className="panel-header">
-                    <Link to={`/nodes/${node.node.uuid}`} className="panel-header_close">
-                        <i className="fa fa-angle-left" />
+                    <Link to={`/nodes`} className="panel-header_close">
+                        <i className="fa fa-close" />
                     </Link>
                     <h1 className="panel-title">
+                        <Link to={`/nodes/${node.node.uuid}`}>
+                            {node.node.name}
+                        </Link>
+                        &nbsp;&nbsp;|&nbsp;&nbsp;
                         <FormattedMessage id="node.edit.title" values={{ name: node.node.name }}/>
                     </h1>
                 </div>

@@ -19,7 +19,7 @@ export default {
     'node.create.title': 'create new node',
 
     'node.edit.link': 'edit',
-    'node.edit.title': 'edit node {name}',
+    'node.edit.title': 'edit',
 
     'node.delete.link': 'delete',
     'node.delete.confirm': 'are you sure ?',
@@ -39,6 +39,8 @@ export default {
     'node.deleted': 'deleted',
     'node.created_at': 'created at',
     'node.updated_at': 'latest update on',
+
+    'node.revisions.more': 'more',
 
     'pager.per_page': 'items per page',
     'pager.page': 'page {page}'
