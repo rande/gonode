@@ -90,13 +90,17 @@ const Api = {
     },
 
     /**
-     * Fetch node revisions by node uuid
+     * Fetch node revisions by node uuid.
      *
+     * @param {string} uuid
+     * @param {number} page
+     * @param {string} token
      * @returns {Promise}
      */
-    nodeRevisions(uuid, token = null) {
+    nodeRevisions(uuid, page, token = null) {
         const searchParams = [
             'per_page=10',
+            `page=${page}`,
             'order_by=revision,DESC'
         ];
 

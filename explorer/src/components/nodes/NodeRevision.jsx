@@ -3,6 +3,7 @@ import { connect }                     from 'react-redux';
 import { Link }                        from 'react-router';
 import { nodeRevisionSelector }        from '../../selectors/nodes-selector';
 import NodeInfo                        from './NodeInfo.jsx';
+import Breadcrumb                      from '../Breadcrumb.jsx';
 
 
 class NodeRevision extends Component {
@@ -28,15 +29,10 @@ class NodeRevision extends Component {
                     <Link to={`/nodes`} className="panel-header_close">
                         <i className="fa fa-close" />
                     </Link>
-                    <h1 className="panel-title">
-                        <Link to={`/nodes/${nodeUuid}`}>
-                            {revision.name}
-                        </Link>
-                        &nbsp;&nbsp;|&nbsp;&nbsp;
-                        <span>
-                            revision {revisionId}
-                        </span>
-                    </h1>
+                    <Breadcrumb items={[
+                        { label: revision.name, path:  `/nodes/${nodeUuid}` },
+                        { label: `revision ${revisionId}` }
+                    ]} />
                 </header>
                 <div className="panel-body">
                     <NodeInfo node={revision} />

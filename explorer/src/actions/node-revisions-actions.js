@@ -12,27 +12,32 @@ import {
 // —————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
 // Revisions
 // —————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
-function requestNodeRevisions(uuid) {
+function requestNodeRevisions(uuid, page) {
     return {
         type: REQUEST_NODE_REVISIONS,
-        uuid
+        uuid,
+        page
     };
 }
 
 function receiveNodeRevisions(uuid, {
-    elements
+    elements,
+    page,
+    next
 }) {
     return {
-        type: RECEIVE_NODE_REVISIONS,
         uuid,
-        items: elements
+        type:     RECEIVE_NODE_REVISIONS,
+        items:    elements,
+        page,
+        nextPage: next
     };
 }
 
-function fetchNodeRevisions(uuid) {
+function fetchNodeRevisions(uuid, page) {
     return (dispatch, getState) => {
-        dispatch(requestNodeRevisions(uuid));
-        Api.nodeRevisions(uuid, getState().security.token)
+        dispatch(requestNodeRevisions(uuid, page));
+        Api.nodeRevisions(uuid, page, getState().security.token)
             .then(response => {
                 dispatch(receiveNodeRevisions(uuid, response));
             })
@@ -40,7 +45,7 @@ function fetchNodeRevisions(uuid) {
     };
 }
 
-function shouldFetchNodeRevisions(state, uuid) {
+function shouldFetchNodeRevisions(state, uuid, page) {
     const revisions = state.nodesRevisionsByUuid[uuid];
     if (!revisions) {
         return true;
@@ -50,13 +55,17 @@ function shouldFetchNodeRevisions(state, uuid) {
         return false;
     }
 
+    if (revisions.page < page) {
+        return true;
+    }
+
     return revisions.didInvalidate;
 }
 
-export function fetchNodeRevisionsIfNeeded(uuid) {
+export function fetchNodeRevisionsIfNeeded(uuid, page = 1) {
     return (dispatch, getState) => {
-        if (shouldFetchNodeRevisions(getState(), uuid)) {
-            dispatch(fetchNodeRevisions(uuid));
+        if (shouldFetchNodeRevisions(getState(), uuid, page)) {
+            dispatch(fetchNodeRevisions(uuid, page));
         }
     };
 }

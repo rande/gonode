@@ -2,12 +2,10 @@
 @require 'settings/dimensions.styl'
 @require 'button.styl'
 @require 'loader.styl'
-@require 'side-panel.styl'
 @require 'header.styl'
-@require 'breadcrumbs.styl'
+@require 'breadcrumb.styl'
 @require 'footer.styl'
 @require 'react-select.styl'
-@require 'react-slick.styl'
 @require 'form.styl'
 @require 'navigation.styl'
 @require 'node-delete.styl'
@@ -76,7 +74,6 @@ html, body
   right 0
   left  0
   height $header-height
-  border-bottom: 1px solid darken($color-main-background, 10)
   padding: 17px 20px
 
   &_title
@@ -105,8 +102,8 @@ html, body
   right 0
   left  0
   height $header-height
-  background: lighten($color-second-panel-background, 4)
-  box-shadow 0 1px 2px rgba(0, 0, 0, .35)
+  background: $color-navigation-background-over
+  box-shadow 0 1px 2px rgba(0, 0, 0, .5)
   display flex
   align-items center
   padding 0 20px

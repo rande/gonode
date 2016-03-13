@@ -5,6 +5,7 @@ import { Link }                            from 'react-router';
 import NodeInfo                            from './NodeInfo.jsx';
 import NodeDeleteButton                    from './NodeDeleteButton.jsx';
 import { nodeSelector }                    from '../../selectors/nodes-selector';
+import Breadcrumb                          from '../Breadcrumb.jsx';
 
 
 const NodeShow = ({ node }) => {
@@ -18,7 +19,9 @@ const NodeShow = ({ node }) => {
                 <Link to={`/nodes`} className="panel-header_close">
                     <i className="fa fa-close" />
                 </Link>
-                <h1 className="panel-title">{node.node.name}</h1>
+                <Breadcrumb items={[
+                    { label: node.node.name }
+                ]} />
                 <Link to={`/nodes/${node.node.uuid}/edit`} className="button button-large">
                     <i className="fa fa-pencil" />
                     <FormattedMessage id="node.edit.link"/>

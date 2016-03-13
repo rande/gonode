@@ -30,6 +30,8 @@ function nodeRevisions(state = {
     ids:           [],
     id:            null,
     byRevisionId:  {},
+    page:          1,
+    nextPage:      0,
     didInvalidate: false
 }, action) {
     switch (action.type) {
@@ -39,18 +41,29 @@ function nodeRevisions(state = {
             });
 
         case RECEIVE_NODE_REVISIONS:
-            const ids          = action.items.map(item => item.revision);
-            const byRevisionId = action.items.reduce((newRevisions, revision) => {
+            const { ids, byRevisionId } = state;
+
+            const receivedIds = action.items.map(item => item.revision);
+            const newObjects  = assign({}, byRevisionId, action.items.reduce((newRevisions, revision) => {
                 newRevisions[revision.revision] = nodeRevision(undefined, assign({}, action, {
                     revision
                 }));
 
                 return newRevisions;
-            }, {});
+            }, {}));
+
+            let resultingIds = [];
+            if (action.page === 1) {
+                resultingIds = receivedIds;
+            } else {
+                resultingIds = ids.concat(receivedIds);
+            }
 
             return assign({}, state, {
-                ids,
-                byRevisionId,
+                byRevisionId:  newObjects,
+                ids:           resultingIds,
+                page:          action.page,
+                nextPage:      action.nextPage,
                 isFetching:    false,
                 didInvalidate: false
             });

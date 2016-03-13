@@ -49,6 +49,8 @@ describe('nodes revisions by uuid reducer', () => {
                 isFetching:    false,
                 didInvalidate: false,
                 ids:           sampleRevisions.map(sampleRevision => sampleRevision.revision),
+                page:          1,
+                nextPage:      0,
                 byRevisionId
             }
         };
@@ -56,12 +58,15 @@ describe('nodes revisions by uuid reducer', () => {
         expect(nodesRevisionsByUuid({
             [uuid]: {
                 isFetching:    true,
-                didInvalidate: true
+                didInvalidate: true,
+                page:          1
             }
         }, {
             type: RECEIVE_NODE_REVISIONS,
             uuid,
-            items: sampleRevisions
+            page:     1,
+            nextPage: 0,
+            items:    sampleRevisions
         })).toEqual(expectedState);
     });
 

@@ -48,7 +48,9 @@ export const nodeRevisionsSelector = createSelector(
             uuid,
             isFetching: true,
             revisions:  [],
-            node: node.node
+            hasMore:    false,
+            nextPage:   0,
+            node:       node.node ? node.node : null
         };
 
         if (nodesRevisionsByUuid[uuid]) {
@@ -56,6 +58,7 @@ export const nodeRevisionsSelector = createSelector(
 
             output.isFetching = revisions.isFetching;
             output.revisions  = [];
+            output.nextPage   = revisions.nextPage;
 
             if (revisions.ids.length > 0) {
                 revisions.ids.forEach(id => {

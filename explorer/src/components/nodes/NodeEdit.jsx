@@ -2,6 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import { connect }                     from 'react-redux';
 import { Link }                        from 'react-router';
 import { FormattedMessage }            from 'react-intl';
+import Breadcrumb                      from '../Breadcrumb.jsx';
 import NodeForm                        from './NodeForm.jsx';
 import { updateNode }                  from '../../actions';
 import { nodeSelector }                from '../../selectors/nodes-selector';
@@ -44,13 +45,10 @@ class NodeEdit extends Component {
                     <Link to={`/nodes`} className="panel-header_close">
                         <i className="fa fa-close" />
                     </Link>
-                    <h1 className="panel-title">
-                        <Link to={`/nodes/${node.node.uuid}`}>
-                            {node.node.name}
-                        </Link>
-                        &nbsp;&nbsp;|&nbsp;&nbsp;
-                        <FormattedMessage id="node.edit.title" values={{ name: node.node.name }}/>
-                    </h1>
+                    <Breadcrumb items={[
+                        { path:  `/nodes/${node.node.uuid}`, label: node.node.name },
+                        { label: <FormattedMessage id="node.edit.title" values={{ name: node.node.name }}/> }
+                    ]} />
                 </div>
                 <div className="panel-body">
                     <NodeForm onSubmit={this.handleSubmit} initialValues={node.node}/>
