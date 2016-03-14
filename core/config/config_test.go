@@ -57,6 +57,10 @@ key = "ZeSecretKey0oo"
     allowed_methods = ["GET", "PUT", "POST"]
     allowed_headers = ["Origin", "Accept", "Content-Type", "Authorization"]
 
+    [[security.access]]
+    path  = "^\\/admin"
+    roles = ["ROLE_ADMIN"]
+
 [search]
     max_result = 256
 
@@ -110,10 +114,15 @@ key = "ZeSecretKey0oo"
 	assert.Equal(t, config.Guard.Jwt.Login.Path, "/login")
 	assert.Equal(t, config.Guard.Jwt.Token.Path, `^\/nodes\/(.*)$`)
 
-	// test security
+	// test security: cors
 	assert.False(t, config.Security.Cors.AllowCredentials)
 	assert.Equal(t, config.Security.Cors.AllowedHeaders, []string{"Origin", "Accept", "Content-Type", "Authorization"})
 	assert.Equal(t, config.Security.Cors.AllowedMethods, []string{"GET", "PUT", "POST"})
+
+	// test security: access
+	assert.Equal(t, 1, len(config.Security.Access))
+	assert.Equal(t, []string{"ROLE_ADMIN"}, config.Security.Access[0].Roles)
+	assert.Equal(t, "^\\/admin", config.Security.Access[0].Path)
 
 	// test search
 	assert.Equal(t, uint64(256), config.Search.MaxResult)

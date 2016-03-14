@@ -29,7 +29,7 @@ func Test_Create_User(t *testing.T) {
 		file, _ := os.Open("../fixtures/new_user.json")
 		res, _ := test.RunRequest("POST", ts.URL+"/api/v1.0/nodes", file, auth)
 
-		assert.Equal(t, 201, res.StatusCode)
+		assert.Equal(t, 201, res.StatusCode, "unable to create an user")
 
 		// WHEN
 		node := base.NewNode()

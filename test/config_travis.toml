@@ -21,7 +21,7 @@ key = "ZeSecretKey0oo"
         path = "\\/api\\/v([0-9\\.]*)\\/login"
 
         [guard.jwt.token]
-        path = "^\\/api\\/v([0-9\\.]*)\\/nodes\\/(.*)$"
+        path = "^\\/api\\/v([0-9\\.]*)"
 
 [security]
     [security.cors]
@@ -29,6 +29,17 @@ key = "ZeSecretKey0oo"
     allowed_methods = ["GET", "PUT", "POST"]
     allowed_headers = ["Origin", "Accept", "Content-Type", "Authorization"]
 
+    [[security.access]]
+    path = "/api/v1.0/login"
+    roles = ["IS_AUTHENTICATED_ANONYMOUSLY"]
+
+    [[security.access]]
+    path  = "^\\/api"
+    roles = ["ROLE_API"]
+
+    [[security.access]]
+    path  = "^\\/"
+    roles = ["IS_AUTHENTICATED_ANONYMOUSLY"]
 
 [bindata]
 templates = [

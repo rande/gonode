@@ -6,7 +6,7 @@
 package security
 
 type AuthorizationChecker interface {
-	IsGranted(attrs Attributes, o interface{}) (bool, error)
+	IsGranted(t SecurityToken, attrs Attributes, o interface{}) (bool, error)
 }
 
 type DefaultAuthorizationChecker struct {
@@ -14,7 +14,6 @@ type DefaultAuthorizationChecker struct {
 }
 
 func (c *DefaultAuthorizationChecker) IsGranted(t SecurityToken, attrs Attributes, o interface{}) (bool, error) {
-
 	if c.DecisionManager == nil {
 		return false, nil
 	}

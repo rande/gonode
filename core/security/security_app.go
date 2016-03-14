@@ -6,6 +6,8 @@
 package security
 
 import (
+	"regexp"
+
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	"github.com/rs/cors"
@@ -17,11 +19,41 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 	l.Register(func(app *goapp.App) error {
 
 		app.Set("security.authorizer", func(app *goapp.App) interface{} {
-			return DefaultAuthorizationChecker{
+			return &DefaultAuthorizationChecker{
 				DecisionManager: &AffirmativeDecision{
 					Voters: []Voter{
 						&RoleVoter{Prefix: "ROLE_"},
 					},
+				},
+			}
+		})
+
+		app.Set("security.access_checker", func(app *goapp.App) interface{} {
+			access := make([]*AccessRule, 0)
+
+			for _, c := range conf.Security.Access {
+
+				attrs := make(Attributes, 0)
+
+				for _, r := range c.Roles {
+					attrs = append(attrs, r)
+				}
+
+				r := &AccessRule{
+					Path:  regexp.MustCompile(c.Path),
+					Roles: attrs,
+				}
+
+				access = append(access, r)
+			}
+
+			return &AccessChecker{
+				Rules: access,
+				DecisionVoter: &AffirmativeDecision{
+					Voters: []Voter{
+						&RoleVoter{},
+					},
+					AllowIfAllAbstainDecisions: false,
 				},
 			}
 		})
@@ -49,6 +81,10 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		})
 
 		mux.Use(c.Handler)
+
+		access := app.Get("security.access_checker").(*AccessChecker)
+
+		mux.Use(AccessCheckerMiddleware(access))
 
 		return nil
 	})

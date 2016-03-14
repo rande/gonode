@@ -48,6 +48,10 @@ type Security struct {
 		MaxAge             int      `toml:"max_age"`
 		OptionsPassthrough bool     `toml:"options_passthrough"`
 	} `toml:"cors"`
+	Access []*struct {
+		Path  string   `toml:"path"`
+		Roles []string `toml:"roles"`
+	} `toml:"access"`
 }
 
 type MediaImage struct {

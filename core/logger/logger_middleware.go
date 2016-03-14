@@ -22,6 +22,8 @@ func GetMiddleware(logger *log.Logger) func(c *web.C, h http.Handler) http.Handl
 
 			fields := initFields(reqID, r)
 
+			logger.WithFields(fields).Debug("Start serving a new request")
+
 			c.Env["logger"] = logger.WithFields(fields)
 
 			lw := mutil.WrapWriter(w)

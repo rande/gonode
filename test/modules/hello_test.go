@@ -17,7 +17,9 @@ import (
 
 func Test_Hello(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
-		res, _ := test.RunRequest("GET", ts.URL+"/api/v1.0/hello", nil)
+		auth := test.GetAuthHeader(t, ts)
+
+		res, _ := test.RunRequest("GET", ts.URL+"/api/v1.0/hello", nil, auth)
 
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		assert.Equal(t, res.GetBody(), []byte("Hello!"))
@@ -26,7 +28,9 @@ func Test_Hello(t *testing.T) {
 
 func Test_Invalid_Request(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
-		res, _ := test.RunRequest("GET", ts.URL+"/api/v01/hello", nil)
+		auth := test.GetAuthHeader(t, ts)
+
+		res, _ := test.RunRequest("GET", ts.URL+"/api/v01/hello", nil, auth)
 
 		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})

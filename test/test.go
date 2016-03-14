@@ -131,10 +131,10 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 
 	logger.Configure(l, conf)
 	commands.Configure(l, conf)
+	node_guard.Configure(l, conf)
 	security.Configure(l, conf)
 	api.Configure(l, conf)
 	setup.Configure(l, conf)
-	node_guard.Configure(l, conf)
 	bindata.Configure(l, conf)
 	prism.Configure(l, conf)
 	router.Configure(l, conf)
@@ -176,7 +176,7 @@ func GetAuthToken(t *testing.T, ts *httptest.Server) string {
 		"password": {"admin"},
 	})
 
-	assert.Equal(t, 200, res.StatusCode)
+	assert.Equal(t, 200, res.StatusCode, "unable to login")
 
 	b := bytes.NewBuffer([]byte(""))
 	io.Copy(b, res.Body)
@@ -277,7 +277,7 @@ func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *go
 		data.Enabled = true
 		data.NewPassword = "admin"
 		data.Username = "test-admin"
-		data.Roles = []string{"ADMIN"}
+		data.Roles = []string{"ROLE_ADMIN", "ROLE_API"}
 
 		meta := u.Meta.(*user.UserMeta)
 		meta.PasswordCost = 1 // save test time
