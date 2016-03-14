@@ -1,4 +1,5 @@
-import { createSelector } from 'reselect';
+import { createSelector }   from 'reselect';
+import nodeRevisionsByMonth from './node-revisions-by-month';
 
 const assign = Object.assign || require('object.assign');
 
@@ -46,11 +47,12 @@ export const nodeRevisionsSelector = createSelector(
     (uuid, { node }, nodesRevisionsByUuid) => {
         const output = {
             uuid,
-            isFetching: true,
-            revisions:  [],
-            hasMore:    false,
-            nextPage:   0,
-            node:       node.node ? node.node : null
+            isFetching:       true,
+            revisions:        [],
+            revisionsByMonth: [],
+            hasMore:          false,
+            nextPage:         0,
+            node:             node.node ? node.node : null
         };
 
         if (nodesRevisionsByUuid[uuid]) {
@@ -66,6 +68,7 @@ export const nodeRevisionsSelector = createSelector(
                         output.revisions.push(revisions.byRevisionId[id].revision);
                     }
                 });
+                output.revisionsByMonth = nodeRevisionsByMonth(output.revisions);
             }
         }
 

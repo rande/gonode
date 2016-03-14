@@ -70,6 +70,50 @@ describe('nodes revisions by uuid reducer', () => {
         })).toEqual(expectedState);
     });
 
+    it('should append revisions instead of replacing it if page is greater than current one on RECEIVE_NODE_REVISIONS action', () => {
+        const uuid            = 'test_uuid';
+        const sampleRevisions = [
+            { revision: 3 },
+            { revision: 4 },
+            { revision: 5 }
+        ];
+
+        const byRevisionId    = {};
+        sampleRevisions.forEach(sampleRevision => {
+            byRevisionId[sampleRevision.revision] = {
+                isFetching:    false,
+                didInvalidate: false,
+                revision:      sampleRevision
+            };
+        });
+
+        const expectedState   = {
+            [uuid]: {
+                isFetching:    false,
+                didInvalidate: false,
+                ids:           [1, 2, 3, 4, 5],
+                page:          2,
+                nextPage:      0,
+                byRevisionId
+            }
+        };
+
+        expect(nodesRevisionsByUuid({
+            [uuid]: {
+                ids:           [1, 2],
+                isFetching:    true,
+                didInvalidate: true,
+                page:          1
+            }
+        }, {
+            type: RECEIVE_NODE_REVISIONS,
+            uuid,
+            page:     2,
+            nextPage: 0,
+            items:    sampleRevisions
+        })).toEqual(expectedState);
+    });
+
     it('should mark the revisions as invalids on INVALIDATE_NODE_REVISIONS action', () => {
         const uuid = 'test_uuid';
         const expectedState = {

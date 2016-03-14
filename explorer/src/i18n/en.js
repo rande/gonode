@@ -43,5 +43,18 @@ export default {
     'node.revisions.more': 'more',
 
     'pager.per_page': 'items per page',
-    'pager.page': 'page {page}'
+    'pager.page': 'page {page}',
+
+    'month.0.long': 'january',
+    'month.1.long': 'february.',
+    'month.2.long': 'march',
+    'month.3.long': 'april',
+    'month.4.long': 'may',
+    'month.5.long': 'june',
+    'month.6.long': 'july',
+    'month.7.long': 'august',
+    'month.8.long': 'september.',
+    'month.9.long': 'october',
+    'month.10.long': 'november',
+    'month.11.long': 'december'
 };

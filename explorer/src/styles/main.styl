@@ -1,5 +1,6 @@
 @require 'settings/colors.styl'
 @require 'settings/dimensions.styl'
+@require 'settings/animations.styl'
 @require 'button.styl'
 @require 'loader.styl'
 @require 'header.styl'
@@ -14,7 +15,9 @@
 @require 'pager.styl'
 @require 'login.styl'
 
-*
+*,
+*:before,
+*:after
   -webkit-box-sizing: border-box
   -moz-box-sizing:    border-box
   box-sizing:         border-box
