@@ -42,13 +42,15 @@ class NodeEdit extends Component {
         return (
             <div className="node-main">
                 <div className="panel-header">
-                    <Link to={`/nodes`} className="panel-header_close">
+                    <Link to="/nodes" className="panel-header_close">
                         <i className="fa fa-close" />
                     </Link>
-                    <Breadcrumb items={[
-                        { path:  `/nodes/${node.node.uuid}`, label: node.node.name },
-                        { label: <FormattedMessage id="node.edit.title" values={{ name: node.node.name }}/> }
-                    ]} />
+                    <Breadcrumb
+                        items={[
+                            { path:  `/nodes/${node.node.uuid}`, label: node.node.name },
+                            { label: <FormattedMessage id="node.edit.title" values={{ name: node.node.name }}/> }
+                        ]}
+                    />
                 </div>
                 <div className="panel-body">
                     <NodeForm onSubmit={this.handleSubmit} initialValues={node.node}/>

@@ -26,13 +26,15 @@ class NodeRevision extends Component {
         return (
             <div className="node-main">
                 <header className="panel-header">
-                    <Link to={`/nodes`} className="panel-header_close">
+                    <Link to="/nodes" className="panel-header_close">
                         <i className="fa fa-close" />
                     </Link>
-                    <Breadcrumb items={[
-                        { label: revision.name, path:  `/nodes/${nodeUuid}` },
-                        { label: `revision ${revisionId}` }
-                    ]} />
+                    <Breadcrumb
+                        items={[
+                            { label: revision.name, path:  `/nodes/${nodeUuid}` },
+                            { label: `revision ${revisionId}` }
+                        ]}
+                    />
                 </header>
                 <div className="panel-body">
                     <NodeInfo node={revision} />

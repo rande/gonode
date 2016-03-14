@@ -68,9 +68,7 @@ class NodeRevisions extends Component {
                         {revNodes}
                     </ReactCSSTransitionGroup>
                 </div>
-                <span className={classNames('node_revisions_loader', {
-                    'node_revisions_loader-loading': isFetching
-                })} />
+                <span className={classNames('node_revisions_loader', { 'node_revisions_loader-loading': isFetching })} />
                 {(nextPage > 0) && (
                     <span className="node_revisions_more" onClick={this.handleMoreClick}>
                         <i className="fa fa-angle-down"/>

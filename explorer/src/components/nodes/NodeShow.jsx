@@ -16,12 +16,10 @@ const NodeShow = ({ node }) => {
     return (
         <div className="node-main">
             <header className="panel-header">
-                <Link to={`/nodes`} className="panel-header_close">
+                <Link to="/nodes" className="panel-header_close">
                     <i className="fa fa-close" />
                 </Link>
-                <Breadcrumb items={[
-                    { label: node.node.name }
-                ]} />
+                <Breadcrumb items={[{ label: node.node.name }]} />
                 <Link to={`/nodes/${node.node.uuid}/edit`} className="button button-large">
                     <i className="fa fa-pencil" />
                     <FormattedMessage id="node.edit.link"/>
@@ -35,9 +33,9 @@ const NodeShow = ({ node }) => {
     );
 };
 
-Node.displayName = 'NodeShow';
+NodeShow.displayName = 'NodeShow';
 
-Node.propTypes = {
+NodeShow.propTypes = {
     node: PropTypes.object.isRequired
 };
 
