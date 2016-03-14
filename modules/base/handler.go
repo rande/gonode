@@ -7,11 +7,12 @@ package base
 
 import (
 	"encoding/json"
+	"io"
+	"net/http"
+
 	"github.com/flosch/pongo2"
 	"github.com/rande/gonode/core/helper"
 	"github.com/zenazn/goji/web"
-	"io"
-	"net/http"
 )
 
 type NodeData interface{}

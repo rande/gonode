@@ -6,10 +6,11 @@
 package helper
 
 import (
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_Parial_Reader_Incomplet_Data(t *testing.T) {

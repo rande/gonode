@@ -9,10 +9,11 @@ import (
 	"container/list"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	log "github.com/Sirupsen/logrus"
 	pq "github.com/lib/pq"
 	"github.com/rande/gonode/core/helper"
-	"time"
 )
 
 const (

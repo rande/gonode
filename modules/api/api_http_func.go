@@ -9,15 +9,16 @@ import (
 	"bufio"
 	"container/list"
 	"errors"
+	"io/ioutil"
+	"net/http"
+	"time"
+
 	"github.com/gorilla/websocket"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/search"
 	"github.com/zenazn/goji/web"
-	"io/ioutil"
-	"net/http"
-	"time"
 )
 
 var upgrader = websocket.Upgrader{

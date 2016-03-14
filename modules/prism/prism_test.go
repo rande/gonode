@@ -6,14 +6,15 @@
 package prism
 
 import (
+	"net/http"
+	"net/url"
+	"testing"
+
 	"github.com/flosch/pongo2"
 	"github.com/rande/gonode/core/router"
 	"github.com/rande/gonode/modules/base"
 	"github.com/stretchr/testify/assert"
 	"github.com/zenazn/goji/web"
-	"net/http"
-	"net/url"
-	"testing"
 )
 
 func Test_PrimPath_Node_With_Path(t *testing.T) {

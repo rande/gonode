@@ -7,11 +7,12 @@ package search
 
 import (
 	"fmt"
+	"strings"
+
 	sq "github.com/lann/squirrel"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/core/squirrel"
 	"github.com/rande/gonode/modules/base"
-	"strings"
 )
 
 func GetJsonQuery(left string, sep string) string {

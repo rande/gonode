@@ -9,14 +9,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
 	"testing"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/stretchr/testify/assert"
 )
 
 func GetToken() *jwt.Token {

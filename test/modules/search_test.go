@@ -6,14 +6,15 @@
 package modules
 
 import (
+	"net/http/httptest"
+	"os"
+	"testing"
+
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/modules/api"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
-	"net/http/httptest"
-	"os"
-	"testing"
 )
 
 func CheckNoResults(t *testing.T, p *api.ApiPager) {

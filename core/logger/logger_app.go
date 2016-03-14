@@ -8,6 +8,10 @@ package logger
 import (
 	"errors"
 	"fmt"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/Abramovic/logrus_influxdb"
 	log "github.com/Sirupsen/logrus"
 	influxdb "github.com/influxdata/influxdb/client/v2"
@@ -15,9 +19,6 @@ import (
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/helper"
 	"github.com/zenazn/goji/web"
-	"os"
-	"strings"
-	"time"
 )
 
 var (

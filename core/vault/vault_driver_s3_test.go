@@ -6,17 +6,19 @@
 package vault
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"bytes"
 	"fmt"
+	"os"
+	"syscall"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"os"
-	"syscall"
 )
 
 // this is just a test to validata how the aws sdk behave

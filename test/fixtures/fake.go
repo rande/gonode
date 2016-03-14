@@ -1,6 +1,8 @@
 package fixtures
 
 import (
+	"strconv"
+
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/blog"
@@ -9,7 +11,6 @@ import (
 	"github.com/rande/gonode/modules/raw"
 	"github.com/rande/gonode/modules/search"
 	"github.com/rande/gonode/modules/user"
-	"strconv"
 )
 
 func GetFakeMediaNode(pos int) *base.Node {

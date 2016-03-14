@@ -7,6 +7,8 @@ package commands
 
 import (
 	"flag"
+	"net/http"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/mitchellh/cli"
 	"github.com/rande/goapp"
@@ -14,7 +16,6 @@ import (
 	"github.com/zenazn/goji/bind"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
-	"net/http"
 )
 
 type ServerCommand struct {

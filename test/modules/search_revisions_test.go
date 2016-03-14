@@ -7,15 +7,16 @@ package modules
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/user"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func Test_Search_Revision_Basic(t *testing.T) {

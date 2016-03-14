@@ -7,9 +7,10 @@ package bindata
 
 import (
 	"errors"
+	"testing"
+
 	"github.com/flosch/pongo2"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_PongoTemplateLoader_Valid_Template(t *testing.T) {

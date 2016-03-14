@@ -6,10 +6,11 @@
 package search
 
 import (
-	"github.com/gorilla/schema"
-	"github.com/rande/gonode/core/helper"
 	"net/http"
 	"regexp"
+
+	"github.com/gorilla/schema"
+	"github.com/rande/gonode/core/helper"
 )
 
 var (

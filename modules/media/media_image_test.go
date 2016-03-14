@@ -6,9 +6,10 @@
 package media
 
 import (
+	"testing"
+
 	"github.com/rande/gonode/modules/base"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_ImageHandler(t *testing.T) {

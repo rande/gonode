@@ -7,6 +7,7 @@ package api
 
 import (
 	"container/list"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/websocket"
 	"github.com/lib/pq"

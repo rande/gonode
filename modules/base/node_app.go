@@ -7,11 +7,12 @@ package base
 
 import (
 	"database/sql"
+	"reflect"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/flosch/pongo2"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
-	"reflect"
 )
 
 func GetValue(source interface{}, field string) interface{} {

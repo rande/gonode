@@ -6,8 +6,9 @@
 package security
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_AffirmativeDecision_Support(t *testing.T) {

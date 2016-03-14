@@ -6,12 +6,13 @@
 package modules
 
 import (
-	. "github.com/rande/goapp"
-	"github.com/rande/gonode/test"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	. "github.com/rande/goapp"
+	"github.com/rande/gonode/test"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_Hello(t *testing.T) {

@@ -6,12 +6,13 @@
 package media
 
 import (
+	"net/http"
+	"testing"
+
 	"github.com/lib/pq"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/modules/base"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"testing"
 )
 
 func Test_YoutubeHandler(t *testing.T) {

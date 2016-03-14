@@ -6,10 +6,11 @@
 package logger
 
 import (
+	"testing"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/rande/gonode/core/config"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_Dispatch_SameLevel(t *testing.T) {

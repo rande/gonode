@@ -8,6 +8,7 @@ package feed
 import (
 	"errors"
 	"fmt"
+
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/search"
 )

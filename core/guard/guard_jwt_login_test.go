@@ -9,9 +9,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/crypto/bcrypt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -19,6 +16,10 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func Test_JwtLoginGuardAuthenticator_getCredentials_Valid_Request(t *testing.T) {

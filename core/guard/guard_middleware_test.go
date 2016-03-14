@@ -6,11 +6,12 @@
 package guard
 
 import (
-	"github.com/stretchr/testify/assert"
-	"github.com/zenazn/goji/web"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/zenazn/goji/web"
 )
 
 func Test_Perform_Authentification_With_Not_Found_Credentials(t *testing.T) {

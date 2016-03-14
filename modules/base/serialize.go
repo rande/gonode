@@ -8,8 +8,9 @@ package base
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/rande/gonode/core/helper"
 	"io"
+
+	"github.com/rande/gonode/core/helper"
 )
 
 type NodeSerializer func(w io.Writer, node *Node) error

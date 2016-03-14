@@ -7,17 +7,18 @@ package modules
 
 import (
 	"fmt"
+	"image"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
+
 	. "github.com/rande/goapp"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/media"
 	"github.com/rande/gonode/modules/user"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
-	"image"
-	"net/http"
-	"net/http/httptest"
-	"os"
-	"testing"
 )
 
 func Test_Create_User(t *testing.T) {

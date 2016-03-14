@@ -6,8 +6,9 @@
 package node_guard
 
 import (
-	"github.com/rande/gonode/modules/base"
 	"time"
+
+	"github.com/rande/gonode/modules/base"
 )
 
 type JwtTokenMeta struct {

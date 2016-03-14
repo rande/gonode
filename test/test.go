@@ -9,6 +9,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"os"
+	godebug "runtime/debug"
+	"strings"
+	"testing"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/assets"
@@ -34,15 +44,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
-	"os"
-	godebug "runtime/debug"
-	"strings"
-	"testing"
 )
 
 func GetPager(app *goapp.App, res *Response) *api.ApiPager {

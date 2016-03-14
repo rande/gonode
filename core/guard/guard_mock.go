@@ -6,8 +6,9 @@
 package guard
 
 import (
-	"github.com/stretchr/testify/mock"
 	"net/http"
+
+	"github.com/stretchr/testify/mock"
 )
 
 type MockedAuthenticator struct {

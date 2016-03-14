@@ -11,14 +11,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
 	log "github.com/Sirupsen/logrus"
 	sq "github.com/lann/squirrel"
 	_ "github.com/lib/pq"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/core/squirrel"
 	"github.com/twinj/uuid"
-	"strings"
-	"time"
 )
 
 type PgNodeManager struct {

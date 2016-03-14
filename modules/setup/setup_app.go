@@ -7,13 +7,14 @@ package setup
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/test/fixtures"
 	"github.com/zenazn/goji/web"
-	"net/http"
 )
 
 func Configure(l *goapp.Lifecycle, conf *config.Config) {

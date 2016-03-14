@@ -7,9 +7,6 @@ package media
 
 import (
 	"errors"
-	"github.com/disintegration/imaging"
-	"github.com/rande/gonode/core/vault"
-	"github.com/rande/gonode/modules/base"
 	"image"
 	"image/gif"
 	"image/jpeg"
@@ -19,6 +16,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/disintegration/imaging"
+	"github.com/rande/gonode/core/vault"
+	"github.com/rande/gonode/modules/base"
 )
 
 var (

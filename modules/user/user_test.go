@@ -6,9 +6,10 @@
 package user
 
 import (
+	"testing"
+
 	"github.com/rande/gonode/modules/base"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func GetUserHandleNode() (base.Handler, *base.Node) {

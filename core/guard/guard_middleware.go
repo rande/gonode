@@ -7,9 +7,10 @@ package guard
 
 import (
 	"fmt"
+	"net/http"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/zenazn/goji/web"
-	"net/http"
 )
 
 func GetGuardMiddleware(auths []GuardAuthenticator) func(c *web.C, h http.Handler) http.Handler {

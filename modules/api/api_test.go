@@ -9,15 +9,16 @@ import (
 	"bytes"
 	"container/list"
 	"encoding/json"
+	"io/ioutil"
+	"testing"
+	"time"
+
 	"github.com/gorilla/schema"
 	sq "github.com/lann/squirrel"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/search"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
-	"testing"
-	"time"
 )
 
 func Test_ApiPager_Serialization(t *testing.T) {

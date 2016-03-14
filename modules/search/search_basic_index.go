@@ -7,11 +7,12 @@ package search
 
 import (
 	"fmt"
-	"github.com/rande/gonode/core/helper"
-	"github.com/rande/gonode/modules/base"
 	"io"
 	"net/http"
 	"strconv"
+
+	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/modules/base"
 )
 
 type IndexMeta struct {

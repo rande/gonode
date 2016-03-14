@@ -6,12 +6,13 @@
 package logger
 
 import (
+	"net/http"
+	"time"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
 	"github.com/zenazn/goji/web/mutil"
-	"net/http"
-	"time"
 )
 
 func GetMiddleware(logger *log.Logger) func(c *web.C, h http.Handler) http.Handler {

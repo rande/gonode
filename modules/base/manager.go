@@ -8,6 +8,7 @@ package base
 import (
 	"container/list"
 	"encoding/json"
+
 	sq "github.com/lann/squirrel"
 	"github.com/rande/gonode/core/helper"
 	"github.com/twinj/uuid"

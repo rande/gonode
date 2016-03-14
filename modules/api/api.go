@@ -9,11 +9,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+
 	log "github.com/Sirupsen/logrus"
 	sq "github.com/lann/squirrel"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/modules/base"
-	"io"
 )
 
 const (

@@ -6,6 +6,8 @@
 package node_guard
 
 import (
+	"regexp"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
@@ -13,7 +15,6 @@ import (
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/user"
 	"github.com/zenazn/goji/web"
-	"regexp"
 )
 
 type GuardManager struct {

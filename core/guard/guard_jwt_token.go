@@ -8,10 +8,11 @@ package guard
 import (
 	"encoding/json"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
-	"github.com/dgrijalva/jwt-go"
 	"net/http"
 	"regexp"
+
+	log "github.com/Sirupsen/logrus"
+	"github.com/dgrijalva/jwt-go"
 )
 
 // this authenticator will create a JWT Token from a standard form

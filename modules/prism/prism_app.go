@@ -7,6 +7,10 @@ package prism
 
 import (
 	"fmt"
+	"net/http"
+	"net/url"
+	"strings"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/flosch/pongo2"
 	sq "github.com/lann/squirrel"
@@ -16,9 +20,6 @@ import (
 	"github.com/rande/gonode/core/router"
 	"github.com/rande/gonode/modules/base"
 	"github.com/zenazn/goji/web"
-	"net/http"
-	"net/url"
-	"strings"
 )
 
 func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *http.Request) {

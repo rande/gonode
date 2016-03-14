@@ -7,13 +7,14 @@ package modules
 
 import (
 	"fmt"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/modules/api"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
-	"net/http/httptest"
-	"testing"
 )
 
 func Test_Create_Parents_With_Manager(t *testing.T) {

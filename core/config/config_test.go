@@ -7,10 +7,11 @@ package config
 
 import (
 	"bytes"
-	"github.com/BurntSushi/toml"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/BurntSushi/toml"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_Server_LoadConfigurationFromFile(t *testing.T) {

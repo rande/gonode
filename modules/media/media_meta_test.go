@@ -6,9 +6,10 @@
 package media
 
 import (
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_GetExif_With_Valid_Exif(t *testing.T) {

@@ -29,6 +29,7 @@ key = "ZeSecretKey0oo"
     allowed_methods = ["GET", "PUT", "POST"]
     allowed_headers = ["Origin", "Accept", "Content-Type", "Authorization"]
 
+
 [bindata]
 templates = [
     "github.com/rande/gonode/modules/setup/templates",

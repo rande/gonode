@@ -7,11 +7,12 @@ package modules
 
 import (
 	"fmt"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
-	"net/http/httptest"
-	"testing"
 )
 
 func Test_Guard_Error(t *testing.T) {
