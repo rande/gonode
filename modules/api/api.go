@@ -14,6 +14,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	sq "github.com/lann/squirrel"
 	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/modules/base"
 )
 
@@ -41,6 +42,11 @@ type Api struct {
 type ApiOperation struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
+}
+
+type ApiOptions struct {
+	Token security.SecurityToken
+	Roles security.Attributes
 }
 
 func (a *Api) SelectBuilder(options *base.SelectOptions) sq.SelectBuilder {

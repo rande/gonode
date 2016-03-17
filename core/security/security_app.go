@@ -23,6 +23,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 				DecisionManager: &AffirmativeDecision{
 					Voters: []Voter{
 						&RoleVoter{Prefix: "ROLE_"},
+						&RoleVoter{Prefix: "node:"},
 					},
 				},
 			}

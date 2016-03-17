@@ -80,6 +80,7 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 	admin.Data = &user.User{
 		Username:    "admin",
 		NewPassword: "admin",
+		Roles:       []string{"ROLE_ADMIN", "ROLE_API", "node:api:master"},
 	}
 	admin.Meta = &user.UserMeta{
 		PasswordCost: 12,

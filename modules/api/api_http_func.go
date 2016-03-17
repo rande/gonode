@@ -16,6 +16,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/search"
 	"github.com/zenazn/goji/web"
@@ -27,8 +28,42 @@ var upgrader = websocket.Upgrader{
 }
 
 var (
-	InvalidVersion = errors.New("Invalid version")
+	InvalidVersion  = errors.New("Invalid version")
+	AccessForbidden = errors.New("Access Forbidden")
 )
+
+func getToken(c web.C) security.SecurityToken {
+	if _, ok := c.Env["guard_token"]; !ok { // no token
+		return nil
+	}
+
+	return c.Env["guard_token"].(security.SecurityToken)
+}
+
+func checkAccess(options *ApiOptions, res http.ResponseWriter, req *http.Request, auth security.AuthorizationChecker) error {
+
+	if options.Token == nil { // no token
+		helper.SendWithHttpCode(res, http.StatusForbidden, "Access Forbidden: missing token")
+
+		return AccessForbidden
+	}
+
+	r, err := auth.IsGranted(options.Token, options.Roles, req)
+
+	if err != nil {
+		helper.SendWithHttpCode(res, http.StatusForbidden, "Access Forbidden: error while checking credentials")
+
+		return err
+	}
+
+	if r == false {
+		helper.SendWithHttpCode(res, http.StatusForbidden, "Access Forbidden: not enough credentials")
+
+		return AccessForbidden
+	}
+
+	return nil
+}
 
 func versionChecker(c web.C, res http.ResponseWriter) error {
 	if c.URLParams["version"] == "v1.0" { // for now there is only one version
@@ -51,7 +86,18 @@ func Api_GET_Hello(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 }
 
 func Api_GET_Stream(app *goapp.App) func(c web.C, res http.ResponseWriter, req *http.Request) {
+	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
+
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
+		options := &ApiOptions{
+			Token: getToken(c),
+			Roles: security.Attributes{"node:api:master", "node:api:stream"},
+		}
+
+		if err := checkAccess(options, res, req, authorizer); err != nil {
+			return
+		}
+
 		if err := versionChecker(c, res); err != nil {
 			return
 		}
@@ -97,8 +143,19 @@ func Api_GET_Node(app *goapp.App) func(c web.C, res http.ResponseWriter, req *ht
 	manager := app.Get("gonode.manager").(*base.PgNodeManager)
 	apiHandler := app.Get("gonode.api").(*Api)
 	handler_collection := app.Get("gonode.handler_collection").(base.Handlers)
+	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
+
+		options := &ApiOptions{
+			Token: getToken(c),
+			Roles: security.Attributes{"node:api:master", "node:api:get"},
+		}
+
+		if err := checkAccess(options, res, req, authorizer); err != nil {
+			return
+		}
+
 		if err := versionChecker(c, res); err != nil {
 			return
 		}
@@ -124,6 +181,7 @@ func Api_GET_Node(app *goapp.App) func(c web.C, res http.ResponseWriter, req *ht
 			}
 
 			handler := handler_collection.Get(node)
+
 			var data *base.DownloadData
 
 			if h, ok := handler.(base.DownloadNodeHandler); ok {
@@ -159,8 +217,18 @@ func Api_GET_Node_Revisions(app *goapp.App) func(c web.C, res http.ResponseWrite
 	apiHandler := app.Get("gonode.api").(*Api)
 	searchBuilder := app.Get("gonode.search.pgsql").(*search.SearchPGSQL)
 	searchParser := app.Get("gonode.search.parser.http").(*search.HttpSearchParser)
+	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
+		options := &ApiOptions{
+			Token: getToken(c),
+			Roles: security.Attributes{"node:api:master", "node:api:revisions"},
+		}
+
+		if err := checkAccess(options, res, req, authorizer); err != nil {
+			return
+		}
+
 		if err := versionChecker(c, res); err != nil {
 			return
 		}
@@ -169,10 +237,10 @@ func Api_GET_Node_Revisions(app *goapp.App) func(c web.C, res http.ResponseWrite
 
 		searchForm := searchParser.HandleSearch(res, req)
 
-		options := base.NewSelectOptions()
-		options.TableSuffix = "nodes_audit"
+		selectOptions := base.NewSelectOptions()
+		selectOptions.TableSuffix = "nodes_audit"
 
-		query := apiHandler.SelectBuilder(options).
+		query := apiHandler.SelectBuilder(selectOptions).
 			Where("uuid = ?", c.URLParams["uuid"])
 
 		apiHandler.Find(res, searchBuilder.BuildQuery(searchForm, query), searchForm.Page, searchForm.PerPage)
@@ -181,18 +249,28 @@ func Api_GET_Node_Revisions(app *goapp.App) func(c web.C, res http.ResponseWrite
 
 func Api_GET_Node_Revision(app *goapp.App) func(c web.C, res http.ResponseWriter, req *http.Request) {
 	apiHandler := app.Get("gonode.api").(*Api)
+	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
+		options := &ApiOptions{
+			Token: getToken(c),
+			Roles: security.Attributes{"node:api:master", "node:api:revision"},
+		}
+
+		if err := checkAccess(options, res, req, authorizer); err != nil {
+			return
+		}
+
 		if err := versionChecker(c, res); err != nil {
 			return
 		}
 
 		res.Header().Set("Content-Type", "application/json")
 
-		options := base.NewSelectOptions()
-		options.TableSuffix = "nodes_audit"
+		selectOptions := base.NewSelectOptions()
+		selectOptions.TableSuffix = "nodes_audit"
 
-		query := apiHandler.SelectBuilder(options).
+		query := apiHandler.SelectBuilder(selectOptions).
 			Where("uuid = ?", c.URLParams["uuid"]).
 			Where("revision = ?", c.URLParams["rev"])
 
@@ -210,8 +288,18 @@ func Api_GET_Node_Revision(app *goapp.App) func(c web.C, res http.ResponseWriter
 
 func Api_POST_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *http.Request) {
 	apiHandler := app.Get("gonode.api").(*Api)
+	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
+		options := &ApiOptions{
+			Token: getToken(c),
+			Roles: security.Attributes{"node:api:master", "node:api:create"},
+		}
+
+		if err := checkAccess(options, res, req, authorizer); err != nil {
+			return
+		}
+
 		if err := versionChecker(c, res); err != nil {
 			return
 		}
@@ -240,8 +328,18 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 	manager := app.Get("gonode.manager").(*base.PgNodeManager)
 	apiHandler := app.Get("gonode.api").(*Api)
 	handler_collection := app.Get("gonode.handler_collection").(base.Handlers)
+	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
+		options := &ApiOptions{
+			Token: getToken(c),
+			Roles: security.Attributes{"node:api:master", "node:api:update"},
+		}
+
+		if err := checkAccess(options, res, req, authorizer); err != nil {
+			return
+		}
+
 		if err := versionChecker(c, res); err != nil {
 			return
 		}
@@ -306,8 +404,18 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 
 func Api_PUT_Nodes_Move(app *goapp.App) func(c web.C, res http.ResponseWriter, req *http.Request) {
 	apiHandler := app.Get("gonode.api").(*Api)
+	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
+		options := &ApiOptions{
+			Token: getToken(c),
+			Roles: security.Attributes{"node:api:master", "node:api:move"},
+		}
+
+		if err := checkAccess(options, res, req, authorizer); err != nil {
+			return
+		}
+
 		if err := versionChecker(c, res); err != nil {
 			return
 		}
@@ -324,8 +432,18 @@ func Api_PUT_Nodes_Move(app *goapp.App) func(c web.C, res http.ResponseWriter, r
 
 func Api_DELETE_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *http.Request) {
 	apiHandler := app.Get("gonode.api").(*Api)
+	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
+		options := &ApiOptions{
+			Token: getToken(c),
+			Roles: security.Attributes{"node:api:master", "node:api:delete"},
+		}
+
+		if err := checkAccess(options, res, req, authorizer); err != nil {
+			return
+		}
+
 		if err := versionChecker(c, res); err != nil {
 			return
 		}
@@ -350,8 +468,18 @@ func Api_DELETE_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req
 
 func Api_PUT_Notify(app *goapp.App) func(c web.C, res http.ResponseWriter, req *http.Request) {
 	manager := app.Get("gonode.manager").(*base.PgNodeManager)
+	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
+		options := &ApiOptions{
+			Token: getToken(c),
+			Roles: security.Attributes{"node:api:master", "node:api:notify"},
+		}
+
+		if err := checkAccess(options, res, req, authorizer); err != nil {
+			return
+		}
+
 		if err := versionChecker(c, res); err != nil {
 			return
 		}
@@ -367,8 +495,18 @@ func Api_GET_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 	apiHandler := app.Get("gonode.api").(*Api)
 	searchBuilder := app.Get("gonode.search.pgsql").(*search.SearchPGSQL)
 	searchParser := app.Get("gonode.search.parser.http").(*search.HttpSearchParser)
+	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
+		options := &ApiOptions{
+			Token: getToken(c),
+			Roles: security.Attributes{"node:api:master", "node:api:list"},
+		}
+
+		if err := checkAccess(options, res, req, authorizer); err != nil {
+			return
+		}
+
 		if err := versionChecker(c, res); err != nil {
 			return
 		}
