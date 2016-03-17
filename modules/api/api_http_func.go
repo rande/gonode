@@ -140,13 +140,17 @@ func Api_GET_Node(app *goapp.App) func(c web.C, res http.ResponseWriter, req *ht
 			res.Header().Set("Content-Type", "application/json")
 			err := apiHandler.FindOne(c.URLParams["uuid"], res)
 
-			if err == base.NotFoundError {
-				helper.SendWithHttpCode(res, http.StatusNotFound, err.Error())
+			if err == nil {
+				return
 			}
 
-			if err != nil {
-				helper.SendWithHttpCode(res, http.StatusInternalServerError, err.Error())
+			statusCode := http.StatusInternalServerError
+
+			if err == base.NotFoundError {
+				statusCode = http.StatusNotFound
 			}
+
+			helper.SendWithHttpCode(res, statusCode, err.Error())
 		}
 	}
 }
