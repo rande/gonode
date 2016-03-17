@@ -45,14 +45,26 @@ func (a *JwtTokenGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 		return []byte(a.Key), nil
 	}); err != nil {
 
-		if a.Logger != nil {
-			a.Logger.WithFields(log.Fields{
-				"module": "core.guard.jwt_token",
-				"error":  err.Error(),
-			}).Info("Invalid credentials format")
+		if err == jwt.ErrNoTokenInRequest {
+			if a.Logger != nil {
+				a.Logger.WithFields(log.Fields{
+					"module": "core.guard.jwt_token",
+					"error":  err.Error(),
+				}).Debug("No token in request, skipping")
+			}
+
+			return nil, nil
+		} else {
+			if a.Logger != nil {
+				a.Logger.WithFields(log.Fields{
+					"module": "core.guard.jwt_token",
+					"error":  err.Error(),
+				}).Warn("Invalid credentials format")
+			}
+
+			return nil, InvalidCredentialsFormat
 		}
 
-		return nil, InvalidCredentialsFormat
 	} else {
 
 		if _, ok := credentials.Claims["usr"]; !ok {
@@ -69,7 +81,8 @@ func (a *JwtTokenGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 		if a.Logger != nil {
 			a.Logger.WithFields(log.Fields{
 				"module":   "core.guard.jwt_token",
-				"username": credentials.Claims["usr"].(string),
+				"username": credentials.Claims["usr"],
+				"roles":    credentials.Claims["rls"],
 			}).Info("valid credentials")
 		}
 
@@ -129,7 +142,7 @@ func (a *JwtTokenGuardAuthenticator) OnAuthenticationFailure(req *http.Request, 
 
 	data, _ := json.Marshal(map[string]string{
 		"status":  "KO",
-		"message": "Unable to validate token",
+		"message": "Unable to validate the token",
 	})
 
 	res.Write(data)

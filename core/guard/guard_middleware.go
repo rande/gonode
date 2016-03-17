@@ -56,8 +56,10 @@ func GetGuardMiddleware(auths []GuardAuthenticator) func(c *web.C, h http.Handle
 
 				if logger != nil {
 					logger.WithFields(log.Fields{
-						"module": "core.guard.middleware",
-						"type":   fmt.Sprintf("%T", authenticator),
+						"module":    "core.guard.middleware",
+						"type":      fmt.Sprintf("%T", authenticator),
+						"performed": performed,
+						"output":    output,
 					}).Debug("Ignoring authenticator")
 				}
 			}
