@@ -115,7 +115,7 @@ type Node struct {
 	SetUuid    Reference           `json:"set_uuid"`
 	Source     Reference           `json:"source"`
 	Modules    Modules             `json:"modules"`
-	Access     map[string][]string `json:"access"` // key => roles required to access the nodes
+	Access     []string            `json:"access"` // key => roles required to access the nodes
 }
 
 func (node *Node) UniqueId() string {
@@ -139,7 +139,7 @@ func NewNode() *Node {
 		Enabled:    true,
 		Status:     StatusNew,
 		Modules:    make(map[string]interface{}, 0),
-		Access:     make(map[string][]string, 0),
+		Access:     make([]string, 0),
 	}
 }
 

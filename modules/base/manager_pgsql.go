@@ -38,7 +38,7 @@ type SelectOptions struct {
 func NewSelectOptions() *SelectOptions {
 	return &SelectOptions{
 		TableSuffix:  "nodes",
-		SelectClause: "id, uuid, type, name, revision, version, created_at, updated_at, set_uuid, parent_uuid, parents, slug, path, created_by, updated_by, data, meta, modules, deleted, enabled, source, status, weight",
+		SelectClause: "id, uuid, type, name, revision, version, created_at, updated_at, set_uuid, parent_uuid, parents, slug, path, created_by, updated_by, data, meta, modules, access, deleted, enabled, source, status, weight",
 	}
 }
 
@@ -131,7 +131,7 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 	UpdatedBy := ""
 	Source := ""
 
-	var Parents squirrel.StringSlice
+	var Access, Parents squirrel.StringSlice
 
 	err := rows.Scan(
 		&node.Id,
@@ -152,6 +152,7 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 		&data,
 		&meta,
 		&modules,
+		&Access,
 		&node.Deleted,
 		&node.Enabled,
 		&Source,
@@ -185,6 +186,10 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 	}
 
 	node.Parents = pUuids
+
+	for _, access := range Access {
+		node.Access = append(node.Access, access)
+	}
 
 	handler := m.Handlers.Get(node)
 	if h, ok := handler.(LoadNodeHandler); ok {
@@ -276,11 +281,16 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 		Parents = append(Parents, p.CleanString())
 	}
 
+	Access := make(squirrel.StringSlice, 0)
+	for _, a := range node.Access {
+		Access = append(Access, a)
+	}
+
 	query := sq.Insert(table).
 		Columns(
 			"uuid", "type", "revision", "version", "name", "created_at", "updated_at", "set_uuid",
 			"parent_uuid", "parents", "slug", "path", "created_by", "updated_by", "data", "meta", "modules",
-			"deleted", "enabled", "source", "status", "weight").
+			"access", "deleted", "enabled", "source", "status", "weight").
 		Values(
 			node.Uuid.CleanString(),
 			node.Type,
@@ -299,6 +309,7 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 			string(InterfaceToJsonMessage(node.Type, node.Data)[:]),
 			string(InterfaceToJsonMessage(node.Type, node.Meta)[:]),
 			string(InterfaceToJsonMessage(node.Type, node.Modules)[:]),
+			Access,
 			node.Deleted,
 			node.Enabled,
 			node.Source.CleanString(),
@@ -315,7 +326,6 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 }
 
 func (m *PgNodeManager) Move(uuid, parentUuid Reference) (int64, error) {
-
 	tx, err := m.Db.Begin()
 
 	if err != nil {
@@ -378,8 +388,12 @@ func (m *PgNodeManager) Move(uuid, parentUuid Reference) (int64, error) {
 }
 
 func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
-
 	helper.PanicIf(node.Id == 0, "Cannot update node without id")
+
+	Access := make(squirrel.StringSlice, 0)
+	for _, a := range node.Access {
+		Access = append(Access, a)
+	}
 
 	query := sq.Update(m.Prefix+"_nodes").RunWith(m.Db).PlaceholderFormat(sq.Dollar).
 		Set("uuid", node.Uuid.CleanString()).
@@ -399,6 +413,7 @@ func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 		Set("data", string(InterfaceToJsonMessage(node.Type, node.Data)[:])).
 		Set("meta", string(InterfaceToJsonMessage(node.Type, node.Meta)[:])).
 		Set("modules", string(InterfaceToJsonMessage(node.Type, node.Modules)[:])).
+		Set("access", Access).
 		Set("source", node.Source.CleanString()).
 		Set("status", node.Status).
 		Set("weight", node.Weight).
