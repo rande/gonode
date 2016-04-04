@@ -86,7 +86,7 @@ func Test_Config_Influx_From_Config(t *testing.T) {
         service = "influxdb"
         dsn = "http://localhost:8086"
         tags = ["app.core"]
-        database = "stats"
+        database = "gonode_stats"
         level = "debug"
 
 `, conf)

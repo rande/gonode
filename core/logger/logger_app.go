@@ -66,9 +66,13 @@ func GetHook(conf map[string]interface{}) (log.Hook, error) {
 			Timeout:  100 * time.Millisecond, // The InfluxDB default timeout is 0. In this example we're using 100ms.
 			Username: GetValue("username", conf, "").(string),
 			Password: GetValue("password", conf, "").(string),
+			UserAgent: "GoNode InfluxDBClient",
 		})
 
-		return logrus_influxdb.NewWithClientInfluxDBHook(c, GetValue("database", conf, "gonode").(string), tags)
+		return logrus_influxdb.NewInfluxDB(&logrus_influxdb.Config{
+			Database: GetValue("database", conf, "gonode").(string),
+			Tags: tags,
+		}, c)
 	}
 
 	return nil, NoHookHandlerError
