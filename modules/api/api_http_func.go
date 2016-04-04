@@ -147,9 +147,10 @@ func Api_GET_Node(app *goapp.App) func(c web.C, res http.ResponseWriter, req *ht
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 
+		token := getToken(c)
 		options := &ApiOptions{
-			Token: getToken(c),
-			Roles: security.Attributes{"node:api:master", "node:api:get"},
+			Token: token,
+			Roles: security.Attributes{"node:api:master", "node:api:read"},
 		}
 
 		if err := checkAccess(options, res, req, authorizer); err != nil {
@@ -196,7 +197,13 @@ func Api_GET_Node(app *goapp.App) func(c web.C, res http.ResponseWriter, req *ht
 		} else {
 			// send the json value
 			res.Header().Set("Content-Type", "application/json")
-			err := apiHandler.FindOne(c.URLParams["uuid"], res)
+
+			options.Roles = security.Attributes{}
+			for _, r := range token.GetRoles() {
+				options.Roles = append(options.Roles, r)
+			}
+
+			err := apiHandler.FindOne(c.URLParams["uuid"], res, options)
 
 			if err == nil {
 				return
@@ -243,7 +250,9 @@ func Api_GET_Node_Revisions(app *goapp.App) func(c web.C, res http.ResponseWrite
 		query := apiHandler.SelectBuilder(selectOptions).
 			Where("uuid = ?", c.URLParams["uuid"])
 
-		apiHandler.Find(res, searchBuilder.BuildQuery(searchForm, query), searchForm.Page, searchForm.PerPage)
+		options.Roles = security.Attributes{}
+
+		apiHandler.Find(res, searchBuilder.BuildQuery(searchForm, query), searchForm.Page, searchForm.PerPage, options)
 	}
 }
 
@@ -274,7 +283,9 @@ func Api_GET_Node_Revision(app *goapp.App) func(c web.C, res http.ResponseWriter
 			Where("uuid = ?", c.URLParams["uuid"]).
 			Where("revision = ?", c.URLParams["rev"])
 
-		err := apiHandler.FindOneBy(query, res)
+		options.Roles = security.Attributes{}
+
+		err := apiHandler.FindOneBy(query, res, options)
 
 		if err == base.NotFoundError {
 			helper.SendWithHttpCode(res, http.StatusNotFound, err.Error())
@@ -308,7 +319,9 @@ func Api_POST_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *
 
 		w := bufio.NewWriter(res)
 
-		err := apiHandler.Save(req.Body, w)
+		options.Roles = security.Attributes{}
+
+		err := apiHandler.Save(req.Body, w, options)
 
 		if err == base.RevisionError {
 			res.WriteHeader(http.StatusConflict)
@@ -387,7 +400,9 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 		} else {
 			w := bufio.NewWriter(res)
 
-			err := apiHandler.Save(req.Body, w)
+			options.Roles = security.Attributes{}
+
+			err := apiHandler.Save(req.Body, w, options)
 
 			if err == base.RevisionError {
 				res.WriteHeader(http.StatusConflict)
@@ -422,7 +437,9 @@ func Api_PUT_Nodes_Move(app *goapp.App) func(c web.C, res http.ResponseWriter, r
 
 		res.Header().Set("Content-Type", "application/json")
 
-		err := apiHandler.Move(c.URLParams["uuid"], c.URLParams["parentUuid"], res)
+		options.Roles = security.Attributes{}
+
+		err := apiHandler.Move(c.URLParams["uuid"], c.URLParams["parentUuid"], res, options)
 
 		if err != nil {
 			helper.SendWithHttpCode(res, http.StatusInternalServerError, err.Error())
@@ -448,7 +465,9 @@ func Api_DELETE_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req
 			return
 		}
 
-		err := apiHandler.RemoveOne(c.URLParams["uuid"], res)
+		options.Roles = security.Attributes{}
+
+		err := apiHandler.RemoveOne(c.URLParams["uuid"], res, options)
 
 		if err == base.NotFoundError {
 			helper.SendWithHttpCode(res, http.StatusNotFound, err.Error())
@@ -521,6 +540,8 @@ func Api_GET_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 
 		query := searchBuilder.BuildQuery(searchForm, manager.SelectBuilder(base.NewSelectOptions()))
 
-		apiHandler.Find(res, query, searchForm.Page, searchForm.PerPage)
+		options.Roles = security.Attributes{}
+
+		apiHandler.Find(res, query, searchForm.Page, searchForm.PerPage, options)
 	}
 }

@@ -6,5 +6,6 @@
         "name": "the_first_media.jpg"
     },
     "meta": {
-    }
+    },
+    "access": ["node:api:master"]
 }

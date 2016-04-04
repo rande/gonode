@@ -39,9 +39,9 @@ func Test_ApiPager_Serialization(t *testing.T) {
 
 	list.PushBack(node2)
 
-	options := base.NewSelectOptions()
+	selectionOptions := base.NewSelectOptions()
 	manager := &base.MockedManager{}
-	manager.On("SelectBuilder", options).Return(sb)
+	manager.On("SelectBuilder", selectionOptions).Return(sb)
 	manager.On("FindBy", sb, uint64(0), uint64(11)).Return(list)
 
 	api := &Api{
@@ -52,9 +52,11 @@ func Test_ApiPager_Serialization(t *testing.T) {
 
 	b := bytes.NewBuffer([]byte{})
 
-	assert.Equal(t, sb, api.SelectBuilder(options))
+	assert.Equal(t, sb, api.SelectBuilder(selectionOptions))
 
-	api.Find(b, api.SelectBuilder(options), uint64(1), uint64(10))
+	options := &ApiOptions{}
+
+	api.Find(b, api.SelectBuilder(selectionOptions), uint64(1), uint64(10), options)
 
 	var out bytes.Buffer
 

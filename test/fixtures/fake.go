@@ -86,6 +86,7 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 		PasswordCost: 12,
 		PasswordAlgo: "bcrypt",
 	}
+	admin.Access = []string{"node:api:master", "node:api:read", "node:owner:XXXXXX"}
 
 	m.Save(admin, false)
 
@@ -93,6 +94,7 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 		node := GetFakeUserNode(i)
 		node.UpdatedBy = admin.Uuid
 		node.CreatedBy = admin.Uuid
+		node.Access = []string{"node:api:master", "node:api:read", "node:owner:XXXXXX"}
 
 		_, err = m.Save(node, false)
 
@@ -103,6 +105,7 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 		node := GetFakeMediaNode(i)
 		node.UpdatedBy = admin.Uuid
 		node.CreatedBy = admin.Uuid
+		node.Access = []string{"node:api:master", "node:api:read", "node:owner:XXXXXX"}
 
 		_, err = m.Save(node, false)
 
@@ -115,6 +118,7 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 	root.Slug = "root-path"
 	root.Meta = make(map[string]interface{})
 	root.Data = make(map[string]interface{})
+	root.Access = []string{"node:api:master", "node:api:read", "node:owner:XXXXXX"}
 
 	_, err = m.Save(root, false)
 	helper.PanicOnError(err)
@@ -128,6 +132,7 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 		Type: search.NewParam([]string{"blog.post"}),
 	}
 	archive.Meta = &search.IndexMeta{}
+	archive.Access = []string{"node:api:master", "node:api:read", "node:owner:XXXXXX"}
 
 	_, err = m.Save(archive, false)
 	helper.PanicOnError(err)
@@ -139,6 +144,7 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 		node := GetFakePostNode(i)
 		node.UpdatedBy = admin.Uuid
 		node.CreatedBy = admin.Uuid
+		node.Access = []string{"node:api:master", "node:api:read", "node:owner:XXXXXX"}
 
 		_, err = m.Save(node, false)
 		helper.PanicOnError(err)
@@ -160,6 +166,7 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 		},
 	}
 	f.Meta = &search.IndexMeta{}
+	f.Access = []string{"node:api:master", "node:api:read", "node:owner:XXXXXX"}
 
 	_, err = m.Save(f, false)
 	helper.PanicOnError(err)
@@ -178,6 +185,7 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 		ContentType: "text/plain",
 	}
 	h.Meta = &raw.RawMeta{}
+	h.Access = []string{"node:api:master", "node:api:read", "node:owner:XXXXXX"}
 
 	_, err = m.Save(h, false)
 	helper.PanicOnError(err)
@@ -200,6 +208,7 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 	image.Meta = &media.ImageMeta{
 		SourceStatus: base.ProcessStatusInit,
 	}
+	image.Access = []string{"node:api:master", "node:api:read", "node:owner:XXXXXX"}
 
 	_, err = m.Save(image, false)
 

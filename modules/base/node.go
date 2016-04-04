@@ -92,30 +92,30 @@ func (p Modules) Get(name string) (interface{}, error) {
 }
 
 type Node struct {
-	Id         int                 `json:"-"`
-	Uuid       Reference           `json:"uuid"`
-	Type       string              `json:"type"`
-	Name       string              `json:"name"`
-	Slug       string              `json:"slug"`
-	Path       string              `json:"path"`
-	Data       interface{}         `json:"data"`
-	Meta       interface{}         `json:"meta"`
-	Status     int                 `json:"status"`
-	Weight     int                 `json:"weight"`
-	Revision   int                 `json:"revision"`
-	Version    int                 `json:"version"`
-	CreatedAt  time.Time           `json:"created_at"`
-	UpdatedAt  time.Time           `json:"updated_at"`
-	Enabled    bool                `json:"enabled"`
-	Deleted    bool                `json:"deleted"`
-	Parents    []Reference         `json:"parents"`
-	UpdatedBy  Reference           `json:"updated_by"`
-	CreatedBy  Reference           `json:"created_by"`
-	ParentUuid Reference           `json:"parent_uuid"`
-	SetUuid    Reference           `json:"set_uuid"`
-	Source     Reference           `json:"source"`
-	Modules    Modules             `json:"modules"`
-	Access     []string            `json:"access"` // key => roles required to access the nodes
+	Id         int         `json:"-"`
+	Uuid       Reference   `json:"uuid"`
+	Type       string      `json:"type"`
+	Name       string      `json:"name"`
+	Slug       string      `json:"slug"`
+	Path       string      `json:"path"`
+	Data       interface{} `json:"data"`
+	Meta       interface{} `json:"meta"`
+	Status     int         `json:"status"`
+	Weight     int         `json:"weight"`
+	Revision   int         `json:"revision"`
+	Version    int         `json:"version"`
+	CreatedAt  time.Time   `json:"created_at"`
+	UpdatedAt  time.Time   `json:"updated_at"`
+	Enabled    bool        `json:"enabled"`
+	Deleted    bool        `json:"deleted"`
+	Parents    []Reference `json:"parents"`
+	UpdatedBy  Reference   `json:"updated_by"`
+	CreatedBy  Reference   `json:"created_by"`
+	ParentUuid Reference   `json:"parent_uuid"`
+	SetUuid    Reference   `json:"set_uuid"`
+	Source     Reference   `json:"source"`
+	Modules    Modules     `json:"modules"`
+	Access     []string    `json:"access"` // key => roles required to access the nodes
 }
 
 func (node *Node) UniqueId() string {

@@ -38,7 +38,7 @@ func GetJsonSearchQuery(query sq.SelectBuilder, params []*Param, field string) s
 
 		if len(value) > 1 {
 			name := GetJsonQuery(field+"."+param.SubField, "->")
-			query = query.Where(squirrel.NewExprSlice(fmt.Sprintf("%s ??| array["+sq.Placeholders(len(value))+"]", name), value))
+			query = query.Where(squirrel.NewExprSlice(fmt.Sprintf("%s ??| ARRAY["+sq.Placeholders(len(value))+"]", name), value))
 		}
 
 		if len(value) == 1 {

@@ -20,6 +20,6 @@ func Test_Find_Non_Existant(t *testing.T) {
 
 		res, _ := test.RunRequest("GET", ts.URL+"/api/v1.0/nodes/d703a3ab-8374-4c30-a8a4-2c22aa67763b", nil, auth)
 
-		assert.Equal(t, 404, res.StatusCode, "Delete non existant node")
+		assert.Equal(t, 404, res.StatusCode, "Non existant node")
 	})
 }

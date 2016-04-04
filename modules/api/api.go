@@ -15,6 +15,7 @@ import (
 	sq "github.com/lann/squirrel"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/core/security"
+	"github.com/rande/gonode/core/squirrel"
 	"github.com/rande/gonode/modules/base"
 )
 
@@ -37,6 +38,7 @@ type Api struct {
 	BaseUrl    string
 	Serializer *base.Serializer
 	Logger     *log.Logger
+	Authorizer security.AuthorizationChecker
 }
 
 type ApiOperation struct {
@@ -53,7 +55,7 @@ func (a *Api) SelectBuilder(options *base.SelectOptions) sq.SelectBuilder {
 	return a.Manager.SelectBuilder(options)
 }
 
-func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uint64) error {
+func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uint64, options *ApiOptions) error {
 	list := a.Manager.FindBy(query, (page-1)*perPage, perPage+1)
 
 	pager := &ApiPager{
@@ -88,7 +90,7 @@ func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uin
 	return nil
 }
 
-func (a *Api) Save(r io.Reader, w io.Writer) error {
+func (a *Api) Save(r io.Reader, w io.Writer, options *ApiOptions) error {
 	node := base.NewNode()
 
 	err := a.Serializer.Deserialize(r, node)
@@ -138,8 +140,7 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 	return nil
 }
 
-func (a *Api) Move(nodeUuid, parentUuid string, w io.Writer) error {
-
+func (a *Api) Move(nodeUuid, parentUuid string, w io.Writer, options *ApiOptions) error {
 	nodeReference, err := base.GetReferenceFromString(nodeUuid)
 
 	if err != nil {
@@ -166,25 +167,22 @@ func (a *Api) Move(nodeUuid, parentUuid string, w io.Writer) error {
 	return nil
 }
 
-func (a *Api) FindOne(uuid string, w io.Writer) error {
+func (a *Api) FindOne(uuid string, w io.Writer, options *ApiOptions) error {
 	reference, err := base.GetReferenceFromString(uuid)
 
 	if err != nil {
 		return base.NotFoundError
 	}
 
-	node := a.Manager.Find(reference)
+	query := a.Manager.SelectBuilder(base.NewSelectOptions()).Where(sq.Eq{"uuid": reference.String()})
 
-	if node == nil {
-		return base.NotFoundError
+	a.Logger.Printf("FindOne with roles: %s", options.Roles)
+
+	if len(options.Roles) > 0 {
+		value, _ := options.Roles.ToStringSlice()
+
+		query = query.Where(squirrel.NewExprSlice(fmt.Sprintf("\"%s\" && ARRAY["+sq.Placeholders(len(options.Roles))+"]", "access"), value))
 	}
-
-	a.Serializer.Serialize(w, node)
-
-	return nil
-}
-
-func (a *Api) FindOneBy(query sq.SelectBuilder, w io.Writer) error {
 
 	node := a.Manager.FindOneBy(query)
 
@@ -197,7 +195,20 @@ func (a *Api) FindOneBy(query sq.SelectBuilder, w io.Writer) error {
 	return nil
 }
 
-func (a *Api) RemoveOne(uuid string, w io.Writer) error {
+func (a *Api) FindOneBy(query sq.SelectBuilder, w io.Writer, options *ApiOptions) error {
+
+	node := a.Manager.FindOneBy(query)
+
+	if node == nil {
+		return base.NotFoundError
+	}
+
+	a.Serializer.Serialize(w, node)
+
+	return nil
+}
+
+func (a *Api) RemoveOne(uuid string, w io.Writer, options *ApiOptions) error {
 	reference, err := base.GetReferenceFromString(uuid)
 
 	if err != nil {
@@ -221,10 +232,10 @@ func (a *Api) RemoveOne(uuid string, w io.Writer) error {
 	return nil
 }
 
-func (a *Api) Remove(b sq.SelectBuilder, w io.Writer) error {
+func (a *Api) Remove(b sq.SelectBuilder, w io.Writer, options *ApiOptions) error {
 	a.Manager.Remove(b)
 
-	a.Find(w, b, 0, 0)
+	a.Find(w, b, 0, 0, options)
 
 	return nil
 }

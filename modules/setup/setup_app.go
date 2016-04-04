@@ -97,7 +97,11 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
 			_, err = manager.Db.Exec(fmt.Sprintf(`CREATE INDEX "%s_uuid_idx" ON "%s_nodes" USING btree( "uuid" ASC NULLS LAST )`, prefix, prefix))
 			helper.PanicOnError(err)
+
 			_, err = manager.Db.Exec(fmt.Sprintf(`CREATE INDEX "%s_uuid_current_idx" ON "%s_nodes" USING btree( "uuid" ASC NULLS LAST, "current" ASC NULLS LAST )`, prefix, prefix))
+			helper.PanicOnError(err)
+
+			_, err = manager.Db.Exec(fmt.Sprintf(`CREATE INDEX "%s_access_idx" ON "%s_nodes" USING GIN("access")`, prefix, prefix))
 			helper.PanicOnError(err)
 
 			// Create Index

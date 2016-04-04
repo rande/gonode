@@ -13,6 +13,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/modules/base"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
@@ -27,6 +28,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 				Version:    "1.0.0",
 				Serializer: app.Get("gonode.node.serializer").(*base.Serializer),
 				Logger:     app.Get("logger").(*log.Logger),
+				Authorizer: app.Get("security.authorizer").(security.AuthorizationChecker),
 			}
 		})
 
