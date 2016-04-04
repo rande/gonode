@@ -41,20 +41,28 @@ func Test_Search_Basic(t *testing.T) {
 		test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 			// WITH
 			auth := test.GetAuthHeader(t, ts)
-			file, _ := os.Open("../fixtures/new_user.json")
-			test.RunRequest("POST", ts.URL+"/api/v1.0/nodes", file, auth)
+			file, err := os.Open("../fixtures/new_user.json")
+			assert.NoError(t, err)
+
+			_, err = test.RunRequest("POST", ts.URL+"/api/v1.0/nodes", file, auth)
+			assert.NoError(t, err)
 
 			// WHEN
-			res, _ := test.RunRequest("GET", ts.URL+v.Url, nil, auth)
+			res, err := test.RunRequest("GET", ts.URL+v.Url, nil, auth)
+			assert.NoError(t, err)
 
 			p := test.GetPager(app, res)
 
 			// THEN
 			assert.Equal(t, uint64(32), p.PerPage)
 			assert.Equal(t, uint64(1), p.Page)
-			assert.Equal(t, v.Len, len(p.Elements))
 			assert.Equal(t, uint64(0), p.Next)
 			assert.Equal(t, uint64(0), p.Previous)
+
+			if len(p.Elements) != v.Len {
+				assert.Equal(t, v.Len, len(p.Elements))
+				return
+			}
 
 			n := p.Elements[0].(*base.Node)
 
@@ -123,7 +131,7 @@ func Test_Search_Invalid_OrderBy(t *testing.T) {
 func Test_Search_OrderBy_Name_ASC(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		auth := test.GetAuthHeader(t, ts)
-		InitSearchFixture(app)
+		test.InitSearchFixture(app)
 
 		res, _ := test.RunRequest("GET", ts.URL+"/api/v1.0/nodes?order_by=name,ASC", nil, auth)
 
@@ -141,7 +149,7 @@ func Test_Search_OrderBy_Name_ASC(t *testing.T) {
 func Test_Search_OrderBy_Name_DESC(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		auth := test.GetAuthHeader(t, ts)
-		InitSearchFixture(app)
+		test.InitSearchFixture(app)
 
 		res, _ := test.RunRequest("GET", ts.URL+"/api/v1.0/nodes?order_by=name,DESC", nil, auth)
 
@@ -159,7 +167,7 @@ func Test_Search_OrderBy_Name_DESC(t *testing.T) {
 func Test_Search_OrderBy_Weight_DESC_Name_ASC(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		auth := test.GetAuthHeader(t, ts)
-		InitSearchFixture(app)
+		test.InitSearchFixture(app)
 
 		// TESTING WITH 2 ORDERING OPTION
 		res, _ := test.RunRequest("GET", ts.URL+"/api/v1.0/nodes?order_by=weight,DESC&order_by=name,ASC", nil, auth)
@@ -178,7 +186,7 @@ func Test_Search_OrderBy_Weight_DESC_Name_ASC(t *testing.T) {
 func Test_Search_OrderBy_Meta_Username(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		auth := test.GetAuthHeader(t, ts)
-		InitSearchFixture(app)
+		test.InitSearchFixture(app)
 
 		// TESTING WITH 2 ORDERING OPTION
 		res, _ := test.RunRequest("GET", ts.URL+"/api/v1.0/nodes?order_by=meta.username,DESC", nil, auth)
@@ -197,7 +205,7 @@ func Test_Search_OrderBy_Meta_Username(t *testing.T) {
 func Test_Search_OrderBy_Meta_Non_Existant_Meta(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		auth := test.GetAuthHeader(t, ts)
-		InitSearchFixture(app)
+		test.InitSearchFixture(app)
 
 		res, _ := test.RunRequest("GET", ts.URL+"/api/v1.0/nodes?meta.username.fake=foo&order_by=meta.username.fake,DESC", nil, auth)
 
@@ -212,7 +220,7 @@ func Test_Search_OrderBy_Meta_Non_Existant_Meta(t *testing.T) {
 func Test_Search_Meta(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		auth := test.GetAuthHeader(t, ts)
-		InitSearchFixture(app)
+		test.InitSearchFixture(app)
 
 		res, _ := test.RunRequest("GET", ts.URL+"/api/v1.0/nodes?data.username=user-a", nil, auth)
 
@@ -227,7 +235,7 @@ func Test_Search_Meta(t *testing.T) {
 func Test_Search_Slug(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		auth := test.GetAuthHeader(t, ts)
-		InitSearchFixture(app)
+		test.InitSearchFixture(app)
 
 		res, _ := test.RunRequest("GET", ts.URL+"/api/v1.0/nodes?slug=user-a", nil, auth)
 

@@ -58,7 +58,7 @@ func Test_Delete_Existant_Node(t *testing.T) {
 func Test_Delete_Find_Filter(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
 		auth := test.GetAuthHeader(t, ts)
-		nodes := InitSearchFixture(app)
+		nodes := test.InitSearchFixture(app)
 
 		res, _ := test.RunRequest("GET", ts.URL+"/api/v1.0/nodes", nil, auth)
 		p := test.GetPager(app, res)

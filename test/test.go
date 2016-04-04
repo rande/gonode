@@ -292,3 +292,46 @@ func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *go
 
 	l.Go(goapp.NewApp())
 }
+
+func InitSearchFixture(app *goapp.App) []*base.Node {
+	manager := app.Get("gonode.manager").(*base.PgNodeManager)
+	collection := app.Get("gonode.handler_collection").(base.Handlers)
+	nodes := make([]*base.Node, 0)
+
+	// WITH 3 nodes
+	node := collection.NewNode("core.user")
+	node.Name = "User A"
+	node.Weight = 1
+	node.Slug = "user-a"
+	node.Data.(*user.User).FirstName = "User"
+	node.Data.(*user.User).LastName = "A"
+	node.Data.(*user.User).Username = "user-a"
+	manager.Save(node, false)
+
+	nodes = append(nodes, node)
+
+	node = collection.NewNode("core.user")
+	node.Name = "User AA"
+	node.Weight = 2
+	node.Slug = "user-aa"
+	node.Data.(*user.User).FirstName = "User"
+	node.Data.(*user.User).LastName = "AA"
+	node.Data.(*user.User).Username = "user-aa"
+	manager.Save(node, false)
+
+	nodes = append(nodes, node)
+
+	node = collection.NewNode("core.user")
+	node.Name = "User B"
+	node.Weight = 1
+	node.Slug = "user-b"
+	node.Data.(*user.User).FirstName = "User"
+	node.Data.(*user.User).LastName = "B"
+	node.Data.(*user.User).Username = "user-b"
+	manager.Save(node, false)
+
+	nodes = append(nodes, node)
+
+	return nodes
+}
+
