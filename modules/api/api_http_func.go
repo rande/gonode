@@ -75,6 +75,29 @@ func versionChecker(c web.C, res http.ResponseWriter) error {
 	return InvalidVersion
 }
 
+func handleError(res http.ResponseWriter, err error) {
+	if err == nil {
+		return
+	}
+
+	statusCode := http.StatusInternalServerError
+
+	switch err {
+	case base.NotFoundError:
+		statusCode = http.StatusNotFound
+	case base.AlreadyDeletedError:
+		statusCode = http.StatusGone
+	case base.AccessForbiddenError:
+		statusCode = http.StatusForbidden
+	case base.RevisionError:
+		statusCode = http.StatusConflict
+	case base.ValidationError:
+		statusCode = http.StatusPreconditionFailed
+	}
+
+	helper.SendWithHttpCode(res, statusCode, err.Error())
+}
+
 func Api_GET_Hello(app *goapp.App) func(c web.C, res http.ResponseWriter, req *http.Request) {
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		if err := versionChecker(c, res); err != nil {
@@ -205,17 +228,7 @@ func Api_GET_Node(app *goapp.App) func(c web.C, res http.ResponseWriter, req *ht
 
 			err := apiHandler.FindOne(c.URLParams["uuid"], res, options)
 
-			if err == nil {
-				return
-			}
-
-			statusCode := http.StatusInternalServerError
-
-			if err == base.NotFoundError {
-				statusCode = http.StatusNotFound
-			}
-
-			helper.SendWithHttpCode(res, statusCode, err.Error())
+			handleError(res, err)
 		}
 	}
 }
@@ -287,13 +300,7 @@ func Api_GET_Node_Revision(app *goapp.App) func(c web.C, res http.ResponseWriter
 
 		err := apiHandler.FindOneBy(query, res, options)
 
-		if err == base.NotFoundError {
-			helper.SendWithHttpCode(res, http.StatusNotFound, err.Error())
-		}
-
-		if err != nil {
-			helper.SendWithHttpCode(res, http.StatusInternalServerError, err.Error())
-		}
+		handleError(res, err)
 	}
 }
 
@@ -323,17 +330,12 @@ func Api_POST_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *
 
 		err := apiHandler.Save(req.Body, w, options)
 
-		if err == base.RevisionError {
-			res.WriteHeader(http.StatusConflict)
+		if err == nil {
+			res.WriteHeader(http.StatusCreated)
+			w.Flush()
+		} else {
+			handleError(res, err)
 		}
-
-		if err == base.ValidationError {
-			res.WriteHeader(http.StatusPreconditionFailed)
-		}
-
-		res.WriteHeader(http.StatusCreated)
-
-		w.Flush()
 	}
 }
 
@@ -399,20 +401,15 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 
 		} else {
 			w := bufio.NewWriter(res)
-
 			options.Roles = security.Attributes{}
 
 			err := apiHandler.Save(req.Body, w, options)
 
-			if err == base.RevisionError {
-				res.WriteHeader(http.StatusConflict)
+			if err != nil {
+				handleError(res, err)
+			} else {
+				w.Flush()
 			}
-
-			if err == base.ValidationError {
-				res.WriteHeader(http.StatusPreconditionFailed)
-			}
-
-			w.Flush()
 		}
 	}
 }
@@ -441,9 +438,7 @@ func Api_PUT_Nodes_Move(app *goapp.App) func(c web.C, res http.ResponseWriter, r
 
 		err := apiHandler.Move(c.URLParams["uuid"], c.URLParams["parentUuid"], res, options)
 
-		if err != nil {
-			helper.SendWithHttpCode(res, http.StatusInternalServerError, err.Error())
-		}
+		handleError(res, err)
 	}
 }
 
@@ -469,19 +464,7 @@ func Api_DELETE_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req
 
 		err := apiHandler.RemoveOne(c.URLParams["uuid"], res, options)
 
-		if err == base.NotFoundError {
-			helper.SendWithHttpCode(res, http.StatusNotFound, err.Error())
-			return
-		}
-
-		if err == base.AlreadyDeletedError {
-			helper.SendWithHttpCode(res, http.StatusGone, err.Error())
-			return
-		}
-
-		if err != nil {
-			helper.SendWithHttpCode(res, http.StatusInternalServerError, err.Error())
-		}
+		handleError(res, err)
 	}
 }
 

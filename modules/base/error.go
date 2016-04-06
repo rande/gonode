@@ -5,13 +5,18 @@
 
 package base
 
+import (
+	"errors"
+)
+
 var (
-	ValidationError             = &validationError{"Unable to validate date"}
-	RevisionError               = &revisionError{"Wrong revision while saving"}
-	NotFoundError               = &notFoundError{"Unable to find the node"}
-	InvalidReferenceFormatError = &invalidReferenceFormatError{"Unable to parse the reference"}
-	AlreadyDeletedError         = &alreadyDeletedError{"Unable to find the node"}
-	NoStreamHandler             = &noStreamHandlerError{"No stream handler defined"}
+	ValidationError             = errors.New("Unable to validate date")
+	RevisionError               = errors.New("Wrong revision while saving")
+	NotFoundError               = errors.New("Unable to find the node")
+	InvalidReferenceFormatError = errors.New("Unable to parse the reference")
+	AlreadyDeletedError         = errors.New("Unable to find the node")
+	NoStreamHandler             = errors.New("No stream handler defined")
+	AccessForbiddenError        = errors.New("Access forbidden")
 )
 
 type validationError struct {
