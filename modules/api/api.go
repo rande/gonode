@@ -56,6 +56,13 @@ func (a *Api) SelectBuilder(options *base.SelectOptions) sq.SelectBuilder {
 }
 
 func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uint64, options *ApiOptions) error {
+
+	if len(options.Roles) > 0 {
+		value, _ := options.Roles.ToStringSlice()
+
+		query = query.Where(squirrel.NewExprSlice(fmt.Sprintf("\"%s\" && ARRAY["+sq.Placeholders(len(options.Roles))+"]", "access"), value))
+	}
+
 	list := a.Manager.FindBy(query, (page-1)*perPage, perPage+1)
 
 	pager := &ApiPager{
@@ -106,8 +113,17 @@ func (a *Api) Save(r io.Reader, w io.Writer, options *ApiOptions) error {
 	if saved != nil {
 		a.Logger.Printf("find uuid: %s", node.Uuid)
 
+		result, _ := a.Authorizer.IsGranted(options.Token, security.AttributesFromString(node.Access), node)
+
 		helper.PanicUnless(node.Type == saved.Type, "Type mismatch")
-		helper.PanicIf(saved.Deleted, "Cannot save a deleted node, restore it first ...")
+
+		if !result {
+			return base.AccessForbiddenError
+		}
+
+		if node.Deleted == true {
+			return base.AlreadyDeletedError
+		}
 
 		if node.Revision != saved.Revision {
 			return base.RevisionError
@@ -176,31 +192,20 @@ func (a *Api) FindOne(uuid string, w io.Writer, options *ApiOptions) error {
 
 	query := a.Manager.SelectBuilder(base.NewSelectOptions()).Where(sq.Eq{"uuid": reference.String()})
 
-	a.Logger.Printf("FindOne with roles: %s", options.Roles)
-
-	if len(options.Roles) > 0 {
-		value, _ := options.Roles.ToStringSlice()
-
-		query = query.Where(squirrel.NewExprSlice(fmt.Sprintf("\"%s\" && ARRAY["+sq.Placeholders(len(options.Roles))+"]", "access"), value))
-	}
-
-	node := a.Manager.FindOneBy(query)
-
-	if node == nil {
-		return base.NotFoundError
-	}
-
-	a.Serializer.Serialize(w, node)
-
-	return nil
+	return a.FindOneBy(query, w, options)
 }
 
 func (a *Api) FindOneBy(query sq.SelectBuilder, w io.Writer, options *ApiOptions) error {
-
 	node := a.Manager.FindOneBy(query)
 
 	if node == nil {
 		return base.NotFoundError
+	}
+
+	result, _ := a.Authorizer.IsGranted(options.Token, security.AttributesFromString(node.Access), node)
+
+	if !result {
+		return base.AccessForbiddenError
 	}
 
 	a.Serializer.Serialize(w, node)
@@ -221,6 +226,12 @@ func (a *Api) RemoveOne(uuid string, w io.Writer, options *ApiOptions) error {
 		return base.NotFoundError
 	}
 
+	result, _ := a.Authorizer.IsGranted(options.Token, security.AttributesFromString(node.Access), node)
+
+	if !result {
+		return base.AccessForbiddenError
+	}
+
 	if node.Deleted {
 		return base.AlreadyDeletedError
 	}
@@ -232,10 +243,17 @@ func (a *Api) RemoveOne(uuid string, w io.Writer, options *ApiOptions) error {
 	return nil
 }
 
-func (a *Api) Remove(b sq.SelectBuilder, w io.Writer, options *ApiOptions) error {
-	a.Manager.Remove(b)
+func (a *Api) Remove(query sq.SelectBuilder, w io.Writer, options *ApiOptions) error {
 
-	a.Find(w, b, 0, 0, options)
+	if len(options.Roles) > 0 {
+		value, _ := options.Roles.ToStringSlice()
+
+		query = query.Where(squirrel.NewExprSlice(fmt.Sprintf("\"%s\" && ARRAY["+sq.Placeholders(len(options.Roles))+"]", "access"), value))
+	}
+
+	a.Manager.Remove(query)
+
+	a.Find(w, query, 0, 0, options)
 
 	return nil
 }

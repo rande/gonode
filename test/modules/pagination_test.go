@@ -28,8 +28,8 @@ func Test_Pagination(t *testing.T) {
 			Next     uint64
 		}{
 			{"/api/v1.0/nodes?per_page=6", 6, 6, 1, 0, 2},
-			{"/api/v1.0/nodes?per_page=13", 13, 12, 1, 0, 0},
-			{"/api/v1.0/nodes?per_page=2&page=6", 2, 2, 6, 5, 0},
+			{"/api/v1.0/nodes?per_page=13", 13, 11, 1, 0, 0},
+			{"/api/v1.0/nodes?per_page=2&page=6", 2, 1, 6, 5, 0},
 		}
 
 		// WITH
@@ -38,6 +38,7 @@ func Test_Pagination(t *testing.T) {
 
 		for i := 0; i < 11; i++ {
 			u := app.Get("gonode.handler_collection").(base.HandlerCollection).NewNode("core.user")
+			u.Access = []string{"node:api:master"}
 
 			data := u.Data.(*user.User)
 			data.Email = "test@example.org"
@@ -60,7 +61,6 @@ func Test_Pagination(t *testing.T) {
 
 			p := test.GetPager(app, res)
 
-			fmt.Printf("%v", p.Elements)
 			// THEN
 			assert.Equal(t, v.PerPage, p.PerPage, "Wrong PerPage value: "+v.Url)
 			assert.Equal(t, int(v.Len), len(p.Elements), "Wrong Len value: "+v.Url)

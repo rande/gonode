@@ -43,6 +43,16 @@ func (attrs Attributes) ToStringSlice() ([]string, error) {
 	return roles, err
 }
 
+func AttributesFromString(roles []string) Attributes {
+	a := make(Attributes, 0)
+
+	for _, s := range roles {
+		a = append(a, s)
+	}
+
+	return a
+}
+
 type Voter interface {
 	Support(v interface{}) bool
 	Vote(t SecurityToken, o interface{}, attrs Attributes) (VoterResult, error)

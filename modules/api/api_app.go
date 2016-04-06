@@ -83,7 +83,6 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		mux.Put(conf.Api.Prefix+"/:version/nodes/move/:uuid/:parentUuid", Api_PUT_Nodes_Move(app))
 		mux.Delete(conf.Api.Prefix+"/:version/nodes/:uuid", Api_DELETE_Nodes(app))
 		mux.Get(conf.Api.Prefix+"/:version/nodes", Api_GET_Nodes(app))
-
 		mux.Get(conf.Api.Prefix+"/:version/hello", Api_GET_Hello(app))
 		mux.Put(conf.Api.Prefix+"/:version/notify/:name", Api_PUT_Notify(app))
 		mux.Get(conf.Api.Prefix+"/:version/handlers/node", Api_GET_Handlers_Node(app))

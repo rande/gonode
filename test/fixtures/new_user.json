@@ -11,5 +11,6 @@
     },
     "meta": {
         "password_cost": 0
-    }
+    },
+    "access": ["node:api:master"]
 }

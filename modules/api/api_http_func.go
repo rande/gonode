@@ -169,7 +169,6 @@ func Api_GET_Node(app *goapp.App) func(c web.C, res http.ResponseWriter, req *ht
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
-
 		token := getToken(c)
 		options := &ApiOptions{
 			Token: token,
@@ -240,8 +239,10 @@ func Api_GET_Node_Revisions(app *goapp.App) func(c web.C, res http.ResponseWrite
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
+		token := getToken(c)
+
 		options := &ApiOptions{
-			Token: getToken(c),
+			Token: token,
 			Roles: security.Attributes{"node:api:master", "node:api:revisions"},
 		}
 
@@ -264,6 +265,9 @@ func Api_GET_Node_Revisions(app *goapp.App) func(c web.C, res http.ResponseWrite
 			Where("uuid = ?", c.URLParams["uuid"])
 
 		options.Roles = security.Attributes{}
+		for _, r := range token.GetRoles() {
+			options.Roles = append(options.Roles, r)
+		}
 
 		apiHandler.Find(res, searchBuilder.BuildQuery(searchForm, query), searchForm.Page, searchForm.PerPage, options)
 	}
@@ -274,8 +278,10 @@ func Api_GET_Node_Revision(app *goapp.App) func(c web.C, res http.ResponseWriter
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
+		token := getToken(c)
+
 		options := &ApiOptions{
-			Token: getToken(c),
+			Token: token,
 			Roles: security.Attributes{"node:api:master", "node:api:revision"},
 		}
 
@@ -297,6 +303,9 @@ func Api_GET_Node_Revision(app *goapp.App) func(c web.C, res http.ResponseWriter
 			Where("revision = ?", c.URLParams["rev"])
 
 		options.Roles = security.Attributes{}
+		for _, r := range token.GetRoles() {
+			options.Roles = append(options.Roles, r)
+		}
 
 		err := apiHandler.FindOneBy(query, res, options)
 
@@ -309,8 +318,10 @@ func Api_POST_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
+		token := getToken(c)
+
 		options := &ApiOptions{
-			Token: getToken(c),
+			Token: token,
 			Roles: security.Attributes{"node:api:master", "node:api:create"},
 		}
 
@@ -327,6 +338,9 @@ func Api_POST_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *
 		w := bufio.NewWriter(res)
 
 		options.Roles = security.Attributes{}
+		for _, r := range token.GetRoles() {
+			options.Roles = append(options.Roles, r)
+		}
 
 		err := apiHandler.Save(req.Body, w, options)
 
@@ -346,8 +360,10 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
+		token := getToken(c)
+
 		options := &ApiOptions{
-			Token: getToken(c),
+			Token: token,
 			Roles: security.Attributes{"node:api:master", "node:api:update"},
 		}
 
@@ -402,6 +418,9 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 		} else {
 			w := bufio.NewWriter(res)
 			options.Roles = security.Attributes{}
+			for _, r := range token.GetRoles() {
+				options.Roles = append(options.Roles, r)
+			}
 
 			err := apiHandler.Save(req.Body, w, options)
 
@@ -419,8 +438,10 @@ func Api_PUT_Nodes_Move(app *goapp.App) func(c web.C, res http.ResponseWriter, r
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
+		token := getToken(c)
+
 		options := &ApiOptions{
-			Token: getToken(c),
+			Token: token,
 			Roles: security.Attributes{"node:api:master", "node:api:move"},
 		}
 
@@ -435,6 +456,9 @@ func Api_PUT_Nodes_Move(app *goapp.App) func(c web.C, res http.ResponseWriter, r
 		res.Header().Set("Content-Type", "application/json")
 
 		options.Roles = security.Attributes{}
+		for _, r := range token.GetRoles() {
+			options.Roles = append(options.Roles, r)
+		}
 
 		err := apiHandler.Move(c.URLParams["uuid"], c.URLParams["parentUuid"], res, options)
 
@@ -447,8 +471,10 @@ func Api_DELETE_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
+		token := getToken(c)
+
 		options := &ApiOptions{
-			Token: getToken(c),
+			Token: token,
 			Roles: security.Attributes{"node:api:master", "node:api:delete"},
 		}
 
@@ -461,6 +487,9 @@ func Api_DELETE_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req
 		}
 
 		options.Roles = security.Attributes{}
+		for _, r := range token.GetRoles() {
+			options.Roles = append(options.Roles, r)
+		}
 
 		err := apiHandler.RemoveOne(c.URLParams["uuid"], res, options)
 
@@ -500,8 +529,10 @@ func Api_GET_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
+		token := getToken(c)
+
 		options := &ApiOptions{
-			Token: getToken(c),
+			Token: token,
 			Roles: security.Attributes{"node:api:master", "node:api:list"},
 		}
 
@@ -524,6 +555,9 @@ func Api_GET_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 		query := searchBuilder.BuildQuery(searchForm, manager.SelectBuilder(base.NewSelectOptions()))
 
 		options.Roles = security.Attributes{}
+		for _, r := range token.GetRoles() {
+			options.Roles = append(options.Roles, r)
+		}
 
 		apiHandler.Find(res, query, searchForm.Page, searchForm.PerPage, options)
 	}

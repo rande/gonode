@@ -306,6 +306,7 @@ func InitSearchFixture(app *goapp.App) []*base.Node {
 	node.Data.(*user.User).FirstName = "User"
 	node.Data.(*user.User).LastName = "A"
 	node.Data.(*user.User).Username = "user-a"
+	node.Access = []string{"node:api:master"}
 	manager.Save(node, false)
 
 	nodes = append(nodes, node)
@@ -317,6 +318,7 @@ func InitSearchFixture(app *goapp.App) []*base.Node {
 	node.Data.(*user.User).FirstName = "User"
 	node.Data.(*user.User).LastName = "AA"
 	node.Data.(*user.User).Username = "user-aa"
+	node.Access = []string{"node:api:master"}
 	manager.Save(node, false)
 
 	nodes = append(nodes, node)
@@ -328,10 +330,10 @@ func InitSearchFixture(app *goapp.App) []*base.Node {
 	node.Data.(*user.User).FirstName = "User"
 	node.Data.(*user.User).LastName = "B"
 	node.Data.(*user.User).Username = "user-b"
+	node.Access = []string{"node:api:master"}
 	manager.Save(node, false)
 
 	nodes = append(nodes, node)
 
 	return nodes
 }
-

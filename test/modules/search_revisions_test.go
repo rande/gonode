@@ -36,6 +36,7 @@ func Test_Search_Revision_Basic(t *testing.T) {
 		data.NewPassword = "ZePassword"
 		data.Username = "rande"
 		u.Name = "Title 1"
+		u.Access = []string{"node:api:master"}
 
 		meta := u.Meta.(*user.UserMeta)
 		meta.PasswordCost = 1 // save test time
