@@ -10,17 +10,42 @@ other version will generate a ``Bad Request``.
 
 ## Node API 
 
- - ``POST /api/:version/nodes``: create one node 
- - ``GET /api/:version/nodes/:uuid``: get one node
- - ``PUT /api/:version/nodes/:uuid``: alter one node
- - ``DELETE /api/:version/nodes/:uuid``: delete one node
- - ``GET /api/:version/nodes/:uuid/revisions``: get node revisions
- - ``GET /api/:version/nodes/:uuid/revisions/:rev``: get one node revision
- - ``PUT /api/:version/nodes/move/:uuid/:parentUuid``: move ``uuid`` as a child of ``parentUuid`` 
- - ``GET /api/:version/nodes``: list node (see [search.md](search.md)) 
- - ``GET /api/:version/hello``: basic url to return hello
- - ``PUT /api/:version/notify/:name``: notify subscribers
- - ``WS /api/:version/nodes/stream``: websocket to retrieve update stream
+ - Create one node 
+     - method: ``POST /api/:version/nodes``
+     - role: ``node:api:create``
+ - Get one node
+     - method: ``GET /api/:version/nodes/:uuid``
+     - role: ``node:api:read``
+ - Alter one node 
+     - method: ``PUT /api/:version/nodes/:uuid``
+     - role: ``node:api:update``
+ - Delete one node
+     - method: ``DELETE /api/:version/nodes/:uuid``
+     - role: ``node:api:delete``
+ - Get node revisions
+     - method: ``GET /api/:version/nodes/:uuid/revisions``
+     - role: ``node:api:revisions``
+ - Get one node revision
+     - method: ``GET /api/:version/nodes/:uuid/revisions/:rev``
+     - role: ``node:api:revision``
+ - Move ``uuid`` as a child of ``parentUuid``
+     - method: ``PUT /api/:version/nodes/move/:uuid/:parentUuid``
+     - role: ``node:api:move``
+ - List node (see [search.md](search.md))
+     - method: ``GET /api/:version/nodes``
+     - role: ``node:api:list``
+ - Basic url to return hello
+     - method: ``GET /api/:version/hello`` 
+     - role: ``-``
+ - Notify subscribers 
+     - method: ``PUT /api/:version/notify/:name`` 
+     - role: ``node:api:notify``
+ - Websocket to retrieve update stream
+      - method: ``WS /api/:version/nodes/stream``
+      - role: ``node:api:stream``
+ 
+Please note: the ``node:api:master`` role will allow any actions to be performed.
+ 
  
 ## Instrospection API
 
