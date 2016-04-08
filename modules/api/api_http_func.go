@@ -28,40 +28,14 @@ var upgrader = websocket.Upgrader{
 }
 
 var (
-	InvalidVersion  = errors.New("Invalid version")
-	AccessForbidden = errors.New("Access Forbidden")
+	InvalidVersion = errors.New("Invalid version")
 )
 
-func checkAccess(options *ApiOptions, res http.ResponseWriter, req *http.Request, auth security.AuthorizationChecker) error {
-	if options.Token == nil { // no token
-		helper.SendWithHttpCode(res, http.StatusForbidden, "Access Forbidden: missing token")
-
-		return AccessForbidden
-	}
-
-	r, err := auth.IsGranted(options.Token, options.Roles, req)
-
-	if err != nil {
-		helper.SendWithHttpCode(res, http.StatusForbidden, "Access Forbidden: error while checking credentials")
-
-		return err
-	}
-
-	if r == false {
-		helper.SendWithHttpCode(res, http.StatusForbidden, "Access Forbidden: not enough credentials")
-
-		return AccessForbidden
-	}
-
-	return nil
-}
-
 func versionChecker(c web.C, res http.ResponseWriter) error {
-	if c.URLParams["version"] == "v1.0" { // for now there is only one version
+	if c.URLParams["version"] == "v1.0" {
+		// for now there is only one version
 		return nil
 	}
-
-	helper.SendWithHttpCode(res, http.StatusBadRequest, "Invalid version")
 
 	return InvalidVersion
 }
@@ -84,14 +58,36 @@ func handleError(res http.ResponseWriter, err error) {
 		statusCode = http.StatusConflict
 	case base.ValidationError:
 		statusCode = http.StatusPreconditionFailed
+	case InvalidVersion:
+		statusCode = http.StatusBadRequest
 	}
 
 	helper.SendWithHttpCode(res, statusCode, err.Error())
 }
 
+func Check(c web.C, res http.ResponseWriter, req *http.Request, attrs security.Attributes, auth security.AuthorizationChecker) bool {
+	token := security.GetTokenFromContext(c)
+
+	if err := security.CheckAccess(token, attrs, res, req, auth); err != nil {
+		handleError(res, err)
+
+		return false
+	}
+
+	if err := versionChecker(c, res); err != nil {
+		handleError(res, err)
+
+		return false
+	}
+
+	return true
+}
+
 func Api_GET_Hello(app *goapp.App) func(c web.C, res http.ResponseWriter, req *http.Request) {
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		if err := versionChecker(c, res); err != nil {
+			handleError(res, err)
+			
 			return
 		}
 
@@ -103,16 +99,9 @@ func Api_GET_Stream(app *goapp.App) func(c web.C, res http.ResponseWriter, req *
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
-		options := &ApiOptions{
-			Token: security.GetTokenFromContext(c),
-			Roles: security.Attributes{"node:api:master", "node:api:stream"},
-		}
+		attrs := security.Attributes{"node:api:master", "node:api:stream"}
 
-		if err := checkAccess(options, res, req, authorizer); err != nil {
-			return
-		}
-
-		if err := versionChecker(c, res); err != nil {
+		if !Check(c, res, req, attrs, authorizer) {
 			return
 		}
 
@@ -161,27 +150,22 @@ func Api_GET_Node(app *goapp.App) func(c web.C, res http.ResponseWriter, req *ht
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		token := security.GetTokenFromContext(c)
-		options := &ApiOptions{
-			Token: token,
-			Roles: security.Attributes{"node:api:master", "node:api:read"},
-		}
+		attrs := security.Attributes{"node:api:master", "node:api:read"}
 
-		if err := checkAccess(options, res, req, authorizer); err != nil {
-			return
-		}
-
-		if err := versionChecker(c, res); err != nil {
+		if !Check(c, res, req, attrs, authorizer) {
 			return
 		}
 
 		values := req.URL.Query()
+
+		options := base.NewAccessOptionsFromToken(token)
 
 		if _, raw := values["raw"]; raw {
 			// ask for binary content
 			reference, err := base.GetReferenceFromString(c.URLParams["uuid"])
 
 			if err != nil {
-				helper.SendWithHttpCode(res, http.StatusInternalServerError, "Unable to parse the reference")
+				handleError(res, err)
 
 				return
 			}
@@ -189,8 +173,16 @@ func Api_GET_Node(app *goapp.App) func(c web.C, res http.ResponseWriter, req *ht
 			node := manager.Find(reference)
 
 			if node == nil {
-				helper.SendWithHttpCode(res, http.StatusNotFound, "Element not found")
+				handleError(res, base.NotFoundError)
 
+				return
+			}
+
+			if granted, err := authorizer.IsGranted(token, options.Roles, node); err != nil {
+				handleError(res, err)
+				return
+			} else if !granted {
+				handleError(res, base.AccessForbiddenError)
 				return
 			}
 
@@ -211,10 +203,7 @@ func Api_GET_Node(app *goapp.App) func(c web.C, res http.ResponseWriter, req *ht
 			// send the json value
 			res.Header().Set("Content-Type", "application/json")
 
-			options.Roles = security.Attributes{}
-			for _, r := range token.GetRoles() {
-				options.Roles = append(options.Roles, r)
-			}
+			options := base.NewAccessOptionsFromToken(token)
 
 			err := apiHandler.FindOne(c.URLParams["uuid"], res, options)
 
@@ -231,17 +220,9 @@ func Api_GET_Node_Revisions(app *goapp.App) func(c web.C, res http.ResponseWrite
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		token := security.GetTokenFromContext(c)
+		attrs := security.Attributes{"node:api:master", "node:api:revisions"}
 
-		options := &ApiOptions{
-			Token: token,
-			Roles: security.Attributes{"node:api:master", "node:api:revisions"},
-		}
-
-		if err := checkAccess(options, res, req, authorizer); err != nil {
-			return
-		}
-
-		if err := versionChecker(c, res); err != nil {
+		if !Check(c, res, req, attrs, authorizer) {
 			return
 		}
 
@@ -255,10 +236,7 @@ func Api_GET_Node_Revisions(app *goapp.App) func(c web.C, res http.ResponseWrite
 		query := apiHandler.SelectBuilder(selectOptions).
 			Where("uuid = ?", c.URLParams["uuid"])
 
-		options.Roles = security.Attributes{}
-		for _, r := range token.GetRoles() {
-			options.Roles = append(options.Roles, r)
-		}
+		options := base.NewAccessOptionsFromToken(token)
 
 		apiHandler.Find(res, searchBuilder.BuildQuery(searchForm, query), searchForm.Page, searchForm.PerPage, options)
 	}
@@ -270,17 +248,9 @@ func Api_GET_Node_Revision(app *goapp.App) func(c web.C, res http.ResponseWriter
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		token := security.GetTokenFromContext(c)
+		attrs := security.Attributes{"node:api:master", "node:api:revision"}
 
-		options := &ApiOptions{
-			Token: token,
-			Roles: security.Attributes{"node:api:master", "node:api:revision"},
-		}
-
-		if err := checkAccess(options, res, req, authorizer); err != nil {
-			return
-		}
-
-		if err := versionChecker(c, res); err != nil {
+		if !Check(c, res, req, attrs, authorizer) {
 			return
 		}
 
@@ -293,10 +263,7 @@ func Api_GET_Node_Revision(app *goapp.App) func(c web.C, res http.ResponseWriter
 			Where("uuid = ?", c.URLParams["uuid"]).
 			Where("revision = ?", c.URLParams["rev"])
 
-		options.Roles = security.Attributes{}
-		for _, r := range token.GetRoles() {
-			options.Roles = append(options.Roles, r)
-		}
+		options := base.NewAccessOptionsFromToken(token)
 
 		err := apiHandler.FindOneBy(query, res, options)
 
@@ -310,17 +277,9 @@ func Api_POST_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		token := security.GetTokenFromContext(c)
+		attrs := security.Attributes{"node:api:master", "node:api:create"}
 
-		options := &ApiOptions{
-			Token: token,
-			Roles: security.Attributes{"node:api:master", "node:api:create"},
-		}
-
-		if err := checkAccess(options, res, req, authorizer); err != nil {
-			return
-		}
-
-		if err := versionChecker(c, res); err != nil {
+		if !Check(c, res, req, attrs, authorizer) {
 			return
 		}
 
@@ -328,10 +287,7 @@ func Api_POST_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *
 
 		w := bufio.NewWriter(res)
 
-		options.Roles = security.Attributes{}
-		for _, r := range token.GetRoles() {
-			options.Roles = append(options.Roles, r)
-		}
+		options := base.NewAccessOptionsFromToken(token)
 
 		err := apiHandler.Save(req.Body, w, options)
 
@@ -352,17 +308,9 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		token := security.GetTokenFromContext(c)
+		attrs := security.Attributes{"node:api:master", "node:api:update"}
 
-		options := &ApiOptions{
-			Token: token,
-			Roles: security.Attributes{"node:api:master", "node:api:update"},
-		}
-
-		if err := checkAccess(options, res, req, authorizer); err != nil {
-			return
-		}
-
-		if err := versionChecker(c, res); err != nil {
+		if !Check(c, res, req, attrs, authorizer) {
 			return
 		}
 
@@ -375,15 +323,14 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 			reference, err := base.GetReferenceFromString(c.URLParams["uuid"])
 
 			if err != nil {
-				helper.SendWithHttpCode(res, http.StatusInternalServerError, "Unable to parse the reference")
-
+				handleError(res, err)
 				return
 			}
 
 			node := manager.Find(reference)
 
 			if node == nil {
-				helper.SendWithHttpCode(res, http.StatusNotFound, "Element not found")
+				handleError(res, base.NotFoundError)
 				return
 			}
 
@@ -399,7 +346,7 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 			manager.Save(node, false)
 
 			if err != nil {
-				helper.SendWithHttpCode(res, http.StatusInternalServerError, err.Error())
+				handleError(res, err)
 			} else {
 				manager.Save(node, false)
 
@@ -408,10 +355,7 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 
 		} else {
 			w := bufio.NewWriter(res)
-			options.Roles = security.Attributes{}
-			for _, r := range token.GetRoles() {
-				options.Roles = append(options.Roles, r)
-			}
+			options := base.NewAccessOptionsFromToken(token)
 
 			err := apiHandler.Save(req.Body, w, options)
 
@@ -430,26 +374,15 @@ func Api_PUT_Nodes_Move(app *goapp.App) func(c web.C, res http.ResponseWriter, r
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		token := security.GetTokenFromContext(c)
+		attrs := security.Attributes{"node:api:master", "node:api:move"}
 
-		options := &ApiOptions{
-			Token: token,
-			Roles: security.Attributes{"node:api:master", "node:api:move"},
-		}
-
-		if err := checkAccess(options, res, req, authorizer); err != nil {
-			return
-		}
-
-		if err := versionChecker(c, res); err != nil {
+		if !Check(c, res, req, attrs, authorizer) {
 			return
 		}
 
 		res.Header().Set("Content-Type", "application/json")
 
-		options.Roles = security.Attributes{}
-		for _, r := range token.GetRoles() {
-			options.Roles = append(options.Roles, r)
-		}
+		options := base.NewAccessOptionsFromToken(token)
 
 		err := apiHandler.Move(c.URLParams["uuid"], c.URLParams["parentUuid"], res, options)
 
@@ -463,24 +396,13 @@ func Api_DELETE_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		token := security.GetTokenFromContext(c)
+		attrs := security.Attributes{"node:api:master", "node:api:delete"}
 
-		options := &ApiOptions{
-			Token: token,
-			Roles: security.Attributes{"node:api:master", "node:api:delete"},
-		}
-
-		if err := checkAccess(options, res, req, authorizer); err != nil {
+		if !Check(c, res, req, attrs, authorizer) {
 			return
 		}
 
-		if err := versionChecker(c, res); err != nil {
-			return
-		}
-
-		options.Roles = security.Attributes{}
-		for _, r := range token.GetRoles() {
-			options.Roles = append(options.Roles, r)
-		}
+		options := base.NewAccessOptionsFromToken(token)
 
 		err := apiHandler.RemoveOne(c.URLParams["uuid"], res, options)
 
@@ -493,16 +415,9 @@ func Api_PUT_Notify(app *goapp.App) func(c web.C, res http.ResponseWriter, req *
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
-		options := &ApiOptions{
-			Token: security.GetTokenFromContext(c),
-			Roles: security.Attributes{"node:api:master", "node:api:notify"},
-		}
+		attrs := security.Attributes{"node:api:master", "node:api:notify"}
 
-		if err := checkAccess(options, res, req, authorizer); err != nil {
-			return
-		}
-
-		if err := versionChecker(c, res); err != nil {
+		if !Check(c, res, req, attrs, authorizer) {
 			return
 		}
 
@@ -521,17 +436,9 @@ func Api_GET_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		token := security.GetTokenFromContext(c)
+		attrs := security.Attributes{"node:api:master", "node:api:list"}
 
-		options := &ApiOptions{
-			Token: token,
-			Roles: security.Attributes{"node:api:master", "node:api:list"},
-		}
-
-		if err := checkAccess(options, res, req, authorizer); err != nil {
-			return
-		}
-
-		if err := versionChecker(c, res); err != nil {
+		if !Check(c, res, req, attrs, authorizer) {
 			return
 		}
 
@@ -545,10 +452,7 @@ func Api_GET_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 
 		query := searchBuilder.BuildQuery(searchForm, manager.SelectBuilder(base.NewSelectOptions()))
 
-		options.Roles = security.Attributes{}
-		for _, r := range token.GetRoles() {
-			options.Roles = append(options.Roles, r)
-		}
+		options := base.NewAccessOptionsFromToken(token)
 
 		apiHandler.Find(res, query, searchForm.Page, searchForm.PerPage, options)
 	}

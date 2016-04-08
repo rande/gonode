@@ -54,7 +54,7 @@ func Test_ApiPager_Serialization(t *testing.T) {
 
 	assert.Equal(t, sb, api.SelectBuilder(selectionOptions))
 
-	options := &ApiOptions{}
+	options := &base.AccessOptions{}
 
 	api.Find(b, api.SelectBuilder(selectionOptions), uint64(1), uint64(10), options)
 

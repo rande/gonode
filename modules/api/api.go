@@ -46,16 +46,11 @@ type ApiOperation struct {
 	Message string `json:"message"`
 }
 
-type ApiOptions struct {
-	Token security.SecurityToken
-	Roles security.Attributes
-}
-
 func (a *Api) SelectBuilder(options *base.SelectOptions) sq.SelectBuilder {
 	return a.Manager.SelectBuilder(options)
 }
 
-func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uint64, options *ApiOptions) error {
+func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uint64, options *base.AccessOptions) error {
 
 	if len(options.Roles) > 0 {
 		value, _ := options.Roles.ToStringSlice()
@@ -97,7 +92,7 @@ func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uin
 	return nil
 }
 
-func (a *Api) Save(r io.Reader, w io.Writer, options *ApiOptions) error {
+func (a *Api) Save(r io.Reader, w io.Writer, options *base.AccessOptions) error {
 	node := base.NewNode()
 
 	err := a.Serializer.Deserialize(r, node)
@@ -156,7 +151,7 @@ func (a *Api) Save(r io.Reader, w io.Writer, options *ApiOptions) error {
 	return nil
 }
 
-func (a *Api) Move(nodeUuid, parentUuid string, w io.Writer, options *ApiOptions) error {
+func (a *Api) Move(nodeUuid, parentUuid string, w io.Writer, options *base.AccessOptions) error {
 	nodeReference, err := base.GetReferenceFromString(nodeUuid)
 
 	if err != nil {
@@ -183,7 +178,7 @@ func (a *Api) Move(nodeUuid, parentUuid string, w io.Writer, options *ApiOptions
 	return nil
 }
 
-func (a *Api) FindOne(uuid string, w io.Writer, options *ApiOptions) error {
+func (a *Api) FindOne(uuid string, w io.Writer, options *base.AccessOptions) error {
 	reference, err := base.GetReferenceFromString(uuid)
 
 	if err != nil {
@@ -195,7 +190,7 @@ func (a *Api) FindOne(uuid string, w io.Writer, options *ApiOptions) error {
 	return a.FindOneBy(query, w, options)
 }
 
-func (a *Api) FindOneBy(query sq.SelectBuilder, w io.Writer, options *ApiOptions) error {
+func (a *Api) FindOneBy(query sq.SelectBuilder, w io.Writer, options *base.AccessOptions) error {
 	node := a.Manager.FindOneBy(query)
 
 	if node == nil {
@@ -213,7 +208,7 @@ func (a *Api) FindOneBy(query sq.SelectBuilder, w io.Writer, options *ApiOptions
 	return nil
 }
 
-func (a *Api) RemoveOne(uuid string, w io.Writer, options *ApiOptions) error {
+func (a *Api) RemoveOne(uuid string, w io.Writer, options *base.AccessOptions) error {
 	reference, err := base.GetReferenceFromString(uuid)
 
 	if err != nil {
@@ -243,7 +238,7 @@ func (a *Api) RemoveOne(uuid string, w io.Writer, options *ApiOptions) error {
 	return nil
 }
 
-func (a *Api) Remove(query sq.SelectBuilder, w io.Writer, options *ApiOptions) error {
+func (a *Api) Remove(query sq.SelectBuilder, w io.Writer, options *base.AccessOptions) error {
 
 	if len(options.Roles) > 0 {
 		value, _ := options.Roles.ToStringSlice()

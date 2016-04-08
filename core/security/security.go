@@ -6,6 +6,9 @@
 package security
 
 import (
+	"errors"
+	"net/http"
+
 	"github.com/zenazn/goji/web"
 )
 
@@ -38,4 +41,26 @@ func GetTokenFromContext(c web.C) SecurityToken {
 	}
 
 	return c.Env["guard_token"].(SecurityToken)
+}
+
+var (
+	AccessForbidden = errors.New("Access Forbidden")
+)
+
+func CheckAccess(token SecurityToken, attrs Attributes, res http.ResponseWriter, req *http.Request, auth AuthorizationChecker) error {
+	if token == nil { // no token
+		return AccessForbidden
+	}
+
+	r, err := auth.IsGranted(token, attrs, req)
+
+	if err != nil {
+		return err
+	}
+
+	if r == false {
+		return AccessForbidden
+	}
+
+	return nil
 }
