@@ -32,16 +32,7 @@ var (
 	AccessForbidden = errors.New("Access Forbidden")
 )
 
-func getToken(c web.C) security.SecurityToken {
-	if _, ok := c.Env["guard_token"]; !ok { // no token
-		return nil
-	}
-
-	return c.Env["guard_token"].(security.SecurityToken)
-}
-
 func checkAccess(options *ApiOptions, res http.ResponseWriter, req *http.Request, auth security.AuthorizationChecker) error {
-
 	if options.Token == nil { // no token
 		helper.SendWithHttpCode(res, http.StatusForbidden, "Access Forbidden: missing token")
 
@@ -113,7 +104,7 @@ func Api_GET_Stream(app *goapp.App) func(c web.C, res http.ResponseWriter, req *
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		options := &ApiOptions{
-			Token: getToken(c),
+			Token: security.GetTokenFromContext(c),
 			Roles: security.Attributes{"node:api:master", "node:api:stream"},
 		}
 
@@ -169,7 +160,7 @@ func Api_GET_Node(app *goapp.App) func(c web.C, res http.ResponseWriter, req *ht
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
-		token := getToken(c)
+		token := security.GetTokenFromContext(c)
 		options := &ApiOptions{
 			Token: token,
 			Roles: security.Attributes{"node:api:master", "node:api:read"},
@@ -239,7 +230,7 @@ func Api_GET_Node_Revisions(app *goapp.App) func(c web.C, res http.ResponseWrite
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
-		token := getToken(c)
+		token := security.GetTokenFromContext(c)
 
 		options := &ApiOptions{
 			Token: token,
@@ -278,7 +269,7 @@ func Api_GET_Node_Revision(app *goapp.App) func(c web.C, res http.ResponseWriter
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
-		token := getToken(c)
+		token := security.GetTokenFromContext(c)
 
 		options := &ApiOptions{
 			Token: token,
@@ -318,7 +309,7 @@ func Api_POST_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
-		token := getToken(c)
+		token := security.GetTokenFromContext(c)
 
 		options := &ApiOptions{
 			Token: token,
@@ -360,7 +351,7 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
-		token := getToken(c)
+		token := security.GetTokenFromContext(c)
 
 		options := &ApiOptions{
 			Token: token,
@@ -438,7 +429,7 @@ func Api_PUT_Nodes_Move(app *goapp.App) func(c web.C, res http.ResponseWriter, r
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
-		token := getToken(c)
+		token := security.GetTokenFromContext(c)
 
 		options := &ApiOptions{
 			Token: token,
@@ -471,7 +462,7 @@ func Api_DELETE_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
-		token := getToken(c)
+		token := security.GetTokenFromContext(c)
 
 		options := &ApiOptions{
 			Token: token,
@@ -503,7 +494,7 @@ func Api_PUT_Notify(app *goapp.App) func(c web.C, res http.ResponseWriter, req *
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		options := &ApiOptions{
-			Token: getToken(c),
+			Token: security.GetTokenFromContext(c),
 			Roles: security.Attributes{"node:api:master", "node:api:notify"},
 		}
 
@@ -529,7 +520,7 @@ func Api_GET_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
-		token := getToken(c)
+		token := security.GetTokenFromContext(c)
 
 		options := &ApiOptions{
 			Token: token,

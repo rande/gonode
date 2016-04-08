@@ -5,6 +5,10 @@
 
 package security
 
+import (
+	"github.com/zenazn/goji/web"
+)
+
 // Bare interface to used inside a request lifecycle
 type SecurityToken interface {
 	// return the current username for the current token
@@ -26,4 +30,12 @@ func (t *DefaultSecurityToken) GetUsername() string {
 
 func (t *DefaultSecurityToken) GetRoles() []string {
 	return t.Roles
+}
+
+func GetTokenFromContext(c web.C) SecurityToken {
+	if _, ok := c.Env["guard_token"]; !ok { // no token
+		return nil
+	}
+
+	return c.Env["guard_token"].(SecurityToken)
 }
