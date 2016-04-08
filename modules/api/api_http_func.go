@@ -8,7 +8,6 @@ package api
 import (
 	"bufio"
 	"container/list"
-	"errors"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -27,55 +26,26 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-var (
-	InvalidVersion = errors.New("Invalid version")
-)
-
 func versionChecker(c web.C, res http.ResponseWriter) error {
 	if c.URLParams["version"] == "v1.0" {
 		// for now there is only one version
 		return nil
 	}
 
-	return InvalidVersion
-}
-
-func handleError(res http.ResponseWriter, err error) {
-	if err == nil {
-		return
-	}
-
-	statusCode := http.StatusInternalServerError
-
-	switch err {
-	case base.NotFoundError:
-		statusCode = http.StatusNotFound
-	case base.AlreadyDeletedError:
-		statusCode = http.StatusGone
-	case base.AccessForbiddenError:
-		statusCode = http.StatusForbidden
-	case base.RevisionError:
-		statusCode = http.StatusConflict
-	case base.ValidationError:
-		statusCode = http.StatusPreconditionFailed
-	case InvalidVersion:
-		statusCode = http.StatusBadRequest
-	}
-
-	helper.SendWithHttpCode(res, statusCode, err.Error())
+	return base.InvalidVersionError
 }
 
 func Check(c web.C, res http.ResponseWriter, req *http.Request, attrs security.Attributes, auth security.AuthorizationChecker) bool {
 	token := security.GetTokenFromContext(c)
 
 	if err := security.CheckAccess(token, attrs, res, req, auth); err != nil {
-		handleError(res, err)
+		base.HandleError(req, res, err)
 
 		return false
 	}
 
 	if err := versionChecker(c, res); err != nil {
-		handleError(res, err)
+		base.HandleError(req, res, err)
 
 		return false
 	}
@@ -86,8 +56,8 @@ func Check(c web.C, res http.ResponseWriter, req *http.Request, attrs security.A
 func Api_GET_Hello(app *goapp.App) func(c web.C, res http.ResponseWriter, req *http.Request) {
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		if err := versionChecker(c, res); err != nil {
-			handleError(res, err)
-			
+			base.HandleError(req, res, err)
+
 			return
 		}
 
@@ -165,7 +135,7 @@ func Api_GET_Node(app *goapp.App) func(c web.C, res http.ResponseWriter, req *ht
 			reference, err := base.GetReferenceFromString(c.URLParams["uuid"])
 
 			if err != nil {
-				handleError(res, err)
+				base.HandleError(req, res, err)
 
 				return
 			}
@@ -173,16 +143,16 @@ func Api_GET_Node(app *goapp.App) func(c web.C, res http.ResponseWriter, req *ht
 			node := manager.Find(reference)
 
 			if node == nil {
-				handleError(res, base.NotFoundError)
+				base.HandleError(req, res, base.NotFoundError)
 
 				return
 			}
 
 			if granted, err := authorizer.IsGranted(token, options.Roles, node); err != nil {
-				handleError(res, err)
+				base.HandleError(req, res, err)
 				return
 			} else if !granted {
-				handleError(res, base.AccessForbiddenError)
+				base.HandleError(req, res, base.AccessForbiddenError)
 				return
 			}
 
@@ -207,7 +177,7 @@ func Api_GET_Node(app *goapp.App) func(c web.C, res http.ResponseWriter, req *ht
 
 			err := apiHandler.FindOne(c.URLParams["uuid"], res, options)
 
-			handleError(res, err)
+			base.HandleError(req, res, err)
 		}
 	}
 }
@@ -267,7 +237,7 @@ func Api_GET_Node_Revision(app *goapp.App) func(c web.C, res http.ResponseWriter
 
 		err := apiHandler.FindOneBy(query, res, options)
 
-		handleError(res, err)
+		base.HandleError(req, res, err)
 	}
 }
 
@@ -295,7 +265,7 @@ func Api_POST_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *
 			res.WriteHeader(http.StatusCreated)
 			w.Flush()
 		} else {
-			handleError(res, err)
+			base.HandleError(req, res, err)
 		}
 	}
 }
@@ -323,14 +293,14 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 			reference, err := base.GetReferenceFromString(c.URLParams["uuid"])
 
 			if err != nil {
-				handleError(res, err)
+				base.HandleError(req, res, err)
 				return
 			}
 
 			node := manager.Find(reference)
 
 			if node == nil {
-				handleError(res, base.NotFoundError)
+				base.HandleError(req, res, base.NotFoundError)
 				return
 			}
 
@@ -346,7 +316,7 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 			manager.Save(node, false)
 
 			if err != nil {
-				handleError(res, err)
+				base.HandleError(req, res, err)
 			} else {
 				manager.Save(node, false)
 
@@ -360,7 +330,7 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 			err := apiHandler.Save(req.Body, w, options)
 
 			if err != nil {
-				handleError(res, err)
+				base.HandleError(req, res, err)
 			} else {
 				w.Flush()
 			}
@@ -386,7 +356,7 @@ func Api_PUT_Nodes_Move(app *goapp.App) func(c web.C, res http.ResponseWriter, r
 
 		err := apiHandler.Move(c.URLParams["uuid"], c.URLParams["parentUuid"], res, options)
 
-		handleError(res, err)
+		base.HandleError(req, res, err)
 	}
 }
 
@@ -406,7 +376,7 @@ func Api_DELETE_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req
 
 		err := apiHandler.RemoveOne(c.URLParams["uuid"], res, options)
 
-		handleError(res, err)
+		base.HandleError(req, res, err)
 	}
 }
 

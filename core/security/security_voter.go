@@ -78,6 +78,7 @@ func (v *RoleVoter) Support(o interface{}) bool {
 
 func (v *RoleVoter) Vote(t SecurityToken, o interface{}, attrs Attributes) (result VoterResult, err error) {
 	result = ACCESS_ABSTAIN
+
 	for _, value := range attrs {
 		if !v.supportAttribute(value) {
 			continue

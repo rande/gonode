@@ -7,6 +7,10 @@ package base
 
 import (
 	"errors"
+	"net/http"
+
+	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/core/security"
 )
 
 var (
@@ -17,6 +21,7 @@ var (
 	AlreadyDeletedError         = errors.New("Unable to find the node")
 	NoStreamHandler             = errors.New("No stream handler defined")
 	AccessForbiddenError        = errors.New("Access forbidden")
+	InvalidVersionError         = errors.New("Wrong node version")
 )
 
 type validationError struct {
@@ -112,4 +117,29 @@ func (es Errors) HasErrors() bool {
 	}
 
 	return false
+}
+
+func HandleError(req *http.Request, res http.ResponseWriter, err error) {
+	if err == nil {
+		return
+	}
+
+	statusCode := http.StatusInternalServerError
+
+	switch err {
+	case NotFoundError:
+		statusCode = http.StatusNotFound
+	case AlreadyDeletedError:
+		statusCode = http.StatusGone
+	case AccessForbiddenError, security.AccessForbiddenError:
+		statusCode = http.StatusForbidden
+	case RevisionError:
+		statusCode = http.StatusConflict
+	case ValidationError:
+		statusCode = http.StatusPreconditionFailed
+	case InvalidVersionError:
+		statusCode = http.StatusBadRequest
+	}
+
+	helper.SendWithHttpCode(res, statusCode, err.Error())
 }

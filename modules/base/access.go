@@ -22,10 +22,14 @@ func NewAccessOptions(token security.SecurityToken, roles security.Attributes) *
 }
 
 func NewAccessOptionsFromToken(token security.SecurityToken) *AccessOptions {
+	return NewAccessOptions(token, GetSecurityAttributes(token.GetRoles()))
+}
+
+func GetSecurityAttributes(access []string) security.Attributes {
 	attrs := security.Attributes{}
-	for _, r := range token.GetRoles() {
+	for _, r := range access {
 		attrs = append(attrs, r)
 	}
 
-	return NewAccessOptions(token, attrs)
+	return attrs
 }

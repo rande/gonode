@@ -7,5 +7,5 @@
     },
     "meta": {
     },
-    "access": ["node:api:master"]
+    "access": ["node:api:master", "node:prism:render", "IS_AUTHENTICATED_ANONYMOUSLY"]
 }

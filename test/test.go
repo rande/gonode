@@ -277,7 +277,7 @@ func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *go
 		data.Enabled = true
 		data.NewPassword = "admin"
 		data.Username = "test-admin"
-		data.Roles = []string{"ROLE_ADMIN", "ROLE_API", "node:api:master"}
+		data.Roles = []string{"ROLE_ADMIN", "ROLE_API", "node:api:master", "node:prism:render"}
 
 		meta := u.Meta.(*user.UserMeta)
 		meta.PasswordCost = 1 // save test time

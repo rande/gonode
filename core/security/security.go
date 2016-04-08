@@ -12,6 +12,10 @@ import (
 	"github.com/zenazn/goji/web"
 )
 
+var (
+	AccessForbiddenError = errors.New("Access Forbidden")
+)
+
 // Bare interface to used inside a request lifecycle
 type SecurityToken interface {
 	// return the current username for the current token
@@ -43,13 +47,9 @@ func GetTokenFromContext(c web.C) SecurityToken {
 	return c.Env["guard_token"].(SecurityToken)
 }
 
-var (
-	AccessForbidden = errors.New("Access Forbidden")
-)
-
 func CheckAccess(token SecurityToken, attrs Attributes, res http.ResponseWriter, req *http.Request, auth AuthorizationChecker) error {
 	if token == nil { // no token
-		return AccessForbidden
+		return AccessForbiddenError
 	}
 
 	r, err := auth.IsGranted(token, attrs, req)
@@ -59,7 +59,7 @@ func CheckAccess(token SecurityToken, attrs Attributes, res http.ResponseWriter,
 	}
 
 	if r == false {
-		return AccessForbidden
+		return AccessForbiddenError
 	}
 
 	return nil
