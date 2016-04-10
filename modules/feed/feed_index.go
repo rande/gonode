@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/search"
 )
@@ -52,7 +53,9 @@ func (v *FeedViewHandler) Execute(node *base.Node, request *base.ViewRequest, re
 	searchForm.PerPage = 32
 	searchForm.Page = 1
 
-	pager := search.GetPager(searchForm, v.Manager, v.Search)
+	// apply security access
+	options := base.NewAccessOptionsFromToken(security.GetTokenFromContext(request.Context))
+	pager := search.GetPager(searchForm, v.Manager, v.Search, options)
 
 	if request.Format == "rss" {
 		response.HttpResponse.Header().Set("Content-Type", "application/rss+xml")

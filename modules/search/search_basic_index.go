@@ -12,6 +12,7 @@ import (
 	"strconv"
 
 	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/modules/base"
 )
 
@@ -127,7 +128,8 @@ func (v *IndexViewHandler) Execute(node *base.Node, request *base.ViewRequest, r
 		search.PerPage = uint64(32)
 	}
 
-	pager := GetPager(search, v.Manager, v.Search)
+	options := base.NewAccessOptionsFromToken(security.GetTokenFromContext(request.Context))
+	pager := GetPager(search, v.Manager, v.Search, options)
 
 	response.
 		Set(200, fmt.Sprintf("nodes/%s.tpl", node.Type)).

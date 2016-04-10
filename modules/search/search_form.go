@@ -6,6 +6,8 @@
 package search
 
 import (
+	sq "github.com/lann/squirrel"
+	"github.com/rande/gonode/core/squirrel"
 	"github.com/rande/gonode/modules/base"
 )
 
@@ -90,8 +92,15 @@ func NewSearchFormFromIndex(index *Index) *SearchForm {
 	return search
 }
 
-func GetPager(search *SearchForm, manager base.NodeManager, engine *SearchPGSQL) *SearchPager {
+func GetPager(search *SearchForm, manager base.NodeManager, engine *SearchPGSQL, options *base.AccessOptions) *SearchPager {
 	query := engine.BuildQuery(search, manager.SelectBuilder(base.NewSelectOptions()))
+
+	// apply security access
+	if options != nil && len(options.Roles) > 0 {
+		value, _ := options.Roles.ToStringSlice()
+
+		query = query.Where(squirrel.NewExprSlice("\"access\" && ARRAY["+sq.Placeholders(len(options.Roles))+"]", value))
+	}
 
 	list := manager.FindBy(query, (search.Page-1)*search.PerPage, search.PerPage+1)
 
