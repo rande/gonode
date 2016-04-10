@@ -52,13 +52,13 @@ func (a *Api) SelectBuilder(options *base.SelectOptions) sq.SelectBuilder {
 
 func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uint64, options *base.AccessOptions) error {
 
-	if len(options.Roles) > 0 {
+	if options != nil && len(options.Roles) > 0 {
 		value, _ := options.Roles.ToStringSlice()
 
-		query = query.Where(squirrel.NewExprSlice(fmt.Sprintf("\"%s\" && ARRAY["+sq.Placeholders(len(options.Roles))+"]", "access"), value))
+		query = query.Where(squirrel.NewExprSlice(fmt.Sprintf("\"%s\" && ARRAY[" + sq.Placeholders(len(options.Roles)) + "]", "access"), value))
 	}
 
-	list := a.Manager.FindBy(query, (page-1)*perPage, perPage+1)
+	list := a.Manager.FindBy(query, (page - 1) * perPage, perPage + 1)
 
 	pager := &ApiPager{
 		Page:    page,
@@ -108,12 +108,14 @@ func (a *Api) Save(r io.Reader, w io.Writer, options *base.AccessOptions) error 
 	if saved != nil {
 		a.Logger.Printf("find uuid: %s", node.Uuid)
 
-		result, _ := a.Authorizer.IsGranted(options.Token, security.AttributesFromString(node.Access), node)
-
 		helper.PanicUnless(node.Type == saved.Type, "Type mismatch")
 
-		if !result {
-			return base.AccessForbiddenError
+		if options != nil {
+			result, _ := a.Authorizer.IsGranted(options.Token, security.AttributesFromString(node.Access), node)
+
+			if !result {
+				return base.AccessForbiddenError
+			}
 		}
 
 		if node.Deleted == true {
@@ -197,10 +199,12 @@ func (a *Api) FindOneBy(query sq.SelectBuilder, w io.Writer, options *base.Acces
 		return base.NotFoundError
 	}
 
-	result, _ := a.Authorizer.IsGranted(options.Token, security.AttributesFromString(node.Access), node)
+	if options != nil {
+		result, _ := a.Authorizer.IsGranted(options.Token, security.AttributesFromString(node.Access), node)
 
-	if !result {
-		return base.AccessForbiddenError
+		if !result {
+			return base.AccessForbiddenError
+		}
 	}
 
 	a.Serializer.Serialize(w, node)
@@ -221,10 +225,12 @@ func (a *Api) RemoveOne(uuid string, w io.Writer, options *base.AccessOptions) e
 		return base.NotFoundError
 	}
 
-	result, _ := a.Authorizer.IsGranted(options.Token, security.AttributesFromString(node.Access), node)
+	if options != nil {
+		result, _ := a.Authorizer.IsGranted(options.Token, security.AttributesFromString(node.Access), node)
 
-	if !result {
-		return base.AccessForbiddenError
+		if !result {
+			return base.AccessForbiddenError
+		}
 	}
 
 	if node.Deleted {
@@ -240,10 +246,10 @@ func (a *Api) RemoveOne(uuid string, w io.Writer, options *base.AccessOptions) e
 
 func (a *Api) Remove(query sq.SelectBuilder, w io.Writer, options *base.AccessOptions) error {
 
-	if len(options.Roles) > 0 {
+	if options != nil && len(options.Roles) > 0 {
 		value, _ := options.Roles.ToStringSlice()
 
-		query = query.Where(squirrel.NewExprSlice(fmt.Sprintf("\"%s\" && ARRAY["+sq.Placeholders(len(options.Roles))+"]", "access"), value))
+		query = query.Where(squirrel.NewExprSlice(fmt.Sprintf("\"%s\" && ARRAY[" + sq.Placeholders(len(options.Roles)) + "]", "access"), value))
 	}
 
 	a.Manager.Remove(query)
