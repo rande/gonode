@@ -62,16 +62,16 @@ func GetHook(conf map[string]interface{}) (log.Hook, error) {
 	switch conf["service"] {
 	case "influxdb":
 		c, _ := influxdb.NewHTTPClient(influxdb.HTTPConfig{
-			Addr:     GetValue("url", conf, "http://localhost:8086").(string),
-			Timeout:  100 * time.Millisecond, // The InfluxDB default timeout is 0. In this example we're using 100ms.
-			Username: GetValue("username", conf, "").(string),
-			Password: GetValue("password", conf, "").(string),
+			Addr:      GetValue("url", conf, "http://localhost:8086").(string),
+			Timeout:   100 * time.Millisecond, // The InfluxDB default timeout is 0. In this example we're using 100ms.
+			Username:  GetValue("username", conf, "").(string),
+			Password:  GetValue("password", conf, "").(string),
 			UserAgent: "GoNode InfluxDBClient",
 		})
 
 		return logrus_influxdb.NewInfluxDB(&logrus_influxdb.Config{
 			Database: GetValue("database", conf, "gonode").(string),
-			Tags: tags,
+			Tags:     tags,
 		}, c)
 	}
 
