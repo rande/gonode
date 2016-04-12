@@ -154,28 +154,41 @@ func (a *Api) Save(r io.Reader, w io.Writer, options *base.AccessOptions) error 
 }
 
 func (a *Api) Move(nodeUuid, parentUuid string, w io.Writer, options *base.AccessOptions) error {
+	// handle node
 	nodeReference, err := base.GetReferenceFromString(nodeUuid)
 
 	if err != nil {
 		return err
 	}
 
+	if node := a.Manager.Find(nodeReference); node == nil {
+		return base.NotFoundError
+	} else if result, _ := a.Authorizer.IsGranted(options.Token, nil, node); !result {
+		return base.AccessForbiddenError
+	}
+
+	// parent node
 	parentReference, err := base.GetReferenceFromString(parentUuid)
 
 	if err != nil {
 		return err
 	}
 
-	affectedNodes, err := a.Manager.Move(nodeReference, parentReference)
-
-	if err != nil {
-		return err
+	if parent := a.Manager.Find(parentReference); parent == nil {
+		return base.NotFoundError
+	} else if result, _ := a.Authorizer.IsGranted(options.Token, nil, parent); !result {
+		return base.AccessForbiddenError
 	}
 
-	a.Serializer.Serialize(w, &ApiOperation{
-		Status:  OPERATION_OK,
-		Message: fmt.Sprintf("Node altered: %d", affectedNodes),
-	})
+	// move node
+	if affectedNodes, err := a.Manager.Move(nodeReference, parentReference); err != nil {
+		return err
+	} else {
+		a.Serializer.Serialize(w, &ApiOperation{
+			Status:  OPERATION_OK,
+			Message: fmt.Sprintf("Node altered: %d", affectedNodes),
+		})
+	}
 
 	return nil
 }
