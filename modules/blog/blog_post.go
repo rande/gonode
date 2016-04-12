@@ -6,8 +6,9 @@
 package blog
 
 import (
-	"github.com/rande/gonode/modules/base"
 	"time"
+
+	"github.com/rande/gonode/modules/base"
 )
 
 type PostMeta struct {

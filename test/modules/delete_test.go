@@ -6,13 +6,14 @@
 package modules
 
 import (
+	"net/http/httptest"
+	"os"
+	"testing"
+
 	. "github.com/rande/goapp"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
-	"net/http/httptest"
-	"os"
-	"testing"
 )
 
 func Test_Delete_Non_Existant_Node(t *testing.T) {
@@ -57,12 +58,12 @@ func Test_Delete_Existant_Node(t *testing.T) {
 func Test_Delete_Find_Filter(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
 		auth := test.GetAuthHeader(t, ts)
-		nodes := InitSearchFixture(app)
+		nodes := test.InitSearchFixture(app)
 
 		res, _ := test.RunRequest("GET", ts.URL+"/api/v1.0/nodes", nil, auth)
 		p := test.GetPager(app, res)
 
-		assert.Equal(t, 4, len(p.Elements))
+		assert.Equal(t, 3, len(p.Elements))
 
 		res, _ = test.RunRequest("DELETE", ts.URL+"/api/v1.0/nodes/"+nodes[0].Uuid.CleanString(), nil, auth)
 		assert.Equal(t, 200, res.StatusCode)
@@ -73,6 +74,6 @@ func Test_Delete_Find_Filter(t *testing.T) {
 		p = test.GetPager(app, res)
 
 		assert.Equal(t, 200, res.StatusCode)
-		assert.Equal(t, 3, len(p.Elements))
+		assert.Equal(t, 2, len(p.Elements))
 	})
 }

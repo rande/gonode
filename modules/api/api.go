@@ -9,11 +9,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+
 	log "github.com/Sirupsen/logrus"
 	sq "github.com/lann/squirrel"
 	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/core/security"
+	"github.com/rande/gonode/core/squirrel"
 	"github.com/rande/gonode/modules/base"
-	"io"
 )
 
 const (
@@ -35,6 +38,7 @@ type Api struct {
 	BaseUrl    string
 	Serializer *base.Serializer
 	Logger     *log.Logger
+	Authorizer security.AuthorizationChecker
 }
 
 type ApiOperation struct {
@@ -46,7 +50,14 @@ func (a *Api) SelectBuilder(options *base.SelectOptions) sq.SelectBuilder {
 	return a.Manager.SelectBuilder(options)
 }
 
-func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uint64) error {
+func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uint64, options *base.AccessOptions) error {
+
+	if options != nil && len(options.Roles) > 0 {
+		value, _ := options.Roles.ToStringSlice()
+
+		query = query.Where(squirrel.NewExprSlice(fmt.Sprintf("\"%s\" && ARRAY["+sq.Placeholders(len(options.Roles))+"]", "access"), value))
+	}
+
 	list := a.Manager.FindBy(query, (page-1)*perPage, perPage+1)
 
 	pager := &ApiPager{
@@ -81,7 +92,7 @@ func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uin
 	return nil
 }
 
-func (a *Api) Save(r io.Reader, w io.Writer) error {
+func (a *Api) Save(r io.Reader, w io.Writer, options *base.AccessOptions) error {
 	node := base.NewNode()
 
 	err := a.Serializer.Deserialize(r, node)
@@ -98,7 +109,18 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 		a.Logger.Printf("find uuid: %s", node.Uuid)
 
 		helper.PanicUnless(node.Type == saved.Type, "Type mismatch")
-		helper.PanicIf(saved.Deleted, "Cannot save a deleted node, restore it first ...")
+
+		if options != nil {
+			result, _ := a.Authorizer.IsGranted(options.Token, nil, node)
+
+			if !result {
+				return base.AccessForbiddenError
+			}
+		}
+
+		if node.Deleted == true {
+			return base.AlreadyDeletedError
+		}
 
 		if node.Revision != saved.Revision {
 			return base.RevisionError
@@ -131,66 +153,79 @@ func (a *Api) Save(r io.Reader, w io.Writer) error {
 	return nil
 }
 
-func (a *Api) Move(nodeUuid, parentUuid string, w io.Writer) error {
-
+func (a *Api) Move(nodeUuid, parentUuid string, w io.Writer, options *base.AccessOptions) error {
+	// handle node
 	nodeReference, err := base.GetReferenceFromString(nodeUuid)
 
 	if err != nil {
 		return err
 	}
 
+	if node := a.Manager.Find(nodeReference); node == nil {
+		return base.NotFoundError
+	} else if result, _ := a.Authorizer.IsGranted(options.Token, nil, node); !result {
+		return base.AccessForbiddenError
+	}
+
+	// parent node
 	parentReference, err := base.GetReferenceFromString(parentUuid)
 
 	if err != nil {
 		return err
 	}
 
-	affectedNodes, err := a.Manager.Move(nodeReference, parentReference)
-
-	if err != nil {
-		return err
+	if parent := a.Manager.Find(parentReference); parent == nil {
+		return base.NotFoundError
+	} else if result, _ := a.Authorizer.IsGranted(options.Token, nil, parent); !result {
+		return base.AccessForbiddenError
 	}
 
-	a.Serializer.Serialize(w, &ApiOperation{
-		Status:  OPERATION_OK,
-		Message: fmt.Sprintf("Node altered: %d", affectedNodes),
-	})
+	// move node
+	if affectedNodes, err := a.Manager.Move(nodeReference, parentReference); err != nil {
+		return err
+	} else {
+		a.Serializer.Serialize(w, &ApiOperation{
+			Status:  OPERATION_OK,
+			Message: fmt.Sprintf("Node altered: %d", affectedNodes),
+		})
+	}
 
 	return nil
 }
 
-func (a *Api) FindOne(uuid string, w io.Writer) error {
+func (a *Api) FindOne(uuid string, w io.Writer, options *base.AccessOptions) error {
 	reference, err := base.GetReferenceFromString(uuid)
 
 	if err != nil {
 		return base.NotFoundError
 	}
 
-	node := a.Manager.Find(reference)
+	query := a.Manager.SelectBuilder(base.NewSelectOptions()).Where(sq.Eq{"uuid": reference.String()})
 
-	if node == nil {
-		return base.NotFoundError
-	}
-
-	a.Serializer.Serialize(w, node)
-
-	return nil
+	return a.FindOneBy(query, w, options)
 }
 
-func (a *Api) FindOneBy(query sq.SelectBuilder, w io.Writer) error {
-
+func (a *Api) FindOneBy(query sq.SelectBuilder, w io.Writer, options *base.AccessOptions) error {
 	node := a.Manager.FindOneBy(query)
 
 	if node == nil {
 		return base.NotFoundError
 	}
 
+	if options != nil {
+		result, _ := a.Authorizer.IsGranted(options.Token, nil, node)
+
+		if !result {
+			return base.AccessForbiddenError
+		}
+	}
+
 	a.Serializer.Serialize(w, node)
 
 	return nil
 }
 
-func (a *Api) RemoveOne(uuid string, w io.Writer) error {
+func (a *Api) RemoveOne(uuid string, w io.Writer, options *base.AccessOptions) error {
 	reference, err := base.GetReferenceFromString(uuid)
 
 	if err != nil {
@@ -201,6 +236,14 @@ func (a *Api) RemoveOne(uuid string, w io.Writer) error {
 
 	if node == nil {
 		return base.NotFoundError
+	}
+
+	if options != nil {
+		result, _ := a.Authorizer.IsGranted(options.Token, nil, node)
+
+		if !result {
+			return base.AccessForbiddenError
+		}
 	}
 
 	if node.Deleted {
@@ -214,10 +257,16 @@ func (a *Api) RemoveOne(uuid string, w io.Writer) error {
 	return nil
 }
 
-func (a *Api) Remove(b sq.SelectBuilder, w io.Writer) error {
-	a.Manager.Remove(b)
+func (a *Api) Remove(query sq.SelectBuilder, w io.Writer, options *base.AccessOptions) error {
+	if options != nil && len(options.Roles) > 0 {
+		value, _ := options.Roles.ToStringSlice()
 
-	a.Find(w, b, 0, 0)
+		query = query.Where(squirrel.NewExprSlice(fmt.Sprintf("\"%s\" && ARRAY["+sq.Placeholders(len(options.Roles))+"]", "access"), value))
+	}
+
+	a.Manager.Remove(query)
+
+	a.Find(w, query, 0, 0, options)
 
 	return nil
 }

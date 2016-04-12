@@ -7,14 +7,15 @@ package media
 
 import (
 	"errors"
-	"github.com/rande/gonode/core/helper"
-	"github.com/rande/gonode/core/vault"
-	"github.com/rande/gonode/modules/base"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/core/vault"
+	"github.com/rande/gonode/modules/base"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_ContainsSize(t *testing.T) {

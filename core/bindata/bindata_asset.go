@@ -6,10 +6,11 @@
 package bindata
 
 import (
-	log "github.com/Sirupsen/logrus"
-	"github.com/zenazn/goji/web"
 	"net/http"
 	"strings"
+
+	log "github.com/Sirupsen/logrus"
+	"github.com/zenazn/goji/web"
 )
 
 var contentTypes = map[string]string{

@@ -7,6 +7,10 @@ package prism
 
 import (
 	"fmt"
+	"net/http"
+	"net/url"
+	"strings"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/flosch/pongo2"
 	sq "github.com/lann/squirrel"
@@ -14,29 +18,43 @@ import (
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/core/router"
+	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/modules/base"
 	"github.com/zenazn/goji/web"
-	"net/http"
-	"net/url"
-	"strings"
 )
 
 func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *http.Request) {
 	manager := app.Get("gonode.manager").(*base.PgNodeManager)
 	pongo := app.Get("gonode.pongo").(*pongo2.TemplateSet)
 	handlers := app.Get("gonode.view_handler_collection").(base.ViewHandlerCollection)
+	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		var node *base.Node
 		var logger *log.Entry
 
+		token := security.GetTokenFromContext(c)
+
 		if _, ok := c.Env["logger"]; ok {
 			logger = c.Env["logger"].(*log.Entry)
 		}
 
+		// the user must have roles,
+		// this test should be useless as the first check is present.
+		// however this might need to be usefull as the authorizer might have different implementations.
+		if len(token.GetRoles()) == 0 {
+			base.HandleError(req, res, base.AccessForbiddenError)
+			return
+		}
+
 		format := "html"
 		if uuid, ok := c.URLParams["uuid"]; ok {
-			reference, _ := base.GetReferenceFromString(uuid)
+			reference, err := base.GetReferenceFromString(uuid)
+
+			if err != nil {
+				base.HandleError(req, res, err)
+				return
+			}
 
 			node = manager.Find(reference)
 
@@ -64,7 +82,9 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 				}).Debug("Search valid node")
 			}
 
-			query := manager.SelectBuilder(base.NewSelectOptions()).Where(sq.Eq{"path": lookupPaths})
+			query := manager.
+				SelectBuilder(base.NewSelectOptions()).
+				Where(sq.Eq{"path": lookupPaths})
 
 			nodes := manager.FindBy(query, 0, 2)
 
@@ -81,7 +101,6 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 						break
 					}
 				}
-
 			}
 		}
 
@@ -104,7 +123,13 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 		response.Add("request", req)
 
 		if node != nil {
-			res.Header().Set("X-Content-Uuid", node.Uuid.String())
+			if granted, err := authorizer.IsGranted(token, nil, node); err != nil {
+				base.HandleError(req, res, err)
+				return
+			} else if !granted {
+				base.HandleError(req, res, base.AccessForbiddenError)
+				return
+			}
 
 			response.Add("node", node)
 

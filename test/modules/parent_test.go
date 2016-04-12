@@ -7,13 +7,14 @@ package modules
 
 import (
 	"fmt"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/modules/api"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
-	"net/http/httptest"
-	"testing"
 )
 
 func Test_Create_Parents_With_Manager(t *testing.T) {
@@ -57,7 +58,6 @@ func Test_Create_Parents_With_Manager(t *testing.T) {
 		assert.Equal(t, affectedRows, int64(0))
 
 		// retrieve a saved node
-
 		node := manager.Find(node4.Uuid)
 
 		assert.Equal(t, 3, len(node.Parents))
@@ -79,15 +79,20 @@ func Test_Create_Parents_With_Api(t *testing.T) {
 		manager := app.Get("gonode.manager").(*base.PgNodeManager)
 
 		node1 := handlers.NewNode("default")
+		node1.Access = []string{"node:api:master"}
+
 		manager.Save(node1, false)
 
 		node2 := handlers.NewNode("default")
+		node2.Access = []string{"node:api:master"}
 		manager.Save(node2, false)
 
 		node3 := handlers.NewNode("default")
+		node3.Access = []string{"node:api:master"}
 		manager.Save(node3, false)
 
 		node4 := handlers.NewNode("default")
+		node4.Access = []string{"node:api:master"}
 		manager.Save(node4, false)
 
 		res, _ := test.RunRequest("PUT", fmt.Sprintf("%s/api/v1.0/nodes/move/%s/%s", ts.URL, node2.Uuid, node1.Uuid), nil, auth)

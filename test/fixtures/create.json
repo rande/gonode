@@ -6,5 +6,6 @@
         "Name": "User API",
         "Username": "user-api",
         "Password": "{plain}user-api"
-    }
+    },
+    "access": ["node:api:master"]
 }

@@ -7,10 +7,11 @@ package api
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/modules/base"
 	"github.com/zenazn/goji/web"
-	"net/http"
 )
 
 type Service struct {

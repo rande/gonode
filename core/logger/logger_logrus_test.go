@@ -6,10 +6,11 @@
 package logger
 
 import (
+	"testing"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/rande/gonode/core/config"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_Dispatch_SameLevel(t *testing.T) {
@@ -85,7 +86,7 @@ func Test_Config_Influx_From_Config(t *testing.T) {
         service = "influxdb"
         dsn = "http://localhost:8086"
         tags = ["app.core"]
-        database = "stats"
+        database = "gonode_stats"
         level = "debug"
 
 `, conf)

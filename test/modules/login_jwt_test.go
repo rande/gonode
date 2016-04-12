@@ -9,6 +9,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http/httptest"
+	"net/url"
+	"testing"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
@@ -16,10 +21,6 @@ import (
 	"github.com/rande/gonode/modules/user"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
-	"io"
-	"net/http/httptest"
-	"net/url"
-	"testing"
 )
 
 func Test_Create_Username(t *testing.T) {

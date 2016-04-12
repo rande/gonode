@@ -6,13 +6,14 @@
 package security
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/zenazn/goji/web"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func Test_Cors_Default_Values(t *testing.T) {

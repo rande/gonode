@@ -7,11 +7,13 @@ package base
 
 import (
 	"database/sql"
+	"reflect"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/flosch/pongo2"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
-	"reflect"
+	"github.com/rande/gonode/core/security"
 )
 
 func GetValue(source interface{}, field string) interface{} {
@@ -35,6 +37,16 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
 		app.Set("gonode.view_handler_collection", func(app *goapp.App) interface{} {
 			return ViewHandlerCollection{}
+		})
+
+		app.Set("gonode.security.voter.access", func(app *goapp.App) interface{} {
+			return &AccessVoter{}
+		})
+
+		app.Set("gonode.security.voter.role", func(app *goapp.App) interface{} {
+			return &security.RoleVoter{
+				Prefix: "node:",
+			}
 		})
 
 		return nil

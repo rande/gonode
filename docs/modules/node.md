@@ -27,6 +27,7 @@ A node is a data stored in PostgreSQL engine. A node has a set of properties mai
  - Source (FK Node): If the node has been created from a node, ie a thumbnail from a YouTube's video
  - Data: a structure stores as a JSONb, it hold the user's input or system's input
  - Meta: a structure stores as a JSONb, it hold the related meta from a node
+ - Access: an array of string required to manipulate the node.
 
 
 The current description does not force you about how to use a node for your usage, it is just a guide line. You are free to use the api at your will and you are free to query deleted or un-completed nodes.

@@ -6,12 +6,13 @@
 package media
 
 import (
+	"io"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/lib/pq"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/core/vault"
 	"github.com/rande/gonode/modules/base"
-	"io"
 )
 
 type ImageMeta struct {

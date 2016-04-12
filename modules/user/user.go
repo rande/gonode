@@ -6,10 +6,11 @@
 package user
 
 import (
+	"regexp"
+
 	v "github.com/asaskevich/govalidator"
 	"github.com/rande/gonode/modules/base"
 	"golang.org/x/crypto/bcrypt"
-	"regexp"
 )
 
 var (

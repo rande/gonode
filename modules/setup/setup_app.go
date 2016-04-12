@@ -7,13 +7,14 @@ package setup
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/test/fixtures"
 	"github.com/zenazn/goji/web"
-	"net/http"
 )
 
 func Configure(l *goapp.Lifecycle, conf *config.Config) {
@@ -76,6 +77,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 				"data" jsonb DEFAULT '{}'::jsonb NOT NULL,
 				"meta" jsonb DEFAULT '{}'::jsonb NOT NULL,
 				"modules" jsonb DEFAULT '{}'::jsonb NOT NULL,
+				"access" text[] DEFAULT '{}' NOT NULL,
 				"slug" CHARACTER VARYING( 256 ) COLLATE "default" NOT NULL,
 				"path" CHARACTER VARYING( 2000 ) COLLATE "default" NOT NULL,
 				"source" UUid,
@@ -95,7 +97,11 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
 			_, err = manager.Db.Exec(fmt.Sprintf(`CREATE INDEX "%s_uuid_idx" ON "%s_nodes" USING btree( "uuid" ASC NULLS LAST )`, prefix, prefix))
 			helper.PanicOnError(err)
+
 			_, err = manager.Db.Exec(fmt.Sprintf(`CREATE INDEX "%s_uuid_current_idx" ON "%s_nodes" USING btree( "uuid" ASC NULLS LAST, "current" ASC NULLS LAST )`, prefix, prefix))
+			helper.PanicOnError(err)
+
+			_, err = manager.Db.Exec(fmt.Sprintf(`CREATE INDEX "%s_access_idx" ON "%s_nodes" USING GIN("access")`, prefix, prefix))
 			helper.PanicOnError(err)
 
 			// Create Index
@@ -115,6 +121,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 				"data" jsonb DEFAULT '{}'::jsonb NOT NULL,
 				"meta" jsonb DEFAULT '{}'::jsonb NOT NULL,
 				"modules" jsonb DEFAULT '{}'::jsonb NOT NULL,
+				"access" text[] DEFAULT '{}' NOT NULL,
 				"slug" CHARACTER VARYING( 256 ) COLLATE "default" NOT NULL,
 				"path" CHARACTER VARYING( 2000 ) COLLATE "default" NOT NULL,
 				"source" UUid,

@@ -6,10 +6,11 @@
 package router
 
 import (
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/url"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_Reverse_Basic_Usage(t *testing.T) {

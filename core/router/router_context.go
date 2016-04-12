@@ -7,10 +7,11 @@ package router
 
 import (
 	"fmt"
-	"github.com/zenazn/goji/web"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/zenazn/goji/web"
 )
 
 func RequestContextMiddleware(c *web.C, h http.Handler) http.Handler {

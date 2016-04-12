@@ -9,9 +9,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/rande/gonode/core/helper"
 	"github.com/twinj/uuid"
-	"time"
 )
 
 var (
@@ -114,6 +115,7 @@ type Node struct {
 	SetUuid    Reference   `json:"set_uuid"`
 	Source     Reference   `json:"source"`
 	Modules    Modules     `json:"modules"`
+	Access     []string    `json:"access"` // key => roles required to access the nodes
 }
 
 func (node *Node) UniqueId() string {
@@ -136,7 +138,8 @@ func NewNode() *Node {
 		Deleted:    false,
 		Enabled:    true,
 		Status:     StatusNew,
-		Modules:    make(map[string]interface{}),
+		Modules:    make(map[string]interface{}, 0),
+		Access:     make([]string, 0),
 	}
 }
 

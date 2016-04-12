@@ -9,6 +9,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"os"
+	godebug "runtime/debug"
+	"strings"
+	"testing"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/assets"
@@ -34,15 +44,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
-	"os"
-	godebug "runtime/debug"
-	"strings"
-	"testing"
 )
 
 func GetPager(app *goapp.App, res *Response) *api.ApiPager {
@@ -130,10 +131,10 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 
 	logger.Configure(l, conf)
 	commands.Configure(l, conf)
+	node_guard.Configure(l, conf)
 	security.Configure(l, conf)
 	api.Configure(l, conf)
 	setup.Configure(l, conf)
-	node_guard.Configure(l, conf)
 	bindata.Configure(l, conf)
 	prism.Configure(l, conf)
 	router.Configure(l, conf)
@@ -175,7 +176,7 @@ func GetAuthToken(t *testing.T, ts *httptest.Server) string {
 		"password": {"admin"},
 	})
 
-	assert.Equal(t, 200, res.StatusCode)
+	assert.Equal(t, 200, res.StatusCode, "unable to login")
 
 	b := bytes.NewBuffer([]byte(""))
 	io.Copy(b, res.Body)
@@ -276,7 +277,7 @@ func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *go
 		data.Enabled = true
 		data.NewPassword = "admin"
 		data.Username = "test-admin"
-		data.Roles = []string{"ADMIN"}
+		data.Roles = []string{"ROLE_ADMIN", "ROLE_API", "node:api:master", "node:prism:render"}
 
 		meta := u.Meta.(*user.UserMeta)
 		meta.PasswordCost = 1 // save test time
@@ -290,4 +291,49 @@ func RunHttpTest(t *testing.T, f func(t *testing.T, ts *httptest.Server, app *go
 	})
 
 	l.Go(goapp.NewApp())
+}
+
+func InitSearchFixture(app *goapp.App) []*base.Node {
+	manager := app.Get("gonode.manager").(*base.PgNodeManager)
+	collection := app.Get("gonode.handler_collection").(base.Handlers)
+	nodes := make([]*base.Node, 0)
+
+	// WITH 3 nodes
+	node := collection.NewNode("core.user")
+	node.Name = "User A"
+	node.Weight = 1
+	node.Slug = "user-a"
+	node.Data.(*user.User).FirstName = "User"
+	node.Data.(*user.User).LastName = "A"
+	node.Data.(*user.User).Username = "user-a"
+	node.Access = []string{"node:api:master"}
+	manager.Save(node, false)
+
+	nodes = append(nodes, node)
+
+	node = collection.NewNode("core.user")
+	node.Name = "User AA"
+	node.Weight = 2
+	node.Slug = "user-aa"
+	node.Data.(*user.User).FirstName = "User"
+	node.Data.(*user.User).LastName = "AA"
+	node.Data.(*user.User).Username = "user-aa"
+	node.Access = []string{"node:api:master"}
+	manager.Save(node, false)
+
+	nodes = append(nodes, node)
+
+	node = collection.NewNode("core.user")
+	node.Name = "User B"
+	node.Weight = 1
+	node.Slug = "user-b"
+	node.Data.(*user.User).FirstName = "User"
+	node.Data.(*user.User).LastName = "B"
+	node.Data.(*user.User).Username = "user-b"
+	node.Access = []string{"node:api:master"}
+	manager.Save(node, false)
+
+	nodes = append(nodes, node)
+
+	return nodes
 }

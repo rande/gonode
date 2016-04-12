@@ -6,11 +6,12 @@
 package modules
 
 import (
+	"net/http/httptest"
+	"testing"
+
 	. "github.com/rande/goapp"
 	"github.com/rande/gonode/test"
 	"github.com/stretchr/testify/assert"
-	"net/http/httptest"
-	"testing"
 )
 
 func Test_API_GET_Handlers_Node(t *testing.T) {

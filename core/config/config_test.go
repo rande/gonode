@@ -7,10 +7,11 @@ package config
 
 import (
 	"bytes"
-	"github.com/BurntSushi/toml"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/BurntSushi/toml"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_Server_LoadConfigurationFromFile(t *testing.T) {
@@ -51,10 +52,16 @@ key = "ZeSecretKey0oo"
         path = "^\\/nodes\\/(.*)$"
 
 [security]
+    voters = ["security.voter.role"]
+
     [security.cors]
     allowed_origins = ["*"]
     allowed_methods = ["GET", "PUT", "POST"]
     allowed_headers = ["Origin", "Accept", "Content-Type", "Authorization"]
+
+    [[security.access]]
+    path  = "^\\/admin"
+    roles = ["ROLE_ADMIN"]
 
 [search]
     max_result = 256
@@ -109,10 +116,16 @@ key = "ZeSecretKey0oo"
 	assert.Equal(t, config.Guard.Jwt.Login.Path, "/login")
 	assert.Equal(t, config.Guard.Jwt.Token.Path, `^\/nodes\/(.*)$`)
 
-	// test security
+	// test security: cors
 	assert.False(t, config.Security.Cors.AllowCredentials)
 	assert.Equal(t, config.Security.Cors.AllowedHeaders, []string{"Origin", "Accept", "Content-Type", "Authorization"})
 	assert.Equal(t, config.Security.Cors.AllowedMethods, []string{"GET", "PUT", "POST"})
+
+	// test security: access
+	assert.Equal(t, 1, len(config.Security.Access))
+	assert.Equal(t, []string{"ROLE_ADMIN"}, config.Security.Access[0].Roles)
+	assert.Equal(t, "^\\/admin", config.Security.Access[0].Path)
+	assert.Equal(t, []string{"security.voter.role"}, config.Security.Voters)
 
 	// test search
 	assert.Equal(t, uint64(256), config.Search.MaxResult)

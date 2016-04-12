@@ -6,10 +6,11 @@
 package helper
 
 import (
-	"github.com/stretchr/testify/mock"
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/stretchr/testify/mock"
 )
 
 type MockedHttpClient struct {

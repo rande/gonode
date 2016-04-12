@@ -8,9 +8,10 @@ package router
 import (
 	"errors"
 	"fmt"
-	"github.com/zenazn/goji/web"
 	"net/url"
 	"regexp"
+
+	"github.com/zenazn/goji/web"
 )
 
 const (

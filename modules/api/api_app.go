@@ -7,11 +7,13 @@ package api
 
 import (
 	"container/list"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/websocket"
 	"github.com/lib/pq"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/modules/base"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
@@ -26,6 +28,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 				Version:    "1.0.0",
 				Serializer: app.Get("gonode.node.serializer").(*base.Serializer),
 				Logger:     app.Get("logger").(*log.Logger),
+				Authorizer: app.Get("security.authorizer").(security.AuthorizationChecker),
 			}
 		})
 
@@ -80,7 +83,6 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		mux.Put(conf.Api.Prefix+"/:version/nodes/move/:uuid/:parentUuid", Api_PUT_Nodes_Move(app))
 		mux.Delete(conf.Api.Prefix+"/:version/nodes/:uuid", Api_DELETE_Nodes(app))
 		mux.Get(conf.Api.Prefix+"/:version/nodes", Api_GET_Nodes(app))
-
 		mux.Get(conf.Api.Prefix+"/:version/hello", Api_GET_Hello(app))
 		mux.Put(conf.Api.Prefix+"/:version/notify/:name", Api_PUT_Notify(app))
 		mux.Get(conf.Api.Prefix+"/:version/handlers/node", Api_GET_Handlers_Node(app))

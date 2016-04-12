@@ -6,6 +6,8 @@
 package node_guard
 
 import (
+	"regexp"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
@@ -13,7 +15,6 @@ import (
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/user"
 	"github.com/zenazn/goji/web"
-	"regexp"
 )
 
 type GuardManager struct {
@@ -40,13 +41,6 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		logger := app.Get("logger").(*log.Logger)
 
 		auths := []guard.GuardAuthenticator{
-			&guard.JwtTokenGuardAuthenticator{
-				Path:     regexp.MustCompile(conf.Guard.Jwt.Token.Path),
-				Key:      []byte(conf.Guard.Key),
-				Validity: conf.Guard.Jwt.Validity,
-				Manager:  &GuardManager{manager},
-				Logger:   logger,
-			},
 			&guard.JwtLoginGuardAuthenticator{
 				LoginPath: regexp.MustCompile(conf.Guard.Jwt.Login.Path),
 				Key:       []byte(conf.Guard.Key),
@@ -54,6 +48,14 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 				Manager:   &GuardManager{manager},
 				Logger:    logger,
 			},
+			&guard.JwtTokenGuardAuthenticator{
+				Path:     regexp.MustCompile(conf.Guard.Jwt.Token.Path),
+				Key:      []byte(conf.Guard.Key),
+				Validity: conf.Guard.Jwt.Validity,
+				Manager:  &GuardManager{manager},
+				Logger:   logger,
+			},
+			&guard.AnonymousAuthenticator{},
 		}
 
 		mux.Use(guard.GetGuardMiddleware(auths))

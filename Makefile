@@ -13,6 +13,7 @@ GO_BINDATA_PACKAGE = assets
 default: test
 
 format:
+	goimports -w $(GO_FILES)
 	gofmt -l -w -s .
 	go fix ./...
 	go vet ./...
@@ -35,6 +36,7 @@ test-frontend:
 install: install-backend install-frontend
 
 install-backend:
+	go get golang.org/x/tools/cmd/goimports
 	go get -u github.com/jteeuwen/go-bindata/...
 	go list -f '{{range .Imports}}{{.}} {{end}}' ./... | xargs go get -v
 	go list -f '{{range .TestImports}}{{.}} {{end}}' ./... | xargs go get -v

@@ -6,11 +6,12 @@
 package router
 
 import (
+	"net/url"
+
 	"github.com/flosch/pongo2"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	"github.com/zenazn/goji/web"
-	"net/url"
 )
 
 func Configure(l *goapp.Lifecycle, conf *config.Config) {

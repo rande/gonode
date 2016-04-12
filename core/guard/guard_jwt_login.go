@@ -7,13 +7,14 @@ package guard
 
 import (
 	"encoding/json"
+	"net/http"
+	"regexp"
+	"time"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/schema"
 	"golang.org/x/crypto/bcrypt"
-	"net/http"
-	"regexp"
-	"time"
 )
 
 // this authenticator will create a JWT Token from a standard form

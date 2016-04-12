@@ -6,9 +6,10 @@
 package squirrel
 
 import (
+	"testing"
+
 	sq "github.com/lann/squirrel"
 	"github.com/stretchr/testify/assert"
-	"testing"
 	//	"github.com/twinj/uuid"
 )
 

@@ -6,9 +6,10 @@
 package base
 
 import (
-	"github.com/stretchr/testify/assert"
 	"io"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_Manager_Validate(t *testing.T) {

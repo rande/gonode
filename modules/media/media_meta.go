@@ -6,12 +6,6 @@
 package media
 
 import (
-	log "github.com/Sirupsen/logrus"
-	"github.com/rande/goexif/exif"
-	"github.com/rande/goexif/mknote"
-	"github.com/rande/goexif/tiff"
-	"github.com/rande/gonode/core/vault"
-	"github.com/rande/gonode/modules/base"
 	"image"
 	_ "image/gif"
 	_ "image/jpeg"
@@ -20,6 +14,13 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+
+	log "github.com/Sirupsen/logrus"
+	"github.com/rande/goexif/exif"
+	"github.com/rande/goexif/mknote"
+	"github.com/rande/goexif/tiff"
+	"github.com/rande/gonode/core/vault"
+	"github.com/rande/gonode/modules/base"
 )
 
 type ExifMeta map[string]string

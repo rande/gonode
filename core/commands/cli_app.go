@@ -7,6 +7,9 @@ package commands
 
 import (
 	"database/sql"
+	"net/http"
+	"time"
+
 	log "github.com/Sirupsen/logrus"
 	sq "github.com/lann/squirrel"
 	pq "github.com/lib/pq"
@@ -16,8 +19,6 @@ import (
 	"github.com/rande/gonode/modules/base"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
-	"net/http"
-	"time"
 )
 
 func Configure(l *goapp.Lifecycle, conf *config.Config) {

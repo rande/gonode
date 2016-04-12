@@ -9,14 +9,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
 	"testing"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/stretchr/testify/assert"
 )
 
 func GetToken() *jwt.Token {
@@ -64,7 +65,7 @@ func Test_JwtTokenGuardAuthenticator_getCredentials_NoHeader_Request(t *testing.
 	c, err := a.GetCredentials(req)
 
 	assert.Nil(t, c)
-	assert.NotNil(t, err)
+	assert.Nil(t, err)
 }
 
 func Test_JwtTokenGuardAuthenticator_getCredentials_Invalid_Token(t *testing.T) {
@@ -212,5 +213,5 @@ func Test_JwtTokenGuardAuthenticator_onAuthenticationFailure(t *testing.T) {
 	json.Unmarshal(b.Bytes(), v)
 
 	assert.Equal(t, "KO", v.Status)
-	assert.Equal(t, "Unable to validate token", v.Message)
+	assert.Equal(t, "Unable to validate the token", v.Message)
 }

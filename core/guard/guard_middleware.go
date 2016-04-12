@@ -7,9 +7,10 @@ package guard
 
 import (
 	"fmt"
+	"net/http"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/zenazn/goji/web"
-	"net/http"
 )
 
 func GetGuardMiddleware(auths []GuardAuthenticator) func(c *web.C, h http.Handler) http.Handler {
@@ -55,8 +56,10 @@ func GetGuardMiddleware(auths []GuardAuthenticator) func(c *web.C, h http.Handle
 
 				if logger != nil {
 					logger.WithFields(log.Fields{
-						"module": "core.guard.middleware",
-						"type":   fmt.Sprintf("%T", authenticator),
+						"module":    "core.guard.middleware",
+						"type":      fmt.Sprintf("%T", authenticator),
+						"performed": performed,
+						"output":    output,
 					}).Debug("Ignoring authenticator")
 				}
 			}

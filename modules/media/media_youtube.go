@@ -8,6 +8,7 @@ package media
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/lib/pq"
 	"github.com/rande/gonode/modules/base"
 )

@@ -3,8 +3,9 @@ package vault
 import (
 	"crypto/hmac"
 	"crypto/sha256"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // test hmac usage

@@ -7,9 +7,10 @@ package router
 
 import (
 	"bytes"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_RequestContext_Without_X(t *testing.T) {
