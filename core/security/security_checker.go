@@ -10,13 +10,13 @@ type AuthorizationChecker interface {
 }
 
 type DefaultAuthorizationChecker struct {
-	DecisionManager DecisionVoter
+	DecisionVoter DecisionVoter
 }
 
 func (c *DefaultAuthorizationChecker) IsGranted(t SecurityToken, attrs Attributes, o interface{}) (bool, error) {
-	if c.DecisionManager == nil {
+	if c.DecisionVoter == nil {
 		return false, nil
 	}
 
-	return c.DecisionManager.Decide(t, attrs, o), nil
+	return c.DecisionVoter.Decide(t, attrs, o), nil
 }

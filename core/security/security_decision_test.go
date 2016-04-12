@@ -34,6 +34,7 @@ func Test_AffirmativeDecision_Valid(t *testing.T) {
 
 	v := &MockedVoter{}
 	v.On("Vote", tk, s, attrs).Return(ACCESS_GRANTED, nil)
+	v.On("Support", s).Return(true)
 
 	d := &AffirmativeDecision{
 		Voters: []Voter{v},
@@ -53,6 +54,7 @@ func Test_AffirmativeDecision_Invalid(t *testing.T) {
 
 	v := &MockedVoter{}
 	v.On("Vote", tk, s, attrs).Return(ACCESS_DENIED, nil)
+	v.On("Support", s).Return(true)
 
 	d := &AffirmativeDecision{
 		Voters: []Voter{v},
@@ -72,6 +74,7 @@ func Test_AffirmativeDecision_Abstain_Default(t *testing.T) {
 
 	v := &MockedVoter{}
 	v.On("Vote", tk, s, attrs).Return(ACCESS_ABSTAIN, nil)
+	v.On("Support", s).Return(true)
 
 	d := &AffirmativeDecision{
 		Voters: []Voter{v},
@@ -90,6 +93,7 @@ func Test_AffirmativeDecision_Abstain_ForceTrue(t *testing.T) {
 
 	v := &MockedVoter{}
 	v.On("Vote", tk, s, attrs).Return(ACCESS_ABSTAIN, nil)
+	v.On("Support", s).Return(true)
 
 	d := &AffirmativeDecision{
 		Voters: []Voter{v},

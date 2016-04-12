@@ -55,10 +55,10 @@ func (a *Api) Find(w io.Writer, query sq.SelectBuilder, page uint64, perPage uin
 	if options != nil && len(options.Roles) > 0 {
 		value, _ := options.Roles.ToStringSlice()
 
-		query = query.Where(squirrel.NewExprSlice(fmt.Sprintf("\"%s\" && ARRAY[" + sq.Placeholders(len(options.Roles)) + "]", "access"), value))
+		query = query.Where(squirrel.NewExprSlice(fmt.Sprintf("\"%s\" && ARRAY["+sq.Placeholders(len(options.Roles))+"]", "access"), value))
 	}
 
-	list := a.Manager.FindBy(query, (page - 1) * perPage, perPage + 1)
+	list := a.Manager.FindBy(query, (page-1)*perPage, perPage+1)
 
 	pager := &ApiPager{
 		Page:    page,
@@ -111,7 +111,7 @@ func (a *Api) Save(r io.Reader, w io.Writer, options *base.AccessOptions) error 
 		helper.PanicUnless(node.Type == saved.Type, "Type mismatch")
 
 		if options != nil {
-			result, _ := a.Authorizer.IsGranted(options.Token, security.AttributesFromString(node.Access), node)
+			result, _ := a.Authorizer.IsGranted(options.Token, nil, node)
 
 			if !result {
 				return base.AccessForbiddenError
@@ -200,7 +200,7 @@ func (a *Api) FindOneBy(query sq.SelectBuilder, w io.Writer, options *base.Acces
 	}
 
 	if options != nil {
-		result, _ := a.Authorizer.IsGranted(options.Token, security.AttributesFromString(node.Access), node)
+		result, _ := a.Authorizer.IsGranted(options.Token, nil, node)
 
 		if !result {
 			return base.AccessForbiddenError
@@ -226,7 +226,7 @@ func (a *Api) RemoveOne(uuid string, w io.Writer, options *base.AccessOptions) e
 	}
 
 	if options != nil {
-		result, _ := a.Authorizer.IsGranted(options.Token, security.AttributesFromString(node.Access), node)
+		result, _ := a.Authorizer.IsGranted(options.Token, nil, node)
 
 		if !result {
 			return base.AccessForbiddenError
@@ -245,11 +245,10 @@ func (a *Api) RemoveOne(uuid string, w io.Writer, options *base.AccessOptions) e
 }
 
 func (a *Api) Remove(query sq.SelectBuilder, w io.Writer, options *base.AccessOptions) error {
-
 	if options != nil && len(options.Roles) > 0 {
 		value, _ := options.Roles.ToStringSlice()
 
-		query = query.Where(squirrel.NewExprSlice(fmt.Sprintf("\"%s\" && ARRAY[" + sq.Placeholders(len(options.Roles)) + "]", "access"), value))
+		query = query.Where(squirrel.NewExprSlice(fmt.Sprintf("\"%s\" && ARRAY["+sq.Placeholders(len(options.Roles))+"]", "access"), value))
 	}
 
 	a.Manager.Remove(query)

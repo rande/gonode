@@ -123,7 +123,7 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 		response.Add("request", req)
 
 		if node != nil {
-			if granted, err := authorizer.IsGranted(token, base.GetSecurityAttributes(node.Access), nil); err != nil {
+			if granted, err := authorizer.IsGranted(token, nil, node); err != nil {
 				base.HandleError(req, res, err)
 				return
 			} else if !granted {

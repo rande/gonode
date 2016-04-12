@@ -19,15 +19,24 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 	l.Register(func(app *goapp.App) error {
 
 		app.Set("security.authorizer", func(app *goapp.App) interface{} {
+			voters := []Voter{}
+			for _, id := range conf.Security.Voters {
+				voters = append(voters, app.Get(id).(Voter))
+			}
+
 			return &DefaultAuthorizationChecker{
-				DecisionManager: &AffirmativeDecision{
-					Voters: []Voter{
-						&RoleVoter{Prefix: "ROLE_"},
-						&RoleVoter{Prefix: "IS_"},
-						&RoleVoter{Prefix: "node:"},
-					},
+				DecisionVoter: &AffirmativeDecision{
+					Voters: voters,
 				},
 			}
+		})
+
+		app.Set("security.voter.role", func(app *goapp.App) interface{} {
+			return &RoleVoter{Prefix: "ROLE_"}
+		})
+
+		app.Set("security.voter.is", func(app *goapp.App) interface{} { // to remove
+			return &RoleVoter{Prefix: "IS_"}
 		})
 
 		app.Set("security.access_checker", func(app *goapp.App) interface{} {

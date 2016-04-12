@@ -15,14 +15,19 @@ type DummyStruct struct {
 }
 
 func Test_DefaultAuthorizationChecker(t *testing.T) {
+	d := &MockedDecisionVoter{}
+	c := &DefaultAuthorizationChecker{
+		DecisionVoter: d,
+	}
 
-	c := &DefaultAuthorizationChecker{}
 	attrs := make(Attributes, 0)
 	s := &DummyStruct{}
 
 	tk := &DefaultSecurityToken{
 		Roles: []string{"ROLE_ADMIN"},
 	}
+
+	d.On("Decide", tk, attrs, s).Return(false)
 
 	b, err := c.IsGranted(tk, attrs, s)
 

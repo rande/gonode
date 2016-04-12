@@ -23,6 +23,11 @@ func (d *AffirmativeDecision) Decide(t SecurityToken, attrs Attributes, o interf
 	deny := 0
 
 	for _, v := range d.Voters {
+
+		if !v.Support(o) {
+			continue
+		}
+
 		r, _ := v.Vote(t, o, attrs)
 
 		switch r {

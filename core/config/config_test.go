@@ -52,6 +52,8 @@ key = "ZeSecretKey0oo"
         path = "^\\/nodes\\/(.*)$"
 
 [security]
+    voters = ["security.voter.role"]
+
     [security.cors]
     allowed_origins = ["*"]
     allowed_methods = ["GET", "PUT", "POST"]
@@ -123,6 +125,7 @@ key = "ZeSecretKey0oo"
 	assert.Equal(t, 1, len(config.Security.Access))
 	assert.Equal(t, []string{"ROLE_ADMIN"}, config.Security.Access[0].Roles)
 	assert.Equal(t, "^\\/admin", config.Security.Access[0].Path)
+	assert.Equal(t, []string{"security.voter.role"}, config.Security.Voters)
 
 	// test search
 	assert.Equal(t, uint64(256), config.Search.MaxResult)

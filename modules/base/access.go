@@ -33,3 +33,32 @@ func GetSecurityAttributes(access []string) security.Attributes {
 
 	return attrs
 }
+
+type AccessVoter struct {
+}
+
+func (a *AccessVoter) Support(v interface{}) bool {
+	switch v.(type) {
+	case *Node:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a *AccessVoter) Vote(t security.SecurityToken, o interface{}, attrs security.Attributes) (result security.VoterResult, err error) {
+	result = security.ACCESS_ABSTAIN
+
+	node := o.(*Node)
+
+	for _, value := range node.Access {
+		result = security.ACCESS_DENIED
+		for _, role := range t.GetRoles() {
+			if role == value {
+				return security.ACCESS_GRANTED, nil
+			}
+		}
+	}
+
+	return result, nil
+}

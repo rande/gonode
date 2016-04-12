@@ -24,6 +24,13 @@ key = "ZeSecretKey0oo"
         path = "^\\/api\\/v([0-9\\.]*)"
 
 [security]
+    voters = [
+        "security.voter.role",
+        "security.voter.is",
+        "gonode.security.voter.access",
+        "gonode.security.voter.role",
+    ]
+
     [security.cors]
     allowed_origins = ["*"]
     allowed_methods = ["GET", "PUT", "POST"]
@@ -42,13 +49,14 @@ key = "ZeSecretKey0oo"
     roles = ["IS_AUTHENTICATED_ANONYMOUSLY"]
 
 [bindata]
-templates = [
-    "github.com/rande/gonode/modules/setup/templates",
-    "github.com/rande/gonode/modules/blog/templates",
-    "github.com/rande/gonode/modules/prism/templates",
-    "github.com/rande/gonode/modules/search/templates",
-    "github.com/rande/gonode/modules/feed/templates",
-]
+    templates = [
+        "github.com/rande/gonode/modules/setup/templates",
+        "github.com/rande/gonode/modules/blog/templates",
+        "github.com/rande/gonode/modules/prism/templates",
+        "github.com/rande/gonode/modules/search/templates",
+        "github.com/rande/gonode/modules/feed/templates",
+    ]
+
     [bindata.assets]
         [bindata.assets.explorer]
         public = "/explorer"

@@ -52,6 +52,7 @@ type Security struct {
 		Path  string   `toml:"path"`
 		Roles []string `toml:"roles"`
 	} `toml:"access"`
+	Voters []string `toml:"voters"`
 }
 
 type MediaImage struct {
