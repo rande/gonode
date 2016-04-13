@@ -1,9 +1,11 @@
 import {
     selectNode,
     fetchNodeIfNeeded,
+    fetchNodeRevisionsIfNeeded,
+    selectNodeRevision,
+    fetchNodeRevisionIfNeeded,
     logout
 } from '../actions';
-import history from './history';
 
 
 export function ensureAuthenticated(store, execIfAuthenticated = null) {
@@ -33,5 +35,21 @@ export function onEnterNode(store) {
 
         store.dispatch(selectNode(node_uuid));
         store.dispatch(fetchNodeIfNeeded(node_uuid));
+        store.dispatch(fetchNodeRevisionsIfNeeded(node_uuid));
+    });
+}
+
+export function onEnterNodeRevision(store) {
+    return ensureAuthenticated(store, nextState => {
+        const { node_uuid, revision_id } = nextState.params;
+
+        store.dispatch(selectNode(node_uuid));
+        store.dispatch(fetchNodeIfNeeded(node_uuid));
+
+        store.dispatch(fetchNodeRevisionsIfNeeded(node_uuid));
+
+        const revisionId = parseInt(revision_id);
+        store.dispatch(selectNodeRevision(node_uuid, revisionId));
+        store.dispatch(fetchNodeRevisionIfNeeded(node_uuid, revisionId));
     });
 }

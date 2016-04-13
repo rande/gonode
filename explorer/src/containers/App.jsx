@@ -1,25 +1,12 @@
-import lodash                          from 'lodash';
-import React, { Component, PropTypes } from 'react';
-import { connect }                     from 'react-redux';
-import Header                          from '../components/layout/Header.jsx';
-import Navigation                      from '../components/Navigation.jsx';
-import Footer                          from '../components/layout/Footer.jsx';
+import React, { PropTypes } from 'react';
+import { connect }          from 'react-redux';
 
 
-class App extends Component {
-    render() {
-        const { content } = this.props;
-
-        return content;
-    }
-}
+const App = ({ content }) => content;
 
 App.propTypes = {
-    routes:   PropTypes.array.isRequired,
-    dispatch: PropTypes.func.isRequired
+    content:  PropTypes.element.isRequired
 };
 
 
-export default connect(state => {
-    return {};
-})(App);
+export default connect(() => ({}))(App);

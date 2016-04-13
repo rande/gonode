@@ -1,4 +1,11 @@
 .nodes-list
+  position absolute
+  top ($header-height + $pager-height)
+  left   0
+  right  0
+  bottom 0
+  overflow-y auto
+
   &_item
     display: block
     padding: 9px 20px
@@ -20,13 +27,20 @@
         margin-right: 5px
         color: #2e72aa
 
-
     &_type
       display: inline-block
       font-weight: 500
       text-transform: uppercase
       font-size: 10px
       margin-right: 9px
+
+    &_actions
+      position: absolute
+      top:   9px
+      right: 20px
+
+      .button
+        margin-left 12px
 
     &:before
       content: ' '

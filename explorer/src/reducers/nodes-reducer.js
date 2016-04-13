@@ -1,31 +1,35 @@
-import _               from 'lodash';
 import { UPDATE_PATH } from 'redux-simple-router';
-import * as types      from '../constants/ActionTypes';
+import {
+    REQUEST_NODES,
+    RECEIVE_NODES,
+    SELECT_NODE
+} from '../constants/ActionTypes';
 
 const assign = Object.assign || require('object.assign');
 
+
 export default function nodes(state = {
     isFetching:    false,
-    items:         [],
+    uuids:         [],
+    uuid:          null,
     itemsPerPage:  10,
     currentPage:   1,
     previousPage:  null,
     nextPage:      null,
-    currentUuid:   null,
     didInvalidate: true
 }, action) {
     switch (action.type) {
-        case types.REQUEST_NODES:
+        case REQUEST_NODES:
             return assign({}, state, {
                 isFetching:   true,
                 currentPage:  action.page,
                 itemsPerPage: action.perPage
             });
 
-        case types.RECEIVE_NODES:
+        case RECEIVE_NODES:
             return assign({}, state, {
+                uuids:         action.items.map(item => item.uuid),
                 isFetching:    false,
-                items:         action.items,
                 itemsPerPage:  action.itemsPerPage,
                 currentPage:   action.page,
                 previousPage:  (action.previous !== 0 ? action.previous : null),
@@ -33,14 +37,9 @@ export default function nodes(state = {
                 didInvalidate: false
             });
 
-        case types.SELECT_NODE:
+        case SELECT_NODE:
             return assign({}, state, {
-                currentUuid: action.nodeUuid
-            });
-
-        case types.RECEIVE_NODE_CREATION:
-            return assign({}, state, {
-                didInvalidate: true
+                uuid: action.nodeUuid
             });
 
         default:
