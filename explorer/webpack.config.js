@@ -59,7 +59,7 @@ var config = {
 
         // require to make the specific fonts work (absolute path),
         // the value is also used by the WebpackDevServer to serve assets
-        publicPath: "/"
+        publicPath: "/explorer/"
     },
     resolve: {
         // the fallback array contains a set of folder used by webpack to search

@@ -9,7 +9,7 @@ const JSON_HEADERS = {
     'Content-Type': 'application/json'
 };
 
-const SERVER_BASE_URL = 'http://127.0.0.1:2405';
+const SERVER_BASE_URL = 'http://127.0.0.1:2508';
 const API_BASE_URL    = `${SERVER_BASE_URL}/api/v1.0`;
 
 const Api = {
@@ -20,7 +20,7 @@ const Api = {
      * @returns {Promise}
      */
     login(credentials) {
-        const url = `${SERVER_BASE_URL}/login`;
+        const url = `${SERVER_BASE_URL}/api/v1.0/login`;
 
         return request.post(url)
             .type('form')
