@@ -1,21 +1,23 @@
 @require 'settings/colors.styl'
 @require 'settings/dimensions.styl'
-@require 'fonts.styl'
+@require 'settings/animations.styl'
 @require 'button.styl'
 @require 'loader.styl'
-@require 'side-panel.styl'
 @require 'header.styl'
-@require 'breadcrumbs.styl'
+@require 'breadcrumb.styl'
 @require 'footer.styl'
 @require 'react-select.styl'
-@require 'react-slick.styl'
 @require 'form.styl'
 @require 'navigation.styl'
+@require 'node-delete.styl'
 @require 'nodes-list.styl'
+@require 'node-revisions.styl'
 @require 'pager.styl'
 @require 'login.styl'
 
-*
+*,
+*:before,
+*:after
   -webkit-box-sizing: border-box
   -moz-box-sizing:    border-box
   box-sizing:         border-box
@@ -34,7 +36,7 @@ a
 
 html, body
   font-size: 16px
-  font-family: 'Raleway', sans-serif;
+  font-family: 'Open Sans', sans-serif
   line-height: 22px
   margin: 0
   background: $color-main-background
@@ -50,7 +52,7 @@ html, body
   right:  0
   bottom: 0
   left:   $navigation-width
-  overflow-y: auto
+  overflow: hidden
 
 .content-overlay
   opacity: 0.75
@@ -70,16 +72,20 @@ html, body
     display: block
 
 .page-header
-  position: relative
-  border-bottom: 1px solid darken($color-main-background, 10)
+  position: absolute
+  top   0
+  right 0
+  left  0
+  height $header-height
   padding: 17px 20px
 
   &_title
     vertical-align: middle
-    font-weight: 500
+    font-weight: 300
     margin:  0
     padding: 0
     display: inline-block
+    font-family: 'Open Sans', sans-serif
 
   &_button
     margin-left: 12px
@@ -93,18 +99,47 @@ html, body
     line-height: 1em
     border-radius: 2px
 
+.panel-header
+  position: absolute
+  top   0
+  right 0
+  left  0
+  height $header-height
+  background: $color-navigation-background-over
+  box-shadow 0 1px 2px rgba(0, 0, 0, .5)
+  display flex
+  align-items center
+  padding 0 20px
+
+  &_close
+    width  32px
+    height 32px
+    cursor pointer
+    text-align center
+    line-height 32px
+    margin-right 12px
+    font-size 18px
+
+  .button
+    margin-left 12px
 
 .panel-title
-  padding: 20px
-  margin: 0
-  background: lighten($color-second-panel-background, 4)
-  font-weight: 300
-  text-transform: uppercase
-  font-size: 24px
-  color: #fff
+  flex-grow 1
+  margin 0
+  display inline-block
+  font-weight 300
+  font-size 24px
+  color #fff
+  font-family 'Open Sans', sans-serif
 
 .panel-body
   padding: 0 20px
+  position absolute
+  top    $header-height
+  right  0
+  bottom 0
+  left   0
+  overflow-y auto
 
 .second-panel
   position: absolute
@@ -118,6 +153,23 @@ html, body
 
   &._is-opened
     left: 20%
+
+.node-main
+  position absolute
+  top    0
+  right  $node-revisions-width
+  left   0
+  bottom 0
+  overflow hidden
+
+.nodes-wrapper
+  display: flex
+  flex-direction: column
+  width: 100%
+  height: 100%
+
+  .nodes-list
+    flex-grow: 1
 
 .node-raw
   background-color: darken($color-second-panel-background, 7)

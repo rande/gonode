@@ -1,22 +1,36 @@
 .button
-  display: inline-block
-  text-align: center
-  padding: 7px 12px
-  line-height: 1em
-  cursor: pointer
-  background: $color-button-background
-  color:      $color-button-text
-  border-radius: 2px
-  border-width: 0
-  font-size: inherit
+  -webkit-user-select none
+  user-select none
+  display inline-block
+  text-align center
+  padding 7px 12px
+  line-height 1em
+  cursor pointer
+  background $color-button-background
+  color      $color-button-text
+  border-radius 2px
+  border-width 0
+  font-size 14px
+
+  .fa
+    margin-right 6px
+    font-size 12px
 
   &:focus
-    outline: none
+    outline none
 
   &:hover
-    background-color: $color-button-background-over
-    color:            $color-button-text-over
+    background-color $color-button-background-over
+    color            $color-button-text-over
 
   &._is-disabled
-    background-color: $color-button-background-disabled
-    color:            $color-button-text-disabled
+    background-color $color-button-background-disabled
+    color            $color-button-text-disabled
+
+  &-large
+    padding 11px 15px
+    font-size 16px
+
+    .fa
+      margin-right 8px
+      font-size 14px

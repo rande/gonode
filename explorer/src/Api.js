@@ -9,8 +9,8 @@ const JSON_HEADERS = {
     'Content-Type': 'application/json'
 };
 
-const SERVER_BASE_URL = 'http://localhost:2508';
-const API_BASE_URL = SERVER_BASE_URL + '/api/v1.0';
+const SERVER_BASE_URL = 'http://127.0.0.1:2508';
+const API_BASE_URL    = `${SERVER_BASE_URL}/api/v1.0`;
 
 const Api = {
     /**
@@ -20,7 +20,7 @@ const Api = {
      * @returns {Promise}
      */
     login(credentials) {
-        const url = `${SERVER_BASE_URL}/login`;
+        const url = `${SERVER_BASE_URL}/api/v1.0/login`;
 
         return request.post(url)
             .type('form')
@@ -89,6 +89,46 @@ const Api = {
         ;
     },
 
+    /**
+     * Fetch node revisions by node uuid.
+     *
+     * @param {string} uuid
+     * @param {number} page
+     * @param {string} token
+     * @returns {Promise}
+     */
+    nodeRevisions(uuid, page, token = null) {
+        const searchParams = [
+            'per_page=10',
+            `page=${page}`,
+            'order_by=revision,DESC'
+        ];
+
+        const url = `${API_BASE_URL}/nodes/${uuid}/revisions?${searchParams.join('&')}`;
+
+        const req = request.get(url);
+        if (token !== null) {
+            req.set('Authorization', `Bearer ${token}`);
+        }
+
+        return req
+            .then(response => response.body)
+        ;
+    },
+
+    nodeRevision(uuid, id, token = null) {
+        const url = `${API_BASE_URL}/nodes/${uuid}/revisions/${id}`;
+
+        const req = request.get(url);
+        if (token !== null) {
+            req.set('Authorization', `Bearer ${token}`);
+        }
+
+        return req
+            .then(response => response.body)
+        ;
+    },
+
     createNode(nodeData, token = null) {
         const url = `${API_BASE_URL}/nodes`;
 
@@ -100,6 +140,23 @@ const Api = {
         return req
             .send(nodeData)
             .then(response => response.json())
+            .then(node => {
+                return node;
+            })
+        ;
+    },
+
+    updateNode(nodeData, token = null) {
+        const url = `${API_BASE_URL}/nodes/${nodeData.uuid}`;
+
+        const req = request.put(url);
+        if (token !== null) {
+            req.set('Authorization', `Bearer ${token}`);
+        }
+
+        return req
+            .send(nodeData)
+            .then(response => response.body)
             .then(node => {
                 return node;
             })

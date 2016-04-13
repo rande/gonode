@@ -7,9 +7,19 @@ import Pager                           from '../Pager.jsx';
 import NodesList                       from './NodesList.jsx';
 import { fetchNodesIfNeeded }          from '../../actions';
 import { history }                     from '../../routing';
+import { nodesSelector }               from '../../selectors/nodes-selector';
 
 
 class Nodes extends Component {
+    static displayName = 'Nodes';
+
+    static propTypes = {
+        nodes:        PropTypes.array.isRequired,
+        itemsPerPage: PropTypes.number.isRequired,
+        currentPage:  PropTypes.number.isRequired,
+        dispatch:     PropTypes.func.isRequired
+    };
+
     handlePagerChange(pagerData) {
         history.push(`/nodes?p=1&pp=${pagerData.perPage}`);
     }
@@ -47,25 +57,27 @@ class Nodes extends Component {
 
         return (
             <div>
-                <div className="page-header">
-                    <h2 className="page-header_title">
-                        <FormattedMessage id="nodes.title"/>
-                    </h2>
-                    <Link to="/nodes/create" className="page-header_button">
-                        <i className="fa fa-plus"/>&nbsp;
-                        <FormattedMessage id="node.create.button"/>
-                    </Link>
-                    {isFetching && <span className="loader"/>}
+                <div className="nodes-wrapper">
+                    <div className="page-header">
+                        <h2 className="page-header_title">
+                            <FormattedMessage id="nodes.title"/>
+                        </h2>
+                        <Link to="/nodes/create" className="page-header_button">
+                            <i className="fa fa-plus"/>&nbsp;
+                            <FormattedMessage id="node.create.button"/>
+                        </Link>
+                        {isFetching && <span className="loader"/>}
+                    </div>
+                    <Pager
+                        perPageOptions={[5, 10, 16, 32]}
+                        perPage={itemsPerPage}
+                        page={currentPage}
+                        previousPage={previousPage}
+                        nextPage={nextPage}
+                        onChange={this.handlePagerChange.bind(this)}
+                    />
+                    <NodesList nodes={nodes}/>
                 </div>
-                <Pager
-                    perPageOptions={[5, 10, 16, 32]}
-                    perPage={itemsPerPage}
-                    page={currentPage}
-                    previousPage={previousPage}
-                    nextPage={nextPage}
-                    onChange={this.handlePagerChange.bind(this)}
-                />
-                <NodesList nodes={nodes}/>
                 <Link to="/nodes" className={overlayClasses}/>
                 <div className={panelClasses}>
                     {content}
@@ -75,29 +87,5 @@ class Nodes extends Component {
     }
 }
 
-Nodes.propTypes = {
-    nodes:        PropTypes.array.isRequired,
-    itemsPerPage: PropTypes.number.isRequired,
-    currentPage:  PropTypes.number.isRequired,
-    dispatch:     PropTypes.func.isRequired
-};
 
-export default connect((state) => {
-    const { nodes: {
-        items,
-        itemsPerPage,
-        currentPage,
-        previousPage,
-        nextPage,
-        isFetching
-    } } = state;
-
-    return {
-        nodes: items,
-        itemsPerPage,
-        currentPage,
-        previousPage,
-        nextPage,
-        isFetching
-    };
-})(Nodes);
+export default connect(nodesSelector)(Nodes);

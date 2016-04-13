@@ -1,35 +1,20 @@
-import lodash                          from 'lodash';
-import React, { Component, PropTypes } from 'react';
-import { connect }                     from 'react-redux';
-import Header                          from '../components/layout/Header.jsx';
-import Navigation                      from '../components/Navigation.jsx';
-import Footer                          from '../components/layout/Footer.jsx';
+import React, { PropTypes } from 'react';
+import { connect }          from 'react-redux';
+import Navigation           from '../components/Navigation.jsx';
 
 
-class Dashboard extends Component {
-    render() {
-        const {
-            routes,
-            content
-        } = this.props;
-
-        return (
-            <div>
-                <Navigation/>
-                <div className="content">
-                    {content}
-                </div>
-            </div>
-        );
-    }
-}
+const Dashboard = ({ content }) => (
+    <div>
+        <Navigation/>
+        <div className="content">
+            {content}
+        </div>
+    </div>
+);
 
 Dashboard.propTypes = {
-    routes:   PropTypes.array.isRequired,
-    dispatch: PropTypes.func.isRequired
+    content:  PropTypes.element.isRequired
 };
 
 
-export default connect(state => {
-    return {};
-})(Dashboard);
+export default connect(() => ({}))(Dashboard);

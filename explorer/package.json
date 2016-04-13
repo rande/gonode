@@ -7,14 +7,17 @@
   "devDependencies": {
     "babel": "^6.3.26",
     "babel-core": "^6.1.2",
+    "babel-eslint": "5.0.0",
     "babel-loader": "^6.1.0",
     "babel-polyfill": "^6.1.19",
     "babel-preset-es2015": "^6.1.2",
     "babel-preset-react": "^6.1.2",
+    "babel-preset-stage-0": "6.5.0",
     "babel-register": "^6.3.13",
     "clean-webpack-plugin": "^0.1.4",
     "css-loader": "^0.22.0",
-    "eslint": "^1.10.2",
+    "eslint": "2.1.0",
+    "eslint-plugin-react": "4.2.1",
     "expect": "^1.13.4",
     "extract-text-webpack-plugin": "^0.9.1",
     "file-loader": "^0.8.4",
@@ -58,12 +61,15 @@
     "redux-logger": "^2.0.4",
     "redux-simple-router": "0.0.10",
     "redux-thunk": "^1.0.0",
+    "reselect": "2.0.3",
     "superagent": "^1.6.1",
     "superagent-promise": "^1.0.3"
   },
   "scripts": {
     "start": "NODE_ENV=development node webpack.config.js",
-    "lint": "eslint src/* && stylint src/styles",
+    "eslint": "eslint --ext .js --ext .jsx src/*",
+    "stylint": "stylint src/styles",
+    "lint": "npm run eslint && npm run stylint",
     "build": "npm run test && NODE_ENV=production webpack --progress --colors -p",
     "test": "mocha --compilers js:babel-register --recursive"
   }

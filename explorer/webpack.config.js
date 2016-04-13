@@ -59,7 +59,7 @@ var config = {
 
         // require to make the specific fonts work (absolute path),
         // the value is also used by the WebpackDevServer to serve assets
-        publicPath: "/"
+        publicPath: "/explorer/"
     },
     resolve: {
         // the fallback array contains a set of folder used by webpack to search
@@ -84,8 +84,8 @@ var config = {
             include: path.join(__dirname, 'src'),
             // In production, we don't need react-hot as it include a lot of code.
             loaders: process.env.NODE_ENV == 'production' ?
-                ['babel?presets[]=es2015&presets[]=react'] :
-                ['react-hot', 'babel?presets[]=es2015&presets[]=react']
+                ['babel?presets[]=es2015&presets[]=react&presets[]=stage-0'] :
+                ['react-hot', 'babel?presets[]=es2015&presets[]=react&presets[]=stage-0']
         }, {
             test: /\.styl/,
             // resolve-url allow to resolve url() please keep it mind to set the output.publicPath

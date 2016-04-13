@@ -1,0 +1,23 @@
+.breadcrumb
+  flex-grow 1
+  font-size 20px
+  font-weight 300
+
+  &_item
+    display inline-block
+    margin-right 10px
+    color #ddd
+
+    &-link
+      &:hover
+        color #fff
+
+    &:before
+      content '/'
+      display inline-block
+      margin-right 10px
+      color $color-blue-light
+
+    &:first-child
+      &:before
+        display none

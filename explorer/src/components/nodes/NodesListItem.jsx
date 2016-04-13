@@ -1,22 +1,40 @@
 import React, { Component, PropTypes }         from 'react';
 import { Link }                                from 'react-router';
 import { FormattedMessage, FormattedRelative } from 'react-intl';
-import classNames                              from 'classnames';
+import { history }                             from '../../routing';
+import NodeDeleteButton                        from './NodeDeleteButton.jsx';
 
 
 class NodesListItem extends Component {
+    static displayName = 'NodesListItem';
+
+    static propTypes = {
+        node: PropTypes.object.isRequired
+    };
+
+    constructor(props) {
+        super(props);
+
+        this.handleClick = this.handleClick.bind(this);
+    }
+
+    handleClick() {
+        const { node } = this.props;
+        history.push(`/nodes/${node.uuid}`);
+    }
+
     render() {
         const { node } = this.props;
 
         return (
-            <Link to={`/nodes/${node.uuid}`} className="nodes-list_item">
+            <div onClick={this.handleClick} className="nodes-list_item">
                 <h3 className="nodes-list_item_title">{node.name}</h3>
                 <div className="nodes-list_item_meta">
-                    <span className="nodes-list_item_type">
+                    <div className="nodes-list_item_type">
                         <i className="fa fa-hashtag"/>
                         {node.type}
-                    </span>
-                    <span className="nodes-list_item_creation">
+                    </div>
+                    <div className="nodes-list_item_creation">
                         <i className="fa fa-calendar-o"/>
                         <FormattedMessage
                             id="node.created_ago"
@@ -35,16 +53,19 @@ class NodesListItem extends Component {
                                 )
                             }}
                         />
-                    </span>
+                    </div>
+                    <div className="nodes-list_item_actions" onClick={e => e.stopPropagation()}>
+                        <Link to={`/nodes/${node.uuid}/edit`} className="button">
+                            <i className="fa fa-pencil" />
+                            <FormattedMessage id="node.edit.link"/>
+                        </Link>
+                        <NodeDeleteButton uuid={node.uuid} />
+                    </div>
                 </div>
-            </Link>
+            </div>
         );
     }
 }
-
-NodesListItem.propTypes = {
-    node: PropTypes.object.isRequired
-};
 
 
 export default NodesListItem;
