@@ -16,9 +16,9 @@ Configuration
     [logger.hooks]
         [logger.hooks.default]
         service = "influxdb"
-        dsn = "http://localhost:8086"
+        url = "http://localhost:8086"
         tags = ["app.core"]
-        database = "stats"
+        database = "logger"
         level = "debug"
 ```
 

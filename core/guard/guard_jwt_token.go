@@ -13,6 +13,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go/request"
 )
 
 // this authenticator will create a JWT Token from a standard form
@@ -29,7 +30,7 @@ func (a *JwtTokenGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 		return nil, nil
 	}
 
-	if credentials, err := jwt.ParseFromRequest(req, func(token *jwt.Token) (interface{}, error) {
+	if credentials, err := request.ParseFromRequest(req, request.OAuth2Extractor, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			if a.Logger != nil {
@@ -45,7 +46,7 @@ func (a *JwtTokenGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 		return []byte(a.Key), nil
 	}); err != nil {
 
-		if err == jwt.ErrNoTokenInRequest {
+		if err == request.ErrNoTokenInRequest {
 			if a.Logger != nil {
 				a.Logger.WithFields(log.Fields{
 					"module": "core.guard.jwt_token",
@@ -67,7 +68,8 @@ func (a *JwtTokenGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 
 	} else {
 
-		if _, ok := credentials.Claims["usr"]; !ok {
+		claims := credentials.Claims.(jwt.MapClaims)
+		if _, ok := claims["usr"]; !ok {
 
 			if a.Logger != nil {
 				a.Logger.WithFields(log.Fields{
@@ -81,8 +83,8 @@ func (a *JwtTokenGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 		if a.Logger != nil {
 			a.Logger.WithFields(log.Fields{
 				"module":   "core.guard.jwt_token",
-				"username": credentials.Claims["usr"],
-				"roles":    credentials.Claims["rls"],
+				"username": claims["usr"],
+				"roles":    claims["rls"],
 			}).Info("valid credentials")
 		}
 
@@ -93,14 +95,16 @@ func (a *JwtTokenGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 func (a *JwtTokenGuardAuthenticator) GetUser(credentials interface{}) (GuardUser, error) {
 	jwtToken := credentials.(*jwt.Token)
 
-	user, err := a.Manager.GetUser(jwtToken.Claims["usr"].(string))
+	claims := jwtToken.Claims.(jwt.MapClaims)
+
+	user, err := a.Manager.GetUser(claims["usr"].(string))
 
 	if err != nil {
 		if a.Logger != nil {
 			a.Logger.WithFields(log.Fields{
 				"module":   "core.guard.jwt_token",
 				"error":    err.Error(),
-				"username": jwtToken.Claims["usr"].(string),
+				"username": claims["usr"].(string),
 			}).Error("An error occurs when retrieving the user")
 		}
 
@@ -114,7 +118,7 @@ func (a *JwtTokenGuardAuthenticator) GetUser(credentials interface{}) (GuardUser
 	if a.Logger != nil {
 		a.Logger.WithFields(log.Fields{
 			"module":   "core.guard.jwt_token",
-			"username": jwtToken.Claims["usr"].(string),
+			"username": claims["usr"].(string),
 		}).Info("Unable to found the user")
 	}
 

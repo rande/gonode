@@ -28,7 +28,7 @@ type Reference struct {
 
 func (m *Reference) MarshalJSON() ([]byte, error) {
 	// Manually calling Marshal for Contents
-	cont, err := json.Marshal(uuid.Formatter(m.UUID, uuid.CleanHyphen))
+	cont, err := json.Marshal(uuid.Formatter(m.UUID, uuid.FormatCanonical))
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (m *Reference) UnmarshalJSON(data []byte) error {
 }
 
 func (m *Reference) CleanString() string {
-	return uuid.Formatter(m.UUID, uuid.CleanHyphen)
+	return uuid.Formatter(m.UUID, uuid.FormatCanonical)
 }
 
 func GetReferenceFromString(reference string) (Reference, error) {

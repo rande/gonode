@@ -26,12 +26,14 @@ func GetToken() *jwt.Token {
 	// @todo: add support for referenced token on database
 	// token.Header["kid"] = "the sha1"
 
+	claims := jwtToken.Claims.(jwt.MapClaims)
+
 	// Set reserved claims
-	jwtToken.Claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
+	claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
 
 	// Set shared claims
-	jwtToken.Claims["rls"] = []string{"ADMIN"}
-	jwtToken.Claims["usr"] = "thomas"
+	claims["rls"] = []string{"ADMIN"}
+	claims["usr"] = "thomas"
 
 	return jwtToken
 }
@@ -103,7 +105,7 @@ func Test_JwtTokenGuardAuthenticator_getCredentials_Valid_Token_Header(t *testin
 
 	assert.NotNil(t, c)
 	assert.Nil(t, err)
-	assert.Equal(t, "thomas", c.(*jwt.Token).Claims["usr"].(string))
+	assert.Equal(t, "thomas", c.(*jwt.Token).Claims.(jwt.MapClaims)["usr"].(string))
 }
 
 func Test_JwtTokenGuardAuthenticator_getCredentials_Valid_Token_QueryString(t *testing.T) {
@@ -123,7 +125,7 @@ func Test_JwtTokenGuardAuthenticator_getCredentials_Valid_Token_QueryString(t *t
 
 	assert.NotNil(t, c)
 	assert.Nil(t, err)
-	assert.Equal(t, "thomas", c.(*jwt.Token).Claims["usr"].(string))
+	assert.Equal(t, "thomas", c.(*jwt.Token).Claims.(jwt.MapClaims)["usr"].(string))
 }
 
 func Test_JwtTokenGuardAuthenticator_checkCredentials(t *testing.T) {

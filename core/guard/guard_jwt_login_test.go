@@ -127,7 +127,9 @@ func Test_JwtLoginGuardAuthenticator_onAuthenticationSuccess(t *testing.T) {
 	})
 
 	assert.Nil(t, err)
-	assert.Equal(t, token.Username, jwtToken.Claims["usr"])
+	claims := jwtToken.Claims.(jwt.MapClaims)
+
+	assert.Equal(t, token.Username, claims["usr"])
 	assert.Equal(t, "application/json", res.Header().Get("Content-Type"))
 	assert.Equal(t, v.Token, res.Header().Get("X-Token"))
 	assert.Equal(t, "Request is authenticated", v.Message)
