@@ -143,11 +143,13 @@ func (a *JwtLoginGuardAuthenticator) OnAuthenticationSuccess(req *http.Request, 
 	// token.Header["kid"] = "the sha1"
 
 	// Set reserved claims
-	jwtToken.Claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
+	claims := jwtToken.Claims.(jwt.MapClaims)
+
+	claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
 
 	// Set shared claims
-	jwtToken.Claims["rls"] = token.GetRoles()
-	jwtToken.Claims["usr"] = token.GetUsername()
+	claims["rls"] = token.GetRoles()
+	claims["usr"] = token.GetUsername()
 
 	// Sign and get the complete encoded token as a string
 	tokenString, _ := jwtToken.SignedString([]byte(a.Key))
