@@ -22,6 +22,7 @@ format:  ## Format code to respect CS
 	go vet ./...
 
 bin:                 ## Generate bin assets file
+	go get -u github.com/jteeuwen/go-bindata/...
 	cd $(GO_PATH)/src && go-bindata -dev -prefix $(GO_PATH)/src -o $(GO_BINDATA_OUTPUT) -pkg $(GO_BINDATA_PACKAGE) -ignore $(GO_BINDATA_IGNORE) $(GO_BINDATA_PATHS)
 
 run:               ## Run server
@@ -43,7 +44,7 @@ install-backend:  ## Install backend dependencies
 	go get -u github.com/jteeuwen/go-bindata/...
 	go list -f '{{range .Imports}}{{.}} {{end}}' ./... | xargs go get -v
 	go list -f '{{range .TestImports}}{{.}} {{end}}' ./... | xargs go get -v
-	git clone https://github.com/rande/gonode-skeleton.git $(GO_PATH)/src/github.com/rande/gonode-skeleton
+	git clone https://github.com/rande/gonode-skeleton.git $(GO_PATH)/src/github.com/rande/gonode-skeleton || exit 0
 
 install-frontend: ## Install frontend dependencies
 	cd explorer && npm install

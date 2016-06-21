@@ -1,0 +1,30 @@
+version: '2'
+services:
+    back:
+        image: golang:1.6
+        command: /bin/bash
+        ports:
+            - "127.0.0.1:8000:8000"
+        volumes:
+            - "${GOPATH}/src:/go/src"
+        working_dir: /go/src/github.com/rande/gonode
+        links:
+            - influxdb
+            - database
+        environment:
+            POSTGRES_PASSWORD: gonode
+            POSTGRES_DB: gonode
+            INFLUXDB_HOST: influxdb
+    influxdb:
+        image: influxdb
+        volumes:
+            - "./data/influxdb:/var/lib/influxdb/data"
+    database:
+        image: postgres:9.5
+        volumes:
+            - "./data/postgresql:/var/lib/postgresql/data"
+        ports:
+            - "127.0.0.1:5432:5432"
+        environment:
+            POSTGRES_PASSWORD: gonode
+            POSTGRES_DB: gonode
