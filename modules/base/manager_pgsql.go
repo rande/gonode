@@ -268,7 +268,7 @@ func (m *PgNodeManager) RemoveOne(node *Node) (*Node, error) {
 }
 
 func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
-	if node.Uuid == GetEmptyReference() {
+	if node.Uuid.String() == GetEmptyReference().String() {
 		node.Uuid = GetReference(uuid.NewV4())
 	}
 
