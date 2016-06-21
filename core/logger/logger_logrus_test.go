@@ -7,6 +7,8 @@ package logger
 
 import (
 	"testing"
+	"fmt"
+	"os"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/rande/gonode/core/config"
@@ -68,6 +70,7 @@ func Test_Config_Influx(t *testing.T) {
 	hook, err := GetHook(map[string]interface{}{
 		"service": "influxdb",
 		"tags":    []string{"salut"},
+		"url":     fmt.Sprintf("http://%s:8086", os.Getenv("INFLUXDB_HOST")),
 	})
 
 	assert.NoError(t, err)
@@ -84,7 +87,7 @@ func Test_Config_Influx_From_Config(t *testing.T) {
     [logger.hooks]
         [logger.hooks.default]
         service = "influxdb"
-        dsn = "http://localhost:8086"
+        url = "http://{{ env "INFLUXDB_HOST" }}:8086"
         tags = ["app.core"]
         database = "gonode_stats"
         level = "debug"
