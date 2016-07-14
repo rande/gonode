@@ -9,6 +9,7 @@ GO_BINDATA_PATHS = $(GO_PATH)/src/github.com/rande/gonode/modules/... $(GO_PATH)
 GO_BINDATA_IGNORE = "(.*)\.(go|DS_Store)"
 GO_BINDATA_OUTPUT = $(shell pwd)/assets/bindata.go
 GO_BINDATA_PACKAGE = assets
+GO_PKG = ./core/bindata,./core/commands,./core/config,./core/guard,./core/helper,./core/logger,./core/router,./core/security,./core/squirrel,./core/vault,./modules/api,./modules/base,./modules/blog,./modules/debug,./modules/feed,./modules/guard,./modules/media,./modules/prism,./modules/raw,./modules/search,./modules/setup,./modules/user
 
 help:     ## Display this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -31,7 +32,7 @@ run:               ## Run server
 test: bin test-backend test-frontend  ## Run tests
 
 test-backend: bin     ## Run backend tests
-	go test $(GONODE_CORE) $(GONODE_MODULES) ./test/modules
+	go test -v $(GONODE_CORE) $(GONODE_MODULES) ./test/modules
 	go vet ./...
 
 test-frontend:        ## Run frontend tests
@@ -39,7 +40,37 @@ test-frontend:        ## Run frontend tests
 
 install: install-backend install-frontend ## Install dependencies
 
-install-backend:  ## Install backend dependencies
+coverage-backend: bin ## run coverage tests
+	mkdir -p build/coverage && rm -rf build/coverage/*.cov
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/core_bindata.cov ./core/bindata
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/core_commands.cov ./core/commands
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/core_config.cov ./core/config
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/core_guard.cov ./core/guard
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/core_helper.cov ./core/helper
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/core_logger.cov ./core/logger
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/core_router.cov ./core/router
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/core_security.cov ./core/security
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/core_squirrel.cov ./core/squirrel
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/core_vault.cov ./core/vault
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/modules_api.cov ./modules/api
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/modules_base.cov ./modules/base
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/modules_blog.cov ./modules/blog
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/modules_debug.cov ./modules/debug
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/modules_feed.cov ./modules/feed
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/modules_guard.cov ./modules/guard
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/modules_media.cov ./modules/media
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/modules_prism.cov ./modules/prism
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/modules_raw.cov ./modules/raw
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/modules_search.cov ./modules/search
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/modules_setup.cov ./modules/setup
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/modules_user.cov ./modules/user
+	go test -v -coverpkg $(GO_PKG) -covermode count -coverprofile=build/coverage/functionnals.cov ./test/modules
+	gocovmerge build/coverage/* > build/gonode.coverage
+	go tool cover -html=./build/gonode.coverage -o build/gonode.html
+
+install-backend: ## Install backend dependencies
+	go get github.com/wadey/gocovmerge
+	go get golang.org/x/tools/cmd/cover
 	go get golang.org/x/tools/cmd/goimports
 	go get -u github.com/jteeuwen/go-bindata/...
 	go list -f '{{range .Imports}}{{.}} {{end}}' ./... | xargs go get -v
