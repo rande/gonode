@@ -2,6 +2,7 @@ Go Node
 =======
 
 [![Build Status](https://travis-ci.org/rande/gonode.svg?branch=master)](https://travis-ci.org/rande/gonode)
+[![Coverage Status](https://coveralls.io/repos/github/rande/gonode/badge.svg)](https://coveralls.io/github/rande/gonode)
 
 A prototype to store dynamic node inside a PostgreSQL database with the JSONb storage column.
 
