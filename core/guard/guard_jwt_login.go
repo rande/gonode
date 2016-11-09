@@ -28,10 +28,20 @@ type JwtLoginGuardAuthenticator struct {
 
 func (a *JwtLoginGuardAuthenticator) GetCredentials(req *http.Request) (interface{}, error) {
 	if req.Method != "POST" {
+		a.Logger.WithFields(log.Fields{
+			"module": "core.guard.jwt_login",
+			"method": req.Method,
+		}).Debug("Invalid HTTP method")
+
 		return nil, nil
 	}
 
 	if !a.LoginPath.Match([]byte(req.URL.Path)) {
+		a.Logger.WithFields(log.Fields{
+			"module": "core.guard.jwt_login",
+			"path":   req.URL.Path,
+		}).Debug("Invalid Path")
+
 		return nil, nil
 	}
 
@@ -44,7 +54,12 @@ func (a *JwtLoginGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 
 	decoder := schema.NewDecoder()
 	if err := decoder.Decode(loginForm, req.Form); err != nil {
-		return nil, err
+		a.Logger.WithFields(log.Fields{
+			"module": "core.guard.jwt_login",
+			"error":  err,
+		}).Info("Unable to decode POST parameters")
+
+		return nil, InvalidCredentialsFormat
 	}
 
 	if a.Logger != nil {
