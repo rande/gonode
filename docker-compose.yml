@@ -1,10 +1,10 @@
 version: '2'
 services:
     back:
-        image: golang:1.6
-        command: /bin/bash
+        image: golang:1.7
+        command: /bin/bash -c "while true; do date ; sleep 3600 ; done"
         ports:
-            - "127.0.0.1:8000:8000"
+            - "127.0.0.1:2508:2508"
         volumes:
             - "${GOPATH}/src:/go/src"
         working_dir: /go/src/github.com/rande/gonode
@@ -15,16 +15,33 @@ services:
             POSTGRES_PASSWORD: gonode
             POSTGRES_DB: gonode
             INFLUXDB_HOST: influxdb
+
+    front:
+        image: ekino/docker-buildbox:node4.3-2016.05.03
+        command: /bin/bash -c "while true; do date ; sleep 3600 ; done"
+        ports:
+            - "127.0.0.1:3000:3000"
+        volumes:
+            - "./admin:/code/admin"
+        working_dir: /code/admin
+        links:
+            - back
+
     influxdb:
         image: influxdb
         volumes:
-            - "./data/influxdb:/var/lib/influxdb/data"
+            - "influxdb:/var/lib/influxdb/data"
+
     database:
         image: postgres:9.5
         volumes:
-            - "./data/postgresql:/var/lib/postgresql/data"
+            - "postgresql:/var/lib/postgresql/data"
         ports:
             - "127.0.0.1:5432:5432"
         environment:
             POSTGRES_PASSWORD: gonode
             POSTGRES_DB: gonode
+
+volumes:
+    influxdb:
+    postgresql:

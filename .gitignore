@@ -4,3 +4,5 @@ explorer/dist
 dist/*
 assets/bindata.go
 data
+admin/build
+admin/node_modules

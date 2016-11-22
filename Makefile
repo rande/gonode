@@ -27,6 +27,7 @@ bin:                 ## Generate bin assets file
 	cd $(GO_PATH)/src && go-bindata -dev -prefix $(GO_PATH)/src -o $(GO_BINDATA_OUTPUT) -pkg $(GO_BINDATA_PACKAGE) -ignore $(GO_BINDATA_IGNORE) $(GO_BINDATA_PATHS)
 
 run:               ## Run server
+	go get -u github.com/jteeuwen/go-bindata/...
 	cd ../gonode-skeleton && make run
 
 test: bin test-backend test-frontend  ## Run tests
@@ -110,3 +111,19 @@ restart:
 
 build-assets:
 	cd ../gonode/explorer && npm run-script build
+
+
+dkr-test:
+	docker-compose exec back make test
+
+dkr-run:
+	docker-compose exec back make run
+
+dkr-back:
+	docker-compose exec back /bin/bash
+
+dkr-front:
+	docker-compose exec front /bin/bash
+
+dkr-watch:
+	docker-compose exec front ./node_modules/.bin/webpack-dev-server --config webpack-dev-server.config.js --progress --inline --colors
