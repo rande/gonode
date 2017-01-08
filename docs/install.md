@@ -19,3 +19,7 @@ Installation steps
 4. Create a valid schema: ``curl -XPOST http://localhost:2508/setup/install`` 
 5. Load some fixtures: ``curl -XPOST http://localhost:2508/setup/data/load`` 
  
+DX
+--
+
+* ``git update-index --assume-unchanged assets/bindata.go``

@@ -6,8 +6,9 @@
 package api
 
 import (
-	"bufio"
+	"bytes"
 	"container/list"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -117,6 +118,7 @@ func Api_GET_Node(app *goapp.App) func(c web.C, res http.ResponseWriter, req *ht
 	apiHandler := app.Get("gonode.api").(*Api)
 	handler_collection := app.Get("gonode.handler_collection").(base.Handlers)
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
+	serializer := app.Get("gonode.node.serializer").(*base.Serializer)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		token := security.GetTokenFromContext(c)
@@ -175,9 +177,11 @@ func Api_GET_Node(app *goapp.App) func(c web.C, res http.ResponseWriter, req *ht
 
 			options := base.NewAccessOptionsFromToken(token)
 
-			err := apiHandler.FindOne(c.URLParams["uuid"], res, options)
-
-			base.HandleError(req, res, err)
+			if node, err := apiHandler.FindOne(c.URLParams["uuid"], options); err != nil {
+				base.HandleError(req, res, err)
+			} else {
+				serializer.Serialize(res, node)
+			}
 		}
 	}
 }
@@ -187,6 +191,7 @@ func Api_GET_Node_Revisions(app *goapp.App) func(c web.C, res http.ResponseWrite
 	searchBuilder := app.Get("gonode.search.pgsql").(*search.SearchPGSQL)
 	searchParser := app.Get("gonode.search.parser.http").(*search.HttpSearchParser)
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
+	serializer := app.Get("gonode.node.serializer").(*base.Serializer)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		token := security.GetTokenFromContext(c)
@@ -208,13 +213,28 @@ func Api_GET_Node_Revisions(app *goapp.App) func(c web.C, res http.ResponseWrite
 
 		options := base.NewAccessOptionsFromToken(token)
 
-		apiHandler.Find(res, searchBuilder.BuildQuery(searchForm, query), searchForm.Page, searchForm.PerPage, options)
+		pager, err := apiHandler.Find(searchBuilder.BuildQuery(searchForm, query), searchForm.Page, searchForm.PerPage, options)
+
+		if err != nil {
+			base.HandleError(req, res, err)
+		}
+
+		for k, v := range pager.Elements {
+			b := bytes.NewBuffer([]byte{})
+			serializer.Serialize(b, v)
+			message := json.RawMessage(b.Bytes())
+
+			pager.Elements[k] = &message
+		}
+
+		base.Serialize(res, pager)
 	}
 }
 
 func Api_GET_Node_Revision(app *goapp.App) func(c web.C, res http.ResponseWriter, req *http.Request) {
 	apiHandler := app.Get("gonode.api").(*Api)
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
+	serializer := app.Get("gonode.node.serializer").(*base.Serializer)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		token := security.GetTokenFromContext(c)
@@ -235,15 +255,18 @@ func Api_GET_Node_Revision(app *goapp.App) func(c web.C, res http.ResponseWriter
 
 		options := base.NewAccessOptionsFromToken(token)
 
-		err := apiHandler.FindOneBy(query, res, options)
-
-		base.HandleError(req, res, err)
+		if node, err := apiHandler.FindOneBy(query, options); err != nil {
+			base.HandleError(req, res, err)
+		} else {
+			serializer.Serialize(res, node)
+		}
 	}
 }
 
 func Api_POST_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *http.Request) {
 	apiHandler := app.Get("gonode.api").(*Api)
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
+	serializer := app.Get("gonode.node.serializer").(*base.Serializer)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		token := security.GetTokenFromContext(c)
@@ -255,17 +278,23 @@ func Api_POST_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *
 
 		res.Header().Set("Content-Type", "application/json")
 
-		w := bufio.NewWriter(res)
+		node := base.NewNode()
+		if err := serializer.Deserialize(req.Body, node); err != nil {
+			base.HandleError(req, res, err)
+
+			return
+		}
 
 		options := base.NewAccessOptionsFromToken(token)
 
-		err := apiHandler.Save(req.Body, w, options)
-
-		if err == nil {
-			res.WriteHeader(http.StatusCreated)
-			w.Flush()
-		} else {
+		if node, errors, err := apiHandler.Save(node, options); err != nil && err != base.ValidationError {
 			base.HandleError(req, res, err)
+		} else if errors != nil {
+			res.WriteHeader(http.StatusPreconditionFailed)
+			base.Serialize(res, errors)
+		} else {
+			res.WriteHeader(http.StatusCreated)
+			serializer.Serialize(res, node)
 		}
 	}
 }
@@ -275,6 +304,7 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 	apiHandler := app.Get("gonode.api").(*Api)
 	handler_collection := app.Get("gonode.handler_collection").(base.Handlers)
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
+	serializer := app.Get("gonode.node.serializer").(*base.Serializer)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		token := security.GetTokenFromContext(c)
@@ -312,6 +342,11 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 				_, err = base.DefaultHandlerStoreStream(node, req.Body)
 			}
 
+			if err != nil {
+				base.HandleError(req, res, err)
+				return
+			}
+
 			// we don't save a new revision as we just need to attach binary to current node
 			manager.Save(node, false)
 
@@ -324,15 +359,23 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 			}
 
 		} else {
-			w := bufio.NewWriter(res)
 			options := base.NewAccessOptionsFromToken(token)
 
-			err := apiHandler.Save(req.Body, w, options)
-
-			if err != nil {
+			node := base.NewNode()
+			if err := serializer.Deserialize(req.Body, node); err != nil {
 				base.HandleError(req, res, err)
+
+				return
+			}
+
+			if node, errors, err := apiHandler.Save(node, options); err != nil && err != base.ValidationError {
+				base.HandleError(req, res, err)
+			} else if errors != nil {
+				res.WriteHeader(http.StatusPreconditionFailed)
+				base.Serialize(res, errors)
 			} else {
-				w.Flush()
+				res.WriteHeader(http.StatusCreated)
+				serializer.Serialize(res, node)
 			}
 		}
 	}
@@ -341,6 +384,7 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 func Api_PUT_Nodes_Move(app *goapp.App) func(c web.C, res http.ResponseWriter, req *http.Request) {
 	apiHandler := app.Get("gonode.api").(*Api)
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
+	serializer := app.Get("gonode.node.serializer").(*base.Serializer)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		token := security.GetTokenFromContext(c)
@@ -354,15 +398,18 @@ func Api_PUT_Nodes_Move(app *goapp.App) func(c web.C, res http.ResponseWriter, r
 
 		options := base.NewAccessOptionsFromToken(token)
 
-		err := apiHandler.Move(c.URLParams["uuid"], c.URLParams["parentUuid"], res, options)
-
-		base.HandleError(req, res, err)
+		if result, err := apiHandler.Move(c.URLParams["uuid"], c.URLParams["parentUuid"], options); err != nil {
+			base.HandleError(req, res, err)
+		} else {
+			serializer.Serialize(res, result)
+		}
 	}
 }
 
 func Api_DELETE_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *http.Request) {
 	apiHandler := app.Get("gonode.api").(*Api)
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
+	serializer := app.Get("gonode.node.serializer").(*base.Serializer)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		token := security.GetTokenFromContext(c)
@@ -374,9 +421,11 @@ func Api_DELETE_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req
 
 		options := base.NewAccessOptionsFromToken(token)
 
-		err := apiHandler.RemoveOne(c.URLParams["uuid"], res, options)
-
-		base.HandleError(req, res, err)
+		if node, err := apiHandler.RemoveOne(c.URLParams["uuid"], options); err != nil {
+			base.HandleError(req, res, err)
+		} else {
+			serializer.Serialize(res, node)
+		}
 	}
 }
 
@@ -403,6 +452,7 @@ func Api_GET_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 	searchBuilder := app.Get("gonode.search.pgsql").(*search.SearchPGSQL)
 	searchParser := app.Get("gonode.search.parser.http").(*search.HttpSearchParser)
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
+	serializer := app.Get("gonode.node.serializer").(*base.Serializer)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
 		token := security.GetTokenFromContext(c)
@@ -424,6 +474,20 @@ func Api_GET_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 
 		options := base.NewAccessOptionsFromToken(token)
 
-		apiHandler.Find(res, query, searchForm.Page, searchForm.PerPage, options)
+		pager, err := apiHandler.Find(query, searchForm.Page, searchForm.PerPage, options)
+
+		if err != nil {
+			base.HandleError(req, res, err)
+		}
+
+		for k, v := range pager.Elements {
+			b := bytes.NewBuffer([]byte{})
+			serializer.Serialize(b, v)
+			message := json.RawMessage(b.Bytes())
+
+			pager.Elements[k] = &message
+		}
+
+		base.Serialize(res, pager)
 	}
 }

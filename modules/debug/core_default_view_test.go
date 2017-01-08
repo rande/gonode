@@ -8,9 +8,9 @@ package debug
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/rande/gonode/modules/base"
 	"github.com/flosch/pongo2"
+	"github.com/rande/gonode/modules/base"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_Default_View(t *testing.T) {
@@ -21,8 +21,8 @@ func Test_Default_View(t *testing.T) {
 	request := &base.ViewRequest{}
 
 	response := &base.ViewResponse{
-		StatusCode:   200,
-		Context:      pongo2.Context{},
+		StatusCode: 200,
+		Context:    pongo2.Context{},
 	}
 
 	v := &DefaultViewHandler{}

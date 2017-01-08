@@ -6,9 +6,9 @@
 package logger
 
 import (
-	"testing"
 	"fmt"
 	"os"
+	"testing"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/rande/gonode/core/config"

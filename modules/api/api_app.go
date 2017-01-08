@@ -26,7 +26,6 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 			return &Api{
 				Manager:    app.Get("gonode.manager").(*base.PgNodeManager),
 				Version:    "1.0.0",
-				Serializer: app.Get("gonode.node.serializer").(*base.Serializer),
 				Logger:     app.Get("logger").(*log.Logger),
 				Authorizer: app.Get("security.authorizer").(security.AuthorizationChecker),
 			}
