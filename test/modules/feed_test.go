@@ -6,19 +6,19 @@
 package modules
 
 import (
+	"encoding/xml"
 	"fmt"
 	"net/http/httptest"
 	"testing"
-	"encoding/xml"
 
-	"github.com/rande/goapp"
-	"github.com/rande/gonode/modules/base"
-	"github.com/rande/gonode/test"
-	"github.com/stretchr/testify/assert"
-	"github.com/rande/gonode/modules/search"
-	"github.com/rande/gonode/modules/feed"
 	"github.com/gorilla/feeds"
 	"github.com/mmcdole/gofeed"
+	"github.com/rande/goapp"
+	"github.com/rande/gonode/modules/base"
+	"github.com/rande/gonode/modules/feed"
+	"github.com/rande/gonode/modules/search"
+	"github.com/rande/gonode/test"
+	"github.com/stretchr/testify/assert"
 )
 
 type RssFeedXml struct {

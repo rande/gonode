@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	ValidationError             = errors.New("Unable to validate date")
+	ValidationError             = errors.New("Unable to validate data")
 	RevisionError               = errors.New("Wrong revision while saving")
 	NotFoundError               = errors.New("Unable to find the node")
 	InvalidReferenceFormatError = errors.New("Unable to parse the reference")
