@@ -18,7 +18,7 @@ import (
 
 func Test_Delete_Non_Existant_Node(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
-		auth := test.GetAuthHeader(t, ts)
+		auth := test.GetDefaultAuthHeader(ts)
 
 		res, _ := test.RunRequest("DELETE", ts.URL+"/api/v1.0/nodes/d703a3ab-8374-4c30-a8a4-2c22aa67763b", nil, auth)
 
@@ -28,7 +28,7 @@ func Test_Delete_Non_Existant_Node(t *testing.T) {
 
 func Test_Delete_Existant_Node(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
-		auth := test.GetAuthHeader(t, ts)
+		auth := test.GetDefaultAuthHeader(ts)
 
 		file, _ := os.Open("../fixtures/new_user.json")
 		res, _ := test.RunRequest("POST", ts.URL+"/api/v1.0/nodes", file, auth)
@@ -57,13 +57,13 @@ func Test_Delete_Existant_Node(t *testing.T) {
 
 func Test_Delete_Find_Filter(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
-		auth := test.GetAuthHeader(t, ts)
+		auth := test.GetDefaultAuthHeader(ts)
 		nodes := test.InitSearchFixture(app)
 
 		res, _ := test.RunRequest("GET", ts.URL+"/api/v1.0/nodes", nil, auth)
 		p := test.GetPager(app, res)
 
-		assert.Equal(t, 3, len(p.Elements))
+		assert.Equal(t, 4, len(p.Elements))
 
 		res, _ = test.RunRequest("DELETE", ts.URL+"/api/v1.0/nodes/"+nodes[0].Uuid.CleanString(), nil, auth)
 		assert.Equal(t, 200, res.StatusCode)
@@ -74,6 +74,6 @@ func Test_Delete_Find_Filter(t *testing.T) {
 		p = test.GetPager(app, res)
 
 		assert.Equal(t, 200, res.StatusCode)
-		assert.Equal(t, 2, len(p.Elements))
+		assert.Equal(t, 3, len(p.Elements))
 	})
 }

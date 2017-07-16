@@ -28,8 +28,8 @@ func Test_Pagination(t *testing.T) {
 			Next     uint64
 		}{
 			{"/api/v1.0/nodes?per_page=6", 6, 6, 1, 0, 2},
-			{"/api/v1.0/nodes?per_page=13", 13, 11, 1, 0, 0},
-			{"/api/v1.0/nodes?per_page=2&page=6", 2, 1, 6, 5, 0},
+			{"/api/v1.0/nodes?per_page=13", 13, 12, 1, 0, 0},
+			{"/api/v1.0/nodes?per_page=2&page=6", 2, 2, 6, 5, 0},
 		}
 
 		// WITH
@@ -53,7 +53,7 @@ func Test_Pagination(t *testing.T) {
 			manager.Save(u, false)
 		}
 
-		auth := test.GetAuthHeader(t, ts)
+		auth := test.GetDefaultAuthHeader(ts)
 
 		for _, v := range values {
 			// paginate result ...
@@ -66,7 +66,7 @@ func Test_Pagination(t *testing.T) {
 			assert.Equal(t, int(v.Len), len(p.Elements), "Wrong Len value: "+v.Url)
 			assert.Equal(t, v.Page, p.Page, "Wrong Page value: "+v.Url)
 			assert.Equal(t, v.Next, p.Next, "Wrong Next value: "+v.Url)
-			assert.Equal(t, v.Previous, p.Previous, "Wrong Prvious value: "+v.Url)
+			assert.Equal(t, v.Previous, p.Previous, "Wrong Previous value: "+v.Url)
 		}
 	})
 }

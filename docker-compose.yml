@@ -1,12 +1,13 @@
 version: '2'
 services:
     back:
-        image: golang:1.6
-        command: /bin/bash
+        image: ekino/docker-buildbox:golang1.7-2017.02.07
+        command: modd
         ports:
             - "127.0.0.1:8000:8000"
         volumes:
-            - "${GOPATH}/src:/go/src"
+            - ".:/go/src/github.com/rande/gonode:cached"
+            - "gopath:/go"
         working_dir: /go/src/github.com/rande/gonode
         links:
             - influxdb
@@ -15,6 +16,19 @@ services:
             POSTGRES_PASSWORD: gonode
             POSTGRES_DB: gonode
             INFLUXDB_HOST: influxdb
+            PATH: /go/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+#    front:
+#        image: ekino/docker-buildbox:node7.5-2017.02.07
+#        command: ./node_modules/.bin/webpack-dev-server --config webpack-dev-server.config.js --inline --colors
+#        ports:
+#            - "127.0.0.1:3000:3000"
+#        volumes:
+#            - "./admin:/code/admin"
+#        working_dir: /code/admin
+#        links:
+#            - back
+
     influxdb:
         image: influxdb
         volumes:
@@ -28,3 +42,6 @@ services:
         environment:
             POSTGRES_PASSWORD: gonode
             POSTGRES_DB: gonode
+
+volumes:
+  gopath:

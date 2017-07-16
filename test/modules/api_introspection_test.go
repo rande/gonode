@@ -16,7 +16,7 @@ import (
 
 func Test_API_GET_Handlers_Node(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
-		auth := test.GetAuthHeader(t, ts)
+		auth := test.GetDefaultAuthHeader(ts)
 
 		res, _ := test.RunRequest("GET", ts.URL+"/api/v1.0/handlers/node", nil, auth)
 
@@ -27,7 +27,7 @@ func Test_API_GET_Handlers_Node(t *testing.T) {
 
 func Test_API_GET_Handlers_View(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
-		auth := test.GetAuthHeader(t, ts)
+		auth := test.GetDefaultAuthHeader(ts)
 
 		res, _ := test.RunRequest("GET", ts.URL+"/api/v1.0/handlers/view", nil, auth)
 
@@ -38,7 +38,7 @@ func Test_API_GET_Handlers_View(t *testing.T) {
 
 func Test_API_GET_Services(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
-		auth := test.GetAuthHeader(t, ts)
+		auth := test.GetDefaultAuthHeader(ts)
 
 		res, _ := test.RunRequest("GET", ts.URL+"/api/v1.0/services", nil, auth)
 

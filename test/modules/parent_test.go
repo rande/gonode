@@ -73,7 +73,7 @@ func Test_Create_Parents_With_Manager(t *testing.T) {
 func Test_Create_Parents_With_Api(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
 		// WITH
-		auth := test.GetAuthHeader(t, ts)
+		auth := test.GetDefaultAuthHeader(ts)
 
 		handlers := app.Get("gonode.handler_collection").(base.HandlerCollection)
 		manager := app.Get("gonode.manager").(*base.PgNodeManager)

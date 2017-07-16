@@ -164,19 +164,31 @@ func (r Response) GetBody() []byte {
 	return r.RawBody
 }
 
-func GetAuthHeader(t *testing.T, ts *httptest.Server) map[string]string {
+func (r Response) GetBodyAsString() string {
+	return string(r.GetBody()[:])
+}
+
+func GetDefaultAuthHeader(ts *httptest.Server) map[string]string {
 	return map[string]string{
-		"Authorization": fmt.Sprintf("Bearer %s", GetAuthToken(t, ts)),
+		"Authorization": fmt.Sprintf("Bearer %s", GetDefaultAuthToken(ts)),
 	}
 }
 
-func GetAuthToken(t *testing.T, ts *httptest.Server) string {
+func GetAuthHeaderFromCredentials(username, password string, ts *httptest.Server) map[string]string {
+	return map[string]string{
+		"Authorization": fmt.Sprintf("Bearer %s", GetAuthTokenFromCredentials(username, password, ts)),
+	}
+}
+
+func GetAuthTokenFromCredentials(username, password string, ts *httptest.Server) string {
 	res, _ := RunRequest("POST", fmt.Sprintf("%s/api/v1.0/login", ts.URL), url.Values{
-		"username": {"test-admin"},
-		"password": {"admin"},
+		"username": {username},
+		"password": {password},
 	})
 
-	assert.Equal(t, 200, res.StatusCode, "unable to login")
+	if res.StatusCode != 200 {
+		return ""
+	}
 
 	b := bytes.NewBuffer([]byte(""))
 	io.Copy(b, res.Body)
@@ -190,6 +202,10 @@ func GetAuthToken(t *testing.T, ts *httptest.Server) string {
 	json.Unmarshal(b.Bytes(), v)
 
 	return v.Token
+}
+
+func GetDefaultAuthToken(ts *httptest.Server) string {
+	return GetAuthTokenFromCredentials("test-admin", "admin", ts)
 }
 
 func RunRequest(method string, path string, options ...interface{}) (*Response, error) {
