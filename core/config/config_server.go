@@ -24,6 +24,9 @@ type Guard struct {
 			Path string `toml:"path"`
 		} `toml:"token"`
 	} `toml:"jwt"`
+	Anonymous struct {
+		Roles []string `toml:"roles"`
+	}
 }
 
 type BinDataAsset struct {

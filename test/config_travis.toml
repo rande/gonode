@@ -23,6 +23,12 @@ path = "/tmp/gnode"
         [guard.jwt.token]
         path = "^\\/api\\/v([0-9\\.]*)"
 
+    [guard.anonymous]
+        roles = [
+            "IS_AUTHENTICATED_ANONYMOUSLY",
+            "node:prism:render"
+        ]
+
 [security]
     voters = [
         "security.voter.role",

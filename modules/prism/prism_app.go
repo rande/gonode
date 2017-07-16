@@ -43,6 +43,12 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 		// this test should be useless as the first check is present.
 		// however this might need to be usefull as the authorizer might have different implementations.
 		if len(token.GetRoles()) == 0 {
+			if logger != nil {
+				logger.WithFields(log.Fields{
+					"module": "prism.view",
+				}).Debug("No roles associate with current token")
+			}
+
 			base.HandleError(req, res, base.AccessForbiddenError)
 			return
 		}
@@ -124,9 +130,23 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 
 		if node != nil {
 			if granted, err := authorizer.IsGranted(token, nil, node); err != nil {
+				if logger != nil {
+					logger.WithFields(log.Fields{
+						"module": "prism.view",
+						"error":  err,
+					}).Debug("Authorization generates an error")
+				}
+
 				base.HandleError(req, res, err)
 				return
 			} else if !granted {
+
+				if logger != nil {
+					logger.WithFields(log.Fields{
+						"module": "prism.view",
+					}).Debug("Authorization not granded to access the node")
+				}
+
 				base.HandleError(req, res, base.AccessForbiddenError)
 				return
 			}

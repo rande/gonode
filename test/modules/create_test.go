@@ -23,7 +23,7 @@ import (
 
 func Test_Create_User(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
-		auth := test.GetAuthHeader(t, ts)
+		auth := test.GetDefaultAuthHeader(ts)
 
 		// WITH
 		file, _ := os.Open("../fixtures/new_user.json")
@@ -48,7 +48,7 @@ func Test_Create_User(t *testing.T) {
 
 func Test_Create_Media_With_Binary_Upload(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
-		auth := test.GetAuthHeader(t, ts)
+		auth := test.GetDefaultAuthHeader(ts)
 
 		// WITH
 		file, _ := os.Open("../fixtures/new_image.json")
@@ -97,7 +97,7 @@ func Test_Media_Resize_With_Orientation(t *testing.T) {
 		message := fmt.Sprintf("Exif Orientation: %d", i)
 
 		test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
-			auth := test.GetAuthHeader(t, ts)
+			auth := test.GetDefaultAuthHeader(ts)
 
 			// WITH
 			file, _ := os.Open("../fixtures/new_image.json")

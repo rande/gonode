@@ -55,7 +55,7 @@ func Test_Cors_Default_Values(t *testing.T) {
 		mux.ServeHTTP(res, req)
 
 		assert.Equal(t, "Origin", res.Header().Get("Vary"))
-		assert.Equal(t, "http://foobar.com", res.Header().Get("Access-Control-Allow-Origin"))
+		assert.Equal(t, "*", res.Header().Get("Access-Control-Allow-Origin"))
 
 		state.Out <- 1
 

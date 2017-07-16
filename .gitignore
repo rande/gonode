@@ -4,3 +4,9 @@ explorer/dist
 dist/*
 assets/bindata.go
 data
+admin/build
+admin/node_modules
+vendor
+skeleton
+runtime
+.glide

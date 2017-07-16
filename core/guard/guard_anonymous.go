@@ -10,6 +10,7 @@ import (
 )
 
 type AnonymousAuthenticator struct {
+	DefaultRoles []string
 }
 
 func (a *AnonymousAuthenticator) GetCredentials(req *http.Request) (interface{}, error) {
@@ -21,8 +22,9 @@ func (a *AnonymousAuthenticator) GetUser(credentials interface{}) (GuardUser, er
 
 	u := &DefaultGuardUser{
 		Username: c.Username,
-		Roles:    []string{"IS_AUTHENTICATED_ANONYMOUSLY"},
+		Roles:    a.DefaultRoles,
 	}
+
 	return u, nil
 }
 

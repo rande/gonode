@@ -17,7 +17,7 @@ import (
 
 func Test_Hello(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
-		auth := test.GetAuthHeader(t, ts)
+		auth := test.GetDefaultAuthHeader(ts)
 
 		res, _ := test.RunRequest("GET", ts.URL+"/api/v1.0/hello", nil, auth)
 
@@ -28,7 +28,7 @@ func Test_Hello(t *testing.T) {
 
 func Test_Invalid_Request(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
-		auth := test.GetAuthHeader(t, ts)
+		auth := test.GetDefaultAuthHeader(ts)
 
 		res, _ := test.RunRequest("GET", ts.URL+"/api/v01/hello", nil, auth)
 

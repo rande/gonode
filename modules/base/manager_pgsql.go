@@ -18,6 +18,7 @@ import (
 	sq "github.com/lann/squirrel"
 	_ "github.com/lib/pq"
 	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/core/squirrel"
 	"github.com/twinj/uuid"
 )
@@ -281,6 +282,8 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 		Parents = append(Parents, p.CleanString())
 	}
 
+	node.Access = security.EnsureRoles(node.Access, "node:api:master")
+
 	Access := make(squirrel.StringSlice, 0)
 	for _, a := range node.Access {
 		Access = append(Access, a)
@@ -389,6 +392,8 @@ func (m *PgNodeManager) Move(uuid, parentUuid Reference) (int64, error) {
 
 func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 	helper.PanicIf(node.Id == 0, "Cannot update node without id")
+
+	node.Access = security.EnsureRoles(node.Access, "node:api:master")
 
 	Access := make(squirrel.StringSlice, 0)
 	for _, a := range node.Access {
@@ -565,7 +570,7 @@ func (m *PgNodeManager) Validate(node *Node) (bool, Errors) {
 	errors := NewErrors()
 
 	if node.Name == "" {
-		errors.AddError("name", "Username cannot be empty")
+		errors.AddError("name", "Name cannot be empty")
 	}
 
 	if node.Slug == "" {
@@ -574,6 +579,10 @@ func (m *PgNodeManager) Validate(node *Node) (bool, Errors) {
 
 	if node.Type == "" {
 		errors.AddError("type", "Type cannot be empty")
+	}
+
+	if len(node.Access) == 0 {
+		errors.AddError("access", "Access cannot be empty")
 	}
 
 	if node.Status < 0 || node.Status > 3 {

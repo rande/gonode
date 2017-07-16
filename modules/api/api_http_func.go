@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/websocket"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/helper"
@@ -39,13 +40,43 @@ func versionChecker(c web.C, res http.ResponseWriter) error {
 func Check(c web.C, res http.ResponseWriter, req *http.Request, attrs security.Attributes, auth security.AuthorizationChecker) bool {
 	token := security.GetTokenFromContext(c)
 
+	var logger *log.Entry
+
+	if l, ok := c.Env["logger"]; ok {
+		logger = l.(*log.Entry).WithFields(log.Fields{
+			"module": "api.http",
+		})
+	}
+
 	if err := security.CheckAccess(token, attrs, res, req, auth); err != nil {
+		if logger != nil {
+			logger.WithFields(log.Fields{
+				"attrs": attrs,
+				"token": security.GetTokenFromContext(c),
+			}).Warn("Unable to check access")
+		}
+
 		base.HandleError(req, res, err)
 
 		return false
 	}
 
+	if logger != nil {
+		logger.WithFields(log.Fields{
+			"attrs": attrs,
+			"token": security.GetTokenFromContext(c),
+		}).Debug("Check access granted")
+	}
+
 	if err := versionChecker(c, res); err != nil {
+
+		if logger != nil {
+			logger.WithFields(log.Fields{
+				"attrs": attrs,
+				"token": security.GetTokenFromContext(c),
+			}).Warn("invalid version")
+		}
+
 		base.HandleError(req, res, err)
 
 		return false

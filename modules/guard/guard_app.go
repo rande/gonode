@@ -55,7 +55,9 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 				Manager:  &GuardManager{manager},
 				Logger:   logger,
 			},
-			&guard.AnonymousAuthenticator{},
+			&guard.AnonymousAuthenticator{
+				DefaultRoles: conf.Guard.Anonymous.Roles,
+			},
 		}
 
 		mux.Use(guard.GetGuardMiddleware(auths))

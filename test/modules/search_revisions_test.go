@@ -75,7 +75,7 @@ func Test_Search_Revision_Basic(t *testing.T) {
 			{fmt.Sprintf("%s?per_page=2", baseUrl), 2},
 		}
 
-		auth := test.GetAuthHeader(t, ts)
+		auth := test.GetDefaultAuthHeader(ts)
 
 		for _, v := range values {
 			// WHEN
