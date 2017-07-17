@@ -31,10 +31,14 @@ install:
 	$(call back,cp -rvf /usr/local/go/src/* ./runtime/src/ )
 
 test:
-	$(call back,./assets/bindata.sh && go test -v $(GONODE_CORE) $(GONODE_MODULES) ./test/modules)
+	$(call back,./app/assets/bindata.sh && go test -v $(GONODE_CORE) $(GONODE_MODULES) ./test/modules)
 	$(call back,go vet $(GONODE_CORE) $(GONODE_MODULES) ./test/modules/)
 
 format:
 	$(call back,gofmt -w $(GONODE_CORE) $(GONODE_MODULES) ./test/modules)
 	$(call back,go fix $(GONODE_CORE) $(GONODE_MODULES) ./test/modules)
 	$(call back,go vet $(GONODE_CORE) $(GONODE_MODULES) ./test/modules)
+
+run:
+	docker-compose kill
+	docker-compose up

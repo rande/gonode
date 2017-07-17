@@ -21,7 +21,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/assets"
+	"github.com/rande/gonode/app/assets"
 	"github.com/rande/gonode/core/bindata"
 	"github.com/rande/gonode/core/commands"
 	"github.com/rande/gonode/core/config"

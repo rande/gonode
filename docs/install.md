@@ -22,4 +22,4 @@ Installation steps
 DX
 --
 
-* ``git update-index --assume-unchanged assets/bindata.go``
+* ``git update-index --assume-unchanged app/assets/bindata.go``
