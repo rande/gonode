@@ -161,6 +161,7 @@ func Test_YoutubeListener_Found(t *testing.T) {
 
 	node.Data.(*Youtube).Status = base.ProcessStatusUpdate
 	node.Data.(*Youtube).Vid = "MyVideoId"
+	node.Access = []string{"node:api:rande"}
 
 	client := &helper.MockedHttpClient{}
 	client.
@@ -223,4 +224,5 @@ func Test_YoutubeListener_Found(t *testing.T) {
 	a.Equal(nodeImage.CreatedBy, node.CreatedBy)
 	a.Equal(nodeImage.UpdatedBy, node.UpdatedBy)
 	a.Equal(nodeImage.Source, node.Source)
+	a.Equal(nodeImage.Access, node.Access)
 }

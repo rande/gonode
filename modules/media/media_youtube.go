@@ -129,6 +129,7 @@ func (l *YoutubeListener) Handle(notification *pq.Notification, m base.NodeManag
 		image.Source = node.Uuid
 		image.CreatedBy = node.CreatedBy
 		image.UpdatedBy = node.UpdatedBy
+		image.Access = node.Access
 
 		m.Save(image, false)
 	}
