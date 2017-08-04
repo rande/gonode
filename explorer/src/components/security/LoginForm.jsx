@@ -2,7 +2,6 @@ import React, { PropTypes } from 'react';
 import { reduxForm }        from 'redux-form';
 import classNames           from 'classnames';
 
-
 const LoginForm = ({
     isFetching,
     fields: { login, password },
@@ -31,7 +30,6 @@ LoginForm.propTypes = {
     fields:       PropTypes.object.isRequired,
     handleSubmit: PropTypes.func.isRequired
 };
-
 
 export default reduxForm({
     form:   'node',

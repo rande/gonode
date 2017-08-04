@@ -42,3 +42,8 @@ format:
 run:
 	docker-compose kill
 	docker-compose up
+
+load:    ## Load fixtures
+	curl -XPOST http://localhost:2508/setup/uninstall && exit 0
+	curl -XPOST http://localhost:2508/setup/install
+	curl -XPOST http://localhost:2508/setup/data/load

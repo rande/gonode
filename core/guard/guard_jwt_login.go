@@ -45,21 +45,36 @@ func (a *JwtLoginGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 		return nil, nil
 	}
 
-	req.ParseForm()
 
 	loginForm := &struct {
-		Username string `schema:"username"`
-		Password string `schema:"password"`
+		Username string `schema:"username" json:"username"`
+		Password string `schema:"password" json:"password"`
 	}{}
 
-	decoder := schema.NewDecoder()
-	if err := decoder.Decode(loginForm, req.Form); err != nil {
-		a.Logger.WithFields(log.Fields{
-			"module": "core.guard.jwt_login",
-			"error":  err,
-		}).Info("Unable to decode POST parameters")
+	if req.Header.Get("Content-Type") == "application/json" {
+		decoder := json.NewDecoder(req.Body)
+		if err := decoder.Decode(loginForm); err != nil {
+			a.Logger.WithFields(log.Fields{
+				"module": "core.guard.jwt_login",
+				"error":  err,
+				"method": "application/json",
+			}).Info("Unable to decode JSON data")
 
-		return nil, InvalidCredentialsFormat
+			return nil, InvalidCredentialsFormat
+		}
+	} else {
+		req.ParseForm()
+
+		decoder := schema.NewDecoder()
+		if err := decoder.Decode(loginForm, req.Form); err != nil {
+			a.Logger.WithFields(log.Fields{
+				"module": "core.guard.jwt_login",
+				"error":  err,
+				"method": "form-data",
+			}).Info("Unable to decode POST parameters")
+
+			return nil, InvalidCredentialsFormat
+		}
 	}
 
 	if a.Logger != nil {

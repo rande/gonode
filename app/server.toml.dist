@@ -45,6 +45,10 @@ path = "/tmp/gnode"
     roles = ["ROLE_ADMIN"]
 
     [[security.access]]
+    path  = "^\\/api\\/v([0-9\\.]*)\\/hello"
+    roles = ["IS_AUTHENTICATED_ANONYMOUSLY", "ROLE_API"]
+
+    [[security.access]]
     path  = "^\\/api"
     roles = ["ROLE_API"]
 
