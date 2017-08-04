@@ -1,0 +1,80 @@
+name= "GoNode - poc"
+bind= "0.0.0.0:2508"
+test= true
+
+[databases.master]
+type    = "master"
+dsn     = "postgres://postgres:gonode@database/gonode?sslmode=disable"
+enabled = true
+prefix  = "prod"
+
+[filesystem]
+path = "/tmp/gnode"
+
+[guard]
+    key = "ZeSecretKey0oo"
+
+    [guard.jwt]
+        [guard.jwt.login]
+        path = "\\/api\\/v([0-9\\.]*)\\/login"
+
+        [guard.jwt.token]
+        path = "^\\/api\\/v([0-9\\.]*)"
+
+    [guard.anonymous]
+        roles = [
+            "IS_AUTHENTICATED_ANONYMOUSLY",
+            "node:prism:read"
+        ]
+
+[security]
+    voters = [
+        "security.voter.role",
+        "security.voter.is",
+        "gonode.security.voter.access",
+        "gonode.security.voter.role",
+    ]
+
+    [security.cors]
+    allowed_origins = ["*"]
+    allowed_methods = ["GET", "PUT", "POST"]
+    allowed_headers = ["Origin", "Accept", "Content-Type", "Authorization"]
+
+    [[security.access]]
+    path  = "^\\/admin"
+    roles = ["ROLE_ADMIN"]
+
+    [[security.access]]
+    path  = "^\\/api\\/v([0-9\\.]*)\\/hello"
+    roles = ["IS_AUTHENTICATED_ANONYMOUSLY", "ROLE_API"]
+
+    [[security.access]]
+    path  = "^\\/api"
+    roles = ["ROLE_API"]
+
+    [[security.access]]
+    path  = "^\\/"
+    roles = ["IS_AUTHENTICATED_ANONYMOUSLY"]
+
+[bindata]
+    templates = [
+        "github.com/rande/gonode/modules/setup/templates",
+        "github.com/rande/gonode/modules/blog/templates",
+        "github.com/rande/gonode/modules/prism/templates",
+        "github.com/rande/gonode/modules/search/templates",
+        "github.com/rande/gonode/modules/feed/templates",
+    ]
+
+    [bindata.assets]
+        [bindata.assets.explorer]
+        index = "index.html"
+        public = "/explorer"
+        private = "github.com/rande/gonode/explorer/dist"
+
+[media]
+    [media.image]
+    allowed_widths = [100, 250, 500, 1024]
+    max_width = 1024
+
+[logger]
+    level = "debug"

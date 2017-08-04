@@ -1,4 +1,4 @@
-// Copyright © 2014-2016 Thomas Rabaix <thomas.rabaix@gmail.com>.
+// Copyright © 2014-2017 Thomas Rabaix <thomas.rabaix@gmail.com>.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -21,7 +21,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/assets"
+	"github.com/rande/gonode/app/assets"
 	"github.com/rande/gonode/core/bindata"
 	"github.com/rande/gonode/core/commands"
 	"github.com/rande/gonode/core/config"

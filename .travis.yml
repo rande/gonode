@@ -43,7 +43,7 @@ script:
         go get golang.org/x/tools/cmd/cover;
         go get golang.org/x/tools/cmd/goimports;
         go get -u github.com/jteeuwen/go-bindata/...;
-        ./assets/bindata.sh;
+        ./app/assets/bindata.sh;
         mkdir -p build/coverage && rm -rf build/coverage/*.cov;
         export GOPKG="./core/bindata,./core/commands,./core/config,./core/guard,./core/helper,./core/logger,./core/router,./core/security,./core/squirrel,./core/vault,./modules/api,./modules/base,./modules/blog,./modules/debug,./modules/feed,./modules/guard,./modules/media,./modules/prism,./modules/raw,./modules/search,./modules/setup,./modules/user";
         go test -v -coverpkg ${GOPKG} -covermode count -coverprofile=build/coverage/core_bindata.cov ./core/bindata;
