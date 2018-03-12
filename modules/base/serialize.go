@@ -1,4 +1,4 @@
-// Copyright © 2014-2016 Thomas Rabaix <thomas.rabaix@gmail.com>.
+// Copyright © 2014-2018 Thomas Rabaix <thomas.rabaix@gmail.com>.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -62,9 +62,9 @@ func (s *Serializer) Deserialize(r io.Reader, o interface{}) error {
 		node := o.(*Node)
 		if node.Type == "" {
 			// we need to deserialize twice to load the correct Meta/Data structure
-			err := Deserialize(reader, node)
-
-			helper.PanicOnError(err)
+			if err := Deserialize(reader, node); err != nil {
+				return err
+			}
 
 			reader.Seek(0, 0)
 			node.Data, node.Meta = s.Handlers.Get(node).GetStruct()

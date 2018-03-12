@@ -1,4 +1,4 @@
-// Copyright © 2014-2016 Thomas Rabaix <thomas.rabaix@gmail.com>.
+// Copyright © 2014-2018 Thomas Rabaix <thomas.rabaix@gmail.com>.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -84,7 +84,6 @@ func (m *PgNodeManager) FindBy(query sq.SelectBuilder, offset uint64, limit uint
 
 	if err != nil {
 		if m.Logger != nil {
-
 			m.Logger.WithFields(log.Fields{
 				"module": "node.manager",
 				"err":    err,
@@ -96,6 +95,13 @@ func (m *PgNodeManager) FindBy(query sq.SelectBuilder, offset uint64, limit uint
 	}
 
 	for rows.Next() {
+		//if m.Logger != nil {
+		//	m.Logger.WithFields(log.Fields{
+		//		"module": "node.manager",
+		//		"row":  rows,
+		//	}).Debug("hydrating row")
+		//}
+
 		node := m.hydrate(rows)
 
 		list.PushBack(node)

@@ -1,4 +1,4 @@
-// Copyright © 2014-2016 Thomas Rabaix <thomas.rabaix@gmail.com>.
+// Copyright © 2014-2018 Thomas Rabaix <thomas.rabaix@gmail.com>.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -42,7 +42,7 @@ func Test_Cors_Default_Values(t *testing.T) {
 		return nil
 	})
 
-	Configure(l, conf)
+	ConfigureCors(l, conf)
 
 	l.Run(func(app *goapp.App, state *goapp.GoroutineState) error {
 

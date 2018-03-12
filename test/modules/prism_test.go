@@ -1,4 +1,4 @@
-// Copyright © 2014-2016 Thomas Rabaix <thomas.rabaix@gmail.com>.
+// Copyright © 2014-2018 Thomas Rabaix <thomas.rabaix@gmail.com>.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -20,7 +20,7 @@ import (
 
 func Test_Prism_Blog_Archive(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *goapp.App) {
-		// WITH
+		// GIVEN
 		manager := app.Get("gonode.manager").(*base.PgNodeManager)
 
 		node := app.Get("gonode.handler_collection").(base.HandlerCollection).NewNode("blog.post")
@@ -36,8 +36,10 @@ func Test_Prism_Blog_Archive(t *testing.T) {
 
 		manager.Save(archive, false)
 
+		// WHEN
 		res, _ := test.RunRequest("GET", fmt.Sprintf("%s/prism/%s", ts.URL, archive.Uuid))
 
+		// THEN
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 	})
 }

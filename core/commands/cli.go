@@ -1,4 +1,4 @@
-// Copyright © 2014-2016 Thomas Rabaix <thomas.rabaix@gmail.com>.
+// Copyright © 2014-2018 Thomas Rabaix <thomas.rabaix@gmail.com>.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -71,6 +71,7 @@ func (c *ServerCommand) Run(args []string) int {
 				"module": "command.cli",
 			}).Debug("Goji received signal, gracefully stopping")
 		})
+
 		graceful.PostHook(func() {
 			logger.WithFields(log.Fields{
 				"module": "command.cli",

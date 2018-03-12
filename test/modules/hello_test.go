@@ -1,4 +1,4 @@
-// Copyright © 2014-2016 Thomas Rabaix <thomas.rabaix@gmail.com>.
+// Copyright © 2014-2018 Thomas Rabaix <thomas.rabaix@gmail.com>.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -30,6 +30,7 @@ func Test_Invalid_Request(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
 		auth := test.GetDefaultAuthHeader(ts)
 
+		// wrong version api number
 		res, _ := test.RunRequest("GET", ts.URL+"/api/v01/hello", nil, auth)
 
 		assert.Equal(t, http.StatusBadRequest, res.StatusCode)

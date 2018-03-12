@@ -1,4 +1,4 @@
-// Copyright © 2014-2016 Thomas Rabaix <thomas.rabaix@gmail.com>.
+// Copyright © 2014-2018 Thomas Rabaix <thomas.rabaix@gmail.com>.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -22,6 +22,7 @@ var (
 	NoStreamHandler             = errors.New("No stream handler defined")
 	AccessForbiddenError        = errors.New("Access forbidden")
 	InvalidVersionError         = errors.New("Wrong node version")
+	InvalidUuidLengthError      = errors.New("Invalid UUID length")
 )
 
 type validationError struct {

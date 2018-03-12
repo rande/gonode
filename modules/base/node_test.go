@@ -1,4 +1,4 @@
-// Copyright © 2014-2016 Thomas Rabaix <thomas.rabaix@gmail.com>.
+// Copyright © 2014-2018 Thomas Rabaix <thomas.rabaix@gmail.com>.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -47,4 +47,32 @@ func Test_Reference(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.NotNil(t, ref.UUID)
+}
+
+func Test_Marshal_Empty_Reference(t *testing.T) {
+	ref := Reference{}
+	data, err := ref.MarshalJSON()
+
+	assert.Len(t, data, 2) // => ""
+	assert.Nil(t, err)
+}
+
+func Test_UnMarshal_NoData_Reference(t *testing.T) {
+	input := []byte("")
+
+	ref := Reference{}
+	err := ref.UnmarshalJSON(input)
+
+	assert.Error(t, err)
+	assert.Equal(t, err, InvalidUuidLengthError)
+	assert.Nil(t, ref.UUID)
+}
+
+func Test_UnMarshal_Empty_String_Reference(t *testing.T) {
+	input := []byte("\"\"")
+
+	ref := Reference{}
+	err := ref.UnmarshalJSON(input)
+
+	assert.NoError(t, err)
 }

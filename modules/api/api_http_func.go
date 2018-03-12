@@ -1,4 +1,4 @@
-// Copyright © 2014-2016 Thomas Rabaix <thomas.rabaix@gmail.com>.
+// Copyright © 2014-2018 Thomas Rabaix <thomas.rabaix@gmail.com>.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -486,11 +486,19 @@ func Api_GET_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 	serializer := app.Get("gonode.node.serializer").(*base.Serializer)
 
 	return func(c web.C, res http.ResponseWriter, req *http.Request) {
+		var logger *log.Entry
+
 		token := security.GetTokenFromContext(c)
 		attrs := security.Attributes{"node:api:master", "node:api:list"}
 
 		if !Check(c, res, req, attrs, authorizer) {
 			return
+		}
+
+		if l, ok := c.Env["logger"]; ok {
+			logger = l.(*log.Entry).WithFields(log.Fields{
+				"module": "api.http",
+			})
 		}
 
 		res.Header().Set("Content-Type", "application/json")
@@ -512,6 +520,12 @@ func Api_GET_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 		}
 
 		for k, v := range pager.Elements {
+			if logger != nil {
+				logger.WithFields(log.Fields{
+					"node": v,
+				}).Debug("serializing row")
+			}
+
 			b := bytes.NewBuffer([]byte{})
 			serializer.Serialize(b, v)
 			message := json.RawMessage(b.Bytes())

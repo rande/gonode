@@ -1,4 +1,4 @@
-// Copyright © 2014-2016 Thomas Rabaix <thomas.rabaix@gmail.com>.
+// Copyright © 2014-2018 Thomas Rabaix <thomas.rabaix@gmail.com>.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -27,26 +27,35 @@ type Reference struct {
 }
 
 func (m *Reference) MarshalJSON() ([]byte, error) {
-	// Manually calling Marshal for Contents
-	cont, err := json.Marshal(uuid.Formatter(m.UUID, uuid.FormatCanonical))
-	if err != nil {
-		return nil, err
+	var s string
+
+	if m.UUID != nil {
+		s = uuid.Formatter(m.UUID, uuid.FormatCanonical)
 	}
 
-	// Stitching it all together
-	return cont, nil
+	if cont, err := json.Marshal(s); err != nil {
+		return nil, err
+	} else {
+		return cont, nil
+	}
 }
 
 func (m *Reference) UnmarshalJSON(data []byte) error {
-	helper.PanicIf(len(data) < 32, "invalid uuid size")
+	if len(data) == 2 { // json => "", so 2 bytes, empty value
+		m.UUID = GetEmptyReference()
 
-	tmpUuid, err := uuid.Parse(string(data[1 : len(data)-1]))
-
-	if err != nil {
-		return err
+		return nil
 	}
 
-	m.UUID = GetReference(tmpUuid)
+	if len(data) < 32 {
+		return InvalidUuidLengthError
+	}
+
+	if tmpUuid, err := uuid.Parse(string(data[1 : len(data)-1])); err != nil {
+		return err
+	} else {
+		m.UUID = GetReference(tmpUuid)
+	}
 
 	return nil
 }
