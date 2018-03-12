@@ -16,6 +16,10 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		c := app.Get("gonode.handler_collection").(base.HandlerCollection)
 		c.Add("core.user", &UserHandler{})
 
+		s := app.Get("gonode.node.serializer").(*base.Serializer)
+		s.AddSerializer("core.user", UserSerializer)
+		s.AddDeserializer("core.user", UserDeserializer)
+
 		return nil
 	})
 }

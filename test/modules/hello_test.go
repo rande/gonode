@@ -30,6 +30,7 @@ func Test_Invalid_Request(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
 		auth := test.GetDefaultAuthHeader(ts)
 
+		// wrong version api number
 		res, _ := test.RunRequest("GET", ts.URL+"/api/v01/hello", nil, auth)
 
 		assert.Equal(t, http.StatusBadRequest, res.StatusCode)

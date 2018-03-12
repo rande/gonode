@@ -14,8 +14,7 @@ import (
 	"github.com/zenazn/goji/web"
 )
 
-func Configure(l *goapp.Lifecycle, conf *config.Config) {
-
+func ConfigureSecurity(l *goapp.Lifecycle, conf *config.Config) {
 	l.Register(func(app *goapp.App) error {
 
 		app.Set("security.authorizer", func(app *goapp.App) interface{} {
@@ -89,6 +88,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 			AllowCredentials:   conf.Security.Cors.AllowCredentials,
 			MaxAge:             conf.Security.Cors.MaxAge,
 			OptionsPassthrough: conf.Security.Cors.OptionsPassthrough,
+			Debug:              true,
 		})
 
 		mux.Use(c.Handler)
@@ -96,6 +96,34 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		access := app.Get("security.access_checker").(*AccessChecker)
 
 		mux.Use(AccessCheckerMiddleware(access))
+
+		return nil
+	})
+}
+
+func ConfigureCors(l *goapp.Lifecycle, conf *config.Config) {
+
+	l.Prepare(func(app *goapp.App) error {
+		conf := app.Get("gonode.configuration").(*config.Config)
+
+		if conf.Security == nil {
+			return nil // nothing setup
+		}
+
+		mux := app.Get("goji.mux").(*web.Mux)
+
+		c := cors.New(cors.Options{
+			AllowedOrigins:     conf.Security.Cors.AllowedOrigins,
+			AllowedHeaders:     conf.Security.Cors.AllowedHeaders,
+			AllowedMethods:     conf.Security.Cors.AllowedMethods,
+			ExposedHeaders:     conf.Security.Cors.ExposedHeaders,
+			AllowCredentials:   conf.Security.Cors.AllowCredentials,
+			MaxAge:             conf.Security.Cors.MaxAge,
+			OptionsPassthrough: conf.Security.Cors.OptionsPassthrough,
+			Debug:              true,
+		})
+
+		mux.Use(c.Handler)
 
 		return nil
 	})

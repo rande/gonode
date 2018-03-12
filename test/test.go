@@ -21,20 +21,18 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/assets"
+	"github.com/rande/gonode/app/assets"
 	"github.com/rande/gonode/core/bindata"
 	"github.com/rande/gonode/core/commands"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/core/logger"
 	"github.com/rande/gonode/core/router"
-	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/modules/api"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/blog"
 	"github.com/rande/gonode/modules/debug"
 	"github.com/rande/gonode/modules/feed"
-	"github.com/rande/gonode/modules/guard"
 	"github.com/rande/gonode/modules/media"
 	"github.com/rande/gonode/modules/prism"
 	"github.com/rande/gonode/modules/raw"
@@ -44,6 +42,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
+	"github.com/rande/gonode/core/security"
+	"github.com/rande/gonode/modules/guard"
 )
 
 func GetPager(app *goapp.App, res *Response) *api.ApiPager {
@@ -131,8 +131,9 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 
 	logger.Configure(l, conf)
 	commands.Configure(l, conf)
+	security.ConfigureCors(l, conf)
 	node_guard.Configure(l, conf)
-	security.Configure(l, conf)
+	security.ConfigureSecurity(l, conf)
 	api.Configure(l, conf)
 	setup.Configure(l, conf)
 	bindata.Configure(l, conf)

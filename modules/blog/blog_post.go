@@ -16,11 +16,12 @@ type PostMeta struct {
 }
 
 type Post struct {
-	Title           string    `json:"title"`
-	SubTitle        string    `json:"sub_title"`
-	Content         string    `json:"content"`
-	PublicationDate time.Time `json:"publication_date"`
-	Tags            []string  `json:"tags"`
+	Title           string         `json:"title"`
+	SubTitle        string         `json:"sub_title"`
+	Content         string         `json:"content"`
+	PublicationDate time.Time      `json:"publication_date"`
+	Tags            []string       `json:"tags"`
+	MainImage       base.Reference `json:"main_image"`
 }
 
 type PostHandler struct {

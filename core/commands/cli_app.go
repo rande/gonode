@@ -12,7 +12,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	sq "github.com/lann/squirrel"
-	pq "github.com/lib/pq"
+	"github.com/lib/pq"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/vault"

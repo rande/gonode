@@ -71,6 +71,7 @@ func (c *ServerCommand) Run(args []string) int {
 				"module": "command.cli",
 			}).Debug("Goji received signal, gracefully stopping")
 		})
+
 		graceful.PostHook(func() {
 			logger.WithFields(log.Fields{
 				"module": "command.cli",
