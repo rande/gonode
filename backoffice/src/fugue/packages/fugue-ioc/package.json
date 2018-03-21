@@ -1,0 +1,6 @@
+{
+  "name": "fugue-ioc",
+  "version": "0.0.1",
+  "main": "di.tsx",
+  "license": "MIT"
+}

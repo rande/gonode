@@ -36,7 +36,7 @@ path = "/tmp/gnode"
     ]
 
     [security.cors]
-    allowed_origins = ["http://localhost:8000"]
+    allowed_origins = ["*"]
     allowed_methods = ["GET", "PUT", "POST"]
     allowed_headers = ["Origin", "Accept", "Content-Type", "Authorization"]
 
