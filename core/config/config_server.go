@@ -30,9 +30,10 @@ type Guard struct {
 }
 
 type BinDataAsset struct {
-	Index   string `toml:"index"`
-	Public  string `toml:"public"`
-	Private string `toml:"private"`
+	Index    string `toml:"index"`
+	Public   string `toml:"public"`
+	Private  string `toml:"private"`
+	Fallback string `toml:"fallback"`
 }
 
 type BinData struct {

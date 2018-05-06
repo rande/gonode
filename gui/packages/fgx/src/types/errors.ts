@@ -1,0 +1,9 @@
+export const NoResultFoundError = new Error('No result found');
+export const InvalidStatusCodeError = new Error('Invalid status code');
+export const UnableToAuthenticateError = new Error('Unable to authenticate');
+export const UnexpectedHttpError = new Error('Unexpected HTTP Error');
+export const UnauthorizedHttpError = new Error('Unauthorized HTTP Error');
+export const ForbiddenHttpError = new Error('Forbidden HTTP Error');
+export const MutationError = new Error('Unable to mutate an entity property');
+export const UnprocessableEntityError = new Error('Unprocessable Entity');
+export const VersionConflictError = new Error('Version mismatch');

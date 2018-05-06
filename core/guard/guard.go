@@ -6,6 +6,7 @@
 package guard
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 )
@@ -97,4 +98,27 @@ type GuardAuthenticator interface {
 
 type GuardManager interface {
 	GetUser(username string) (GuardUser, error)
+}
+
+func OnAuthenticationFailure(req *http.Request, res http.ResponseWriter, err error, message string) bool {
+	// nothing to do
+	res.Header().Set("Content-Type", "application/json")
+
+	res.WriteHeader(http.StatusUnauthorized)
+
+	data, _ := json.Marshal(map[string]string{
+		"status":  "KO",
+		"message": message,
+	})
+
+	res.Write(data)
+
+	return true
+}
+
+func CreateAuthenticatedToken(user GuardUser) (GuardToken, error) {
+	return &DefaultGuardToken{
+		Username: user.GetUsername(),
+		Roles:    user.GetRoles(),
+	}, nil
 }

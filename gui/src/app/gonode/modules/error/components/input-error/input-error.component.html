@@ -1,0 +1,7 @@
+<div *ngIf="field.invalid && (field.dirty || field.touched)">
+  <div *ngFor="let error of field.errors | keysIterator">
+    <div>
+      {{ error }}
+    </div>
+  </div>
+</div>

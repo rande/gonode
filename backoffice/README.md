@@ -1,6 +1,0 @@
-## Requirements
-
-
-
-
-https://uppy.io/

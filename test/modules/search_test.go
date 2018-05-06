@@ -112,7 +112,7 @@ func Test_Search_Invalid_Pagination(t *testing.T) {
 			// WHEN
 			res, _ := test.RunRequest("GET", ts.URL+url, nil, auth)
 
-			assert.Equal(t, 412, res.StatusCode, "url: "+url)
+			assert.Equal(t, 422, res.StatusCode, "url: "+url)
 		})
 	}
 }
@@ -127,7 +127,7 @@ func Test_Search_Invalid_OrderBy(t *testing.T) {
 
 		// seems goji or golang block this request
 		res, _ = test.RunRequest("GET", ts.URL+"/api/v1.0/nodes?order_by=DELETE%20*%20FROM%20node,ASC", nil, auth)
-		assert.Equal(t, 412, res.StatusCode, "url: /api/v1.0/nodes?order_by=DELETE%20*%20FROM%20node,ASC")
+		assert.Equal(t, 422, res.StatusCode, "url: /api/v1.0/nodes?order_by=DELETE%20*%20FROM%20node,ASC")
 	})
 }
 

@@ -1,9 +1,0 @@
-{
-  "name": "fugue-app",
-  "version": "0.0.1",
-  "main": "index.tsx",
-  "license": "MIT",
-  "dependencies": {
-    "hyperapp": "^1.2.0"
-  }
-}

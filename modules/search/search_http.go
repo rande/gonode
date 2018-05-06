@@ -64,7 +64,7 @@ func (h *HttpSearchParser) HandleSearch(res http.ResponseWriter, req *http.Reque
 
 	// check page range
 	if httpSearchForm.Page < 0 || httpSearchForm.PerPage < 0 || uint64(httpSearchForm.PerPage) > h.MaxResult {
-		helper.SendWithHttpCode(res, http.StatusPreconditionFailed, "Invalid `pagination` range")
+		helper.SendWithHttpCode(res, http.StatusUnprocessableEntity, "Invalid `pagination` range")
 
 		return nil
 	}
@@ -84,7 +84,7 @@ func (h *HttpSearchParser) HandleSearch(res http.ResponseWriter, req *http.Reque
 		r := rexOrderBy.FindAllStringSubmatch(order, -1)
 
 		if r == nil {
-			helper.SendWithHttpCode(res, http.StatusPreconditionFailed, "Invalid `order_by` condition")
+			helper.SendWithHttpCode(res, http.StatusUnprocessableEntity, "Invalid `order_by` condition")
 
 			return nil
 		}
@@ -143,7 +143,7 @@ func (h *HttpSearchParser) HandleSearch(res http.ResponseWriter, req *http.Reque
 	} else if httpSearchForm.Enabled == "false" || httpSearchForm.Enabled == "f" || httpSearchForm.Enabled == "0" {
 		searchForm.Enabled = NewParam(false, "=")
 	} else if len(httpSearchForm.Enabled) > 0 {
-		helper.SendWithHttpCode(res, http.StatusPreconditionFailed, "Invalid `enabled` condition")
+		helper.SendWithHttpCode(res, http.StatusUnprocessableEntity, "Invalid `enabled` condition")
 
 		return nil
 	}
@@ -154,7 +154,7 @@ func (h *HttpSearchParser) HandleSearch(res http.ResponseWriter, req *http.Reque
 	} else if httpSearchForm.Deleted == "false" || httpSearchForm.Deleted == "f" || httpSearchForm.Deleted == "0" {
 		searchForm.Deleted = NewParam(false, "=")
 	} else if len(httpSearchForm.Deleted) > 0 {
-		helper.SendWithHttpCode(res, http.StatusPreconditionFailed, "Invalid `deleted `condition")
+		helper.SendWithHttpCode(res, http.StatusUnprocessableEntity, "Invalid `deleted `condition")
 
 		return nil
 	}
@@ -164,7 +164,7 @@ func (h *HttpSearchParser) HandleSearch(res http.ResponseWriter, req *http.Reque
 	} else if httpSearchForm.Current == "false" || httpSearchForm.Current == "f" || httpSearchForm.Current == "0" {
 		searchForm.Current = NewParam(false, "=")
 	} else if len(httpSearchForm.Current) > 0 {
-		helper.SendWithHttpCode(res, http.StatusPreconditionFailed, "Invalid `current` condition")
+		helper.SendWithHttpCode(res, http.StatusUnprocessableEntity, "Invalid `current` condition")
 
 		return nil
 	}

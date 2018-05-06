@@ -12,10 +12,21 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/dgrijalva/jwt-go"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/schema"
 	"golang.org/x/crypto/bcrypt"
 )
+
+type Credentials struct {
+	Roles    []string `json:"roles"`
+	Username string   `json:"username"`
+}
+
+type AuthResponse struct {
+	Status      string       `json:"status"`
+	Message     string       `json:"message"`
+	Credentials *Credentials `json:"credentials"`
+}
 
 // this authenticator will create a JWT Token from a standard form
 type JwtLoginGuardAuthenticator struct {
@@ -143,26 +154,11 @@ func (a *JwtLoginGuardAuthenticator) CheckCredentials(credentials interface{}, u
 }
 
 func (a *JwtLoginGuardAuthenticator) CreateAuthenticatedToken(user GuardUser) (GuardToken, error) {
-	return &DefaultGuardToken{
-		Username: user.GetUsername(),
-		Roles:    user.GetRoles(),
-	}, nil
+	return CreateAuthenticatedToken(user)
 }
 
 func (a *JwtLoginGuardAuthenticator) OnAuthenticationFailure(req *http.Request, res http.ResponseWriter, err error) bool {
-	// nothing to do
-	res.Header().Set("Content-Type", "application/json")
-
-	res.WriteHeader(http.StatusForbidden)
-
-	data, _ := json.Marshal(map[string]string{
-		"status":  "KO",
-		"message": "Unable to authenticate request",
-	})
-
-	res.Write(data)
-
-	return true
+	return OnAuthenticationFailure(req, res, err, "Unable to authenticate request")
 }
 
 func (a *JwtLoginGuardAuthenticator) OnAuthenticationSuccess(req *http.Request, res http.ResponseWriter, token GuardToken) bool {
@@ -174,7 +170,9 @@ func (a *JwtLoginGuardAuthenticator) OnAuthenticationSuccess(req *http.Request, 
 	// Set reserved claims
 	claims := jwtToken.Claims.(jwt.MapClaims)
 
-	claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
+	exp := time.Now().Add(time.Minute * 30)
+
+	claims["exp"] = exp.Unix()
 
 	// Set shared claims
 	claims["rls"] = token.GetRoles()
@@ -184,12 +182,23 @@ func (a *JwtLoginGuardAuthenticator) OnAuthenticationSuccess(req *http.Request, 
 	tokenString, _ := jwtToken.SignedString([]byte(a.Key))
 
 	res.Header().Set("Content-Type", "application/json")
-	res.Header().Set("X-Token", tokenString)
 
-	data, _ := json.Marshal(map[string]string{
-		"status":  "OK",
-		"message": "Request is authenticated",
-		"token":   tokenString,
+	http.SetCookie(res, &http.Cookie{
+		Name:    "access_token",
+		Expires: exp,
+		Path:    "/",
+		// Secure: true,
+		HttpOnly: true,
+		Value:    tokenString,
+	})
+
+	data, _ := json.Marshal(&AuthResponse{
+		Status:  "OK",
+		Message: "Request is authenticated",
+		Credentials: &Credentials{
+			Roles:    token.GetRoles(),
+			Username: token.GetUsername(),
+		},
 	})
 
 	res.Write(data)
