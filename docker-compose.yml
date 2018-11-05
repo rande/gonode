@@ -6,8 +6,9 @@ services:
         ports:
             - "127.0.0.1:2508:2508"
         volumes:
-            - ".:/go/src/github.com/rande/gonode:delegated"
+            - ".:/go/src/github.com/rande/gonode"
             - "gopath:/go"
+            - "tmp:/tmp/gnode"
         working_dir: /go/src/github.com/rande/gonode
         links:
             - influxdb
@@ -18,21 +19,20 @@ services:
             INFLUXDB_HOST: influxdb
             PATH: /go/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-    # front:
-    #     image: ekino/docker-buildbox:node7.5-2017.02.07
-    #     command: npm start
-    #     ports:
-    #         - "127.0.0.1:3000:3000"
-    #     volumes:
-    #         - "./admin:/code:delegated"
-    #     working_dir: /code
-    #     links:
-    #         - back
+    front:
+        image: ekino/docker-buildbox:node9.11-2018.05.18
+        command: ng build --watch --delete-output-path=false --deploy-url /explorer/ --base-href /explorer
+        volumes:
+            - "./gui:/code:cached"
+        working_dir: /code
+        environment:
+            PATH: /code/node_modules/.bin:/root/.nvm/versions/node/current/bin:usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     influxdb:
         image: influxdb
         volumes:
-            - "./data/influxdb:/var/lib/influxdb/data"
+            - "influxdb:/var/lib/influxdb/data"
+
     database:
         image: postgres:9.5
         volumes:
@@ -46,3 +46,5 @@ services:
 volumes:
     gopath:
     postgresql:
+    influxdb:
+    tmp:

@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -216,4 +216,5 @@ func Test_JwtTokenGuardAuthenticator_onAuthenticationFailure(t *testing.T) {
 
 	assert.Equal(t, "KO", v.Status)
 	assert.Equal(t, "Unable to validate the token", v.Message)
+	assert.Equal(t, 401, res.Result().StatusCode)
 }

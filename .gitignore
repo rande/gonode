@@ -1,12 +1,10 @@
-# Created by .ignore support plugin (hsz.mobi)
-explorer/node_modules
-explorer/dist
 dist/*
 app/assets/bindata.go
 data
-admin/build
-admin/node_modules
 vendor
 runtime
 .glide
-fork
+backoffice
+node_modules
+.DS_Store
+.vscode

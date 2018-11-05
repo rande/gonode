@@ -118,6 +118,12 @@ func HandleImageReader(node *base.Node, v *vault.Vault, r io.Reader, logger *log
 
 	f.Seek(0, 0)
 
+	if v.Has(node.UniqueId()) {
+		if err := v.Remove(node.UniqueId()); err != nil {
+			return written, err
+		}
+	}
+
 	_, err = v.Put(node.UniqueId(), vaultmeta, f)
 
 	if err != nil {
@@ -178,6 +184,8 @@ func HandleImageReader(node *base.Node, v *vault.Vault, r io.Reader, logger *log
 			"module":    "media.handle_image_reader",
 			"node_uuid": node.Uuid.String(),
 			"path":      path,
+			"written":   written,
+			"meta":      meta,
 		}).Debug("End handling io.Reader to store image")
 	}
 

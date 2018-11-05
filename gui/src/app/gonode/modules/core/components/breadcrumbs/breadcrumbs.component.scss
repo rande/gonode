@@ -1,0 +1,12 @@
+// @import '~@angular/material/theming';
+// Import your custom theme
+// @import 'src/styles.scss';
+
+// $primary: map-get($theme, primary);
+// $foreground: map-get($theme, foreground);
+
+span > a {
+    text-decoration: none;
+    // color: mat-color($foreground, link);
+    color: inherit;
+}

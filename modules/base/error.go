@@ -137,7 +137,7 @@ func HandleError(req *http.Request, res http.ResponseWriter, err error) {
 	case RevisionError:
 		statusCode = http.StatusConflict
 	case ValidationError:
-		statusCode = http.StatusPreconditionFailed
+		statusCode = http.StatusUnprocessableEntity
 	case InvalidVersionError:
 		statusCode = http.StatusBadRequest
 	}

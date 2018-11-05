@@ -6,7 +6,6 @@
 package test
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -28,11 +27,13 @@ import (
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/core/logger"
 	"github.com/rande/gonode/core/router"
+	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/modules/api"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/blog"
 	"github.com/rande/gonode/modules/debug"
 	"github.com/rande/gonode/modules/feed"
+	"github.com/rande/gonode/modules/guard"
 	"github.com/rande/gonode/modules/media"
 	"github.com/rande/gonode/modules/prism"
 	"github.com/rande/gonode/modules/raw"
@@ -42,8 +43,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
-	"github.com/rande/gonode/core/security"
-	"github.com/rande/gonode/modules/guard"
 )
 
 func GetPager(app *goapp.App, res *Response) *api.ApiPager {
@@ -103,7 +102,8 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 		app.Set("logger", func(app *goapp.App) interface{} {
 			logger := log.New()
 			logger.Out = os.Stdout
-			logger.Level = log.DebugLevel
+			// logger.Level = log.DebugLevel
+			logger.Level = log.InfoLevel
 
 			return logger
 		})
@@ -191,18 +191,13 @@ func GetAuthTokenFromCredentials(username, password string, ts *httptest.Server)
 		return ""
 	}
 
-	b := bytes.NewBuffer([]byte(""))
-	io.Copy(b, res.Body)
+	for _, cookie := range res.Cookies() {
+		if cookie.Name == "access_token" {
+			return cookie.Value
+		}
+	}
 
-	v := &struct {
-		Status  string `json:"status"`
-		Message string `json:"message"`
-		Token   string `json:"token"`
-	}{}
-
-	json.Unmarshal(b.Bytes(), v)
-
-	return v.Token
+	return ""
 }
 
 func GetDefaultAuthToken(ts *httptest.Server) string {

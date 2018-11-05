@@ -115,7 +115,7 @@ func (v *IndexViewHandler) Execute(node *base.Node, request *base.ViewRequest, r
 	}
 	// check page range
 	if uint64(search.PerPage) > v.MaxResult {
-		helper.SendWithHttpCode(response.HttpResponse, http.StatusPreconditionFailed, "Invalid `pagination` range")
+		helper.SendWithHttpCode(response.HttpResponse, http.StatusUnprocessableEntity, "Invalid `pagination` range")
 
 		return nil
 	}

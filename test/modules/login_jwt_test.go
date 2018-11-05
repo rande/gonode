@@ -14,7 +14,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/dgrijalva/jwt-go"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/modules/base"
@@ -59,12 +59,22 @@ func Test_Create_Username(t *testing.T) {
 		v := &struct {
 			Status  string `json:"status"`
 			Message string `json:"message"`
-			Token   string `json:"token"`
 		}{}
 
 		json.Unmarshal(b.Bytes(), v)
 
-		token, err := jwt.Parse(v.Token, func(token *jwt.Token) (interface{}, error) {
+		var tokenData = ""
+		for _, cookie := range res.Cookies() {
+			if cookie.Name != "access_token" {
+				continue
+			}
+
+			tokenData = cookie.Value
+		}
+
+		assert.NotEmpty(t, tokenData)
+
+		token, err := jwt.Parse(tokenData, func(token *jwt.Token) (interface{}, error) {
 			// Don't forget to validate the alg is what you expect:
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])

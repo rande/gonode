@@ -17,7 +17,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dgrijalva/jwt-go"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -112,12 +112,22 @@ func Test_JwtLoginGuardAuthenticator_onAuthenticationSuccess(t *testing.T) {
 	v := &struct {
 		Status  string `json:"status"`
 		Message string `json:"message"`
-		Token   string `json:"token"`
 	}{}
 
 	json.Unmarshal(b.Bytes(), v)
 
-	jwtToken, err := jwt.Parse(v.Token, func(token *jwt.Token) (interface{}, error) {
+	var tokenData = ""
+	for _, cookie := range res.Result().Cookies() {
+		if cookie.Name != "access_token" {
+			continue
+		}
+
+		tokenData = cookie.Value
+	}
+
+	assert.NotEmpty(t, tokenData)
+
+	jwtToken, err := jwt.Parse(tokenData, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
@@ -127,16 +137,13 @@ func Test_JwtLoginGuardAuthenticator_onAuthenticationSuccess(t *testing.T) {
 	})
 
 	assert.Nil(t, err)
+
 	claims := jwtToken.Claims.(jwt.MapClaims)
 
 	assert.Equal(t, token.Username, claims["usr"])
 	assert.Equal(t, "application/json", res.Header().Get("Content-Type"))
-	assert.Equal(t, v.Token, res.Header().Get("X-Token"))
 	assert.Equal(t, "Request is authenticated", v.Message)
 	assert.Equal(t, "OK", v.Status)
-
-	// @todo: I fail on basic golang conversion here ... from []interface{} to []string
-	//assert.Equal(t, token.Roles, jwtToken.Claims["rls"].([]string))
 }
 
 func Test_JwtLoginGuardAuthenticator_onAuthenticationFailure(t *testing.T) {
@@ -166,4 +173,5 @@ func Test_JwtLoginGuardAuthenticator_onAuthenticationFailure(t *testing.T) {
 	assert.Equal(t, "KO", v.Status)
 	assert.Equal(t, "Unable to authenticate request", v.Message)
 	assert.Equal(t, "application/json", res.Header().Get("Content-Type"))
+	assert.Equal(t, 401, res.Result().StatusCode)
 }

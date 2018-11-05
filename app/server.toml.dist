@@ -36,7 +36,7 @@ path = "/tmp/gnode"
     ]
 
     [security.cors]
-    allowed_origins = ["http://localhost:8000"]
+    allowed_origins = ["*"]
     allowed_methods = ["GET", "PUT", "POST"]
     allowed_headers = ["Origin", "Accept", "Content-Type", "Authorization"]
 
@@ -69,7 +69,8 @@ path = "/tmp/gnode"
         [bindata.assets.explorer]
         index = "index.html"
         public = "/explorer"
-        private = "github.com/rande/gonode/explorer/dist"
+        fallback = "/index.html"
+        private = "github.com/rande/gonode/gui/dist"
 
 [media]
     [media.image]

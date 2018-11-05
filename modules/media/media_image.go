@@ -106,6 +106,14 @@ func (h *ImageHandler) StoreStream(node *base.Node, r io.Reader) (int64, error) 
 	return HandleImageReader(node, h.Vault, r, h.Logger)
 }
 
+func (h *ImageHandler) Validate(node *base.Node, m base.NodeManager, errors base.Errors) {
+	data := node.Data.(*Image)
+
+	if data.Name == "" {
+		errors.AddError("data.name", "Name cannot be empty")
+	}
+}
+
 type ImageDownloadListener struct {
 	Vault      *vault.Vault
 	HttpClient base.HttpClient

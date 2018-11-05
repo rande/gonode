@@ -321,7 +321,7 @@ func Api_POST_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *
 		if node, errors, err := apiHandler.Save(node, options); err != nil && err != base.ValidationError {
 			base.HandleError(req, res, err)
 		} else if errors != nil {
-			res.WriteHeader(http.StatusPreconditionFailed)
+			res.WriteHeader(http.StatusUnprocessableEntity)
 			base.Serialize(res, errors)
 		} else {
 			res.WriteHeader(http.StatusCreated)
@@ -402,7 +402,7 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 			if node, errors, err := apiHandler.Save(node, options); err != nil && err != base.ValidationError {
 				base.HandleError(req, res, err)
 			} else if errors != nil {
-				res.WriteHeader(http.StatusPreconditionFailed)
+				res.WriteHeader(http.StatusUnprocessableEntity)
 				base.Serialize(res, errors)
 			} else {
 				res.WriteHeader(http.StatusCreated)

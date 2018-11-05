@@ -37,7 +37,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		asset := app.Get("gonode.asset").(func(name string) ([]byte, error))
 
 		for _, bindata := range conf.BinData.Assets {
-			ConfigureBinDataMux(mux, asset, bindata.Public, bindata.Private, bindata.Index, logger)
+			ConfigureBinDataMux(mux, asset, bindata, logger)
 		}
 
 		return nil

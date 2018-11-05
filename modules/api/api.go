@@ -82,14 +82,19 @@ func (a *Api) Find(query sq.SelectBuilder, page uint64, perPage uint64, options 
 }
 
 func (a *Api) Save(node *base.Node, options *base.AccessOptions) (*base.Node, base.Errors, error) {
-	if a.Logger != nil {
-		a.Logger.Printf("trying to save node.uuid=%s, node.type=%s", node.Uuid, node.Type)
-	}
+
+	logger := a.Logger.WithFields(log.Fields{
+		"module": "api.save",
+		"uuid":   node.Uuid,
+		"type":   node.Type,
+	})
+
+	logger.Debug("Trying to save a node")
 
 	saved := a.Manager.Find(node.Uuid)
 
 	if saved != nil {
-		a.Logger.Printf("find uuid: %s", node.Uuid)
+		logger.Debug("Find node, updating node")
 
 		helper.PanicUnless(node.Type == saved.Type, "Type mismatch")
 
@@ -97,15 +102,24 @@ func (a *Api) Save(node *base.Node, options *base.AccessOptions) (*base.Node, ba
 			result, _ := a.Authorizer.IsGranted(options.Token, nil, node)
 
 			if !result {
+				logger.Info("Unable to save, AccessForbiddenError")
+
 				return nil, nil, base.AccessForbiddenError
 			}
 		}
 
 		if node.Deleted == true {
+			logger.Info("Unable to delete, AlreadyDeletedError")
+
 			return nil, nil, base.AlreadyDeletedError
 		}
 
 		if node.Revision != saved.Revision {
+			logger.WithFields(log.Fields{
+				"current_revision": saved.Revision,
+				"new_revision":     node.Revision,
+			}).Info("revision mismatch, RevisionError")
+
 			return nil, nil, base.RevisionError
 		}
 
@@ -116,14 +130,14 @@ func (a *Api) Save(node *base.Node, options *base.AccessOptions) (*base.Node, ba
 		node.ParentUuid = saved.ParentUuid
 
 	} else if a.Logger != nil {
-		a.Logger.Printf("cannot find uuid: %s, create a new one", node.Uuid)
-	}
-
-	if a.Logger != nil {
-		a.Logger.Printf("saving node.id=%d, node.uuid=%s", node.Id, node.Uuid)
+		logger.Debug("Cannnot find node, create a new one")
 	}
 
 	if ok, errors := a.Manager.Validate(node); !ok {
+		logger.WithFields(log.Fields{
+			"validation_errors": errors,
+		}).Info("Unable to validate the node")
+
 		return nil, errors, base.ValidationError
 	}
 

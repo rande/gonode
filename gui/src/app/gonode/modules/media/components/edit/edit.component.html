@@ -1,0 +1,76 @@
+<h2>Edit Node {{ entity.revision }}</h2>
+
+<div *ngIf="globalErrorMessages.length == 1">
+  <p>An error occurs: </p>
+  <span *ngFor="let message of globalErrorMessages">
+    {{ message }}
+  </span>
+</div>
+
+<div *ngIf="globalErrorMessages.length > 1">
+  <p>Many errors occurs: </p>
+  <span *ngFor="let message of globalErrorMessages">
+    {{ message }}
+  </span>
+</div>
+
+<div class="col-md-12">
+  <nb-card>
+    <nb-card-header>Basic form</nb-card-header>
+    <nb-card-body>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="edit.name">Name</label>
+          <input type="text" class="form-control" formControlName="name" placeholder="Name" id="edit.name" placeholder="Name">
+          <gonode-input-error [form]="form" name="name"></gonode-input-error>
+        </div>
+
+        <div class="form-group">
+          <label for="edit.slug">Slug</label>
+          <input type="text" class="form-control" formControlName="slug" placeholder="Slug" id="edit.slug" placeholder="Slug">
+          <gonode-input-error [form]="form" name="slug"></gonode-input-error>
+        </div>
+
+        <div class="form-group">
+          <label for="edit.status">Status</label>
+          <select class="form-control" id="edit.status" formControlName="status" placeholder="Status">
+            <option [value]=0>New</option>
+            <option [value]=1>Draft</option>
+            <option [value]=2>Completed</option>
+            <option [value]=3>Validated</option>
+          </select>
+          <gonode-input-error [form]="form" name="status"></gonode-input-error>
+        </div>
+
+        <div class="form-group">
+          <nb-checkbox formControlName="enabled">Enabled</nb-checkbox>
+        </div>
+
+        <div class="form-group" formGroupName="data">
+          <label for="edit.data.reference">Reference</label>
+          <input type="text" class="form-control" formControlName="reference" placeholder="Reference" id="edit.data.reference">
+          <gonode-input-error [form]="form" name="data.reference"></gonode-input-error>
+        </div>
+
+        <div class="form-group" formGroupName="data">
+          <label for="edit.data.reference">Source URL</label>
+          <input type="text" class="form-control" formControlName="source_url" placeholder="Source Url" id="edit.data.source_url">
+          <gonode-input-error [form]="form" name="data.source_url"></gonode-input-error>
+        </div>
+
+        <div class="form-group" formGroupName="data">
+          <label for="edit.data.name">Name</label>
+          <input type="text" class="form-control" formControlName="name" placeholder="Name" id="edit.data.name">
+          <gonode-input-error [form]="form" name="data.name"></gonode-input-error>
+        </div>
+
+        <div class="form-group">
+          <label for="edit.slug">Binary Content</label>
+          <gonode-upload-field [node]="entity" ></gonode-upload-field>
+        </div>
+
+        <button type="submit" class="btn btn-danger">Submit</button>
+      </form>
+    </nb-card-body>
+  </nb-card>
+</div>

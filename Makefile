@@ -13,6 +13,10 @@ define back
     $(call docker,back,$(1))
 endef
 
+define front
+    $(call docker,front,$(1))
+endef
+
 define docker
     if [ ! -f /.dockerenv ]; then \
         docker-compose run $(1) /bin/bash -c "$(2)"; \
@@ -21,12 +25,16 @@ define docker
     fi
 endef
 
-shell:
+back:
 	docker-compose run back /bin/bash
+
+front:
+	docker-compose run front /bin/bash
 
 install:
 	$(call back,glide install)
 	$(call back,go get github.com/wadey/gocovmerge && go get golang.org/x/tools/cmd/cover && go get golang.org/x/tools/cmd/goimports && go get -u github.com/jteeuwen/go-bindata/...)
+	$(call front,yarn)
 
 test:
 	$(call back,./app/assets/bindata.sh && go test -v $(GONODE_CORE) $(GONODE_MODULES) ./test/modules)
@@ -39,6 +47,7 @@ format:
 
 run:
 	docker-compose kill
+	mkdir -p gui/dist
 	docker-compose up
 
 load:    ## Load fixtures

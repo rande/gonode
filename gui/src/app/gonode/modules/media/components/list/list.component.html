@@ -1,0 +1,11 @@
+<p *ngIf="loading">
+  Fetching the list
+</p>
+
+<!-- <p *ngIf="!source">
+  {{ result.error.message }}
+</p> -->
+
+<div *ngIf="source">
+    <ng2-smart-table [settings]="tableSettings" [source]="source"></ng2-smart-table>
+</div>

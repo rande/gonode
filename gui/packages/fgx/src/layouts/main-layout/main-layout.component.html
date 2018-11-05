@@ -1,0 +1,17 @@
+<nb-layout>
+    <nb-layout-header fixed>
+      <fgx-header></fgx-header>
+    </nb-layout-header>
+
+    <nb-sidebar responsive tag="menu-sidebar">
+      <nb-menu [items]="menuItems"></nb-menu>
+    </nb-sidebar>
+  
+    <nb-layout-column>
+        <router-outlet></router-outlet>
+    </nb-layout-column>
+
+    <nb-layout-footer>
+      Copyright © Your company
+    </nb-layout-footer>
+</nb-layout>

@@ -6,15 +6,25 @@
 package guard
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"regexp"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/dgrijalva/jwt-go"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
 )
+
+type CookiesExtractor []string
+
+func (e CookiesExtractor) ExtractToken(req *http.Request) (string, error) {
+	for _, header := range e {
+		if cookie, _ := req.Cookie(header); cookie != nil {
+			return cookie.Value, nil
+		}
+	}
+	return "", request.ErrNoTokenInRequest
+}
 
 // this authenticator will create a JWT Token from a standard form
 type JwtTokenGuardAuthenticator struct {
@@ -25,12 +35,18 @@ type JwtTokenGuardAuthenticator struct {
 	Logger   *log.Logger
 }
 
+var OAuth2Extractor = &request.MultiExtractor{
+	CookiesExtractor{"access_token"},
+	request.AuthorizationHeaderExtractor,
+	request.ArgumentExtractor{"access_token"},
+}
+
 func (a *JwtTokenGuardAuthenticator) GetCredentials(req *http.Request) (interface{}, error) {
 	if !a.Path.Match([]byte(req.URL.Path)) {
 		return nil, nil
 	}
 
-	if credentials, err := request.ParseFromRequest(req, request.OAuth2Extractor, func(token *jwt.Token) (interface{}, error) {
+	if credentials, err := request.ParseFromRequest(req, OAuth2Extractor, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			if a.Logger != nil {
@@ -132,26 +148,11 @@ func (a *JwtTokenGuardAuthenticator) CheckCredentials(credentials interface{}, u
 }
 
 func (a *JwtTokenGuardAuthenticator) CreateAuthenticatedToken(user GuardUser) (GuardToken, error) {
-	return &DefaultGuardToken{
-		Username: user.GetUsername(),
-		Roles:    user.GetRoles(),
-	}, nil
+	return CreateAuthenticatedToken(user)
 }
 
 func (a *JwtTokenGuardAuthenticator) OnAuthenticationFailure(req *http.Request, res http.ResponseWriter, err error) bool {
-	// nothing to do
-	res.Header().Set("Content-Type", "application/json")
-
-	res.WriteHeader(http.StatusForbidden)
-
-	data, _ := json.Marshal(map[string]string{
-		"status":  "KO",
-		"message": "Unable to validate the token",
-	})
-
-	res.Write(data)
-
-	return true
+	return OnAuthenticationFailure(req, res, err, "Unable to validate the token")
 }
 
 func (a *JwtTokenGuardAuthenticator) OnAuthenticationSuccess(req *http.Request, res http.ResponseWriter, token GuardToken) bool {
