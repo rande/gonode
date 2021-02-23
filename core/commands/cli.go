@@ -9,10 +9,10 @@ import (
 	"flag"
 	"net/http"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/mitchellh/cli"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
+	log "github.com/sirupsen/logrus"
 	"github.com/zenazn/goji/bind"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"

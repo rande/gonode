@@ -8,12 +8,12 @@ package node_guard
 import (
 	"regexp"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/guard"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/user"
+	log "github.com/sirupsen/logrus"
 	"github.com/zenazn/goji/web"
 )
 

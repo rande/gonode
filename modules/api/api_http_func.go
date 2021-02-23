@@ -13,13 +13,13 @@ import (
 	"net/http"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/websocket"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/search"
+	log "github.com/sirupsen/logrus"
 	"github.com/zenazn/goji/web"
 )
 

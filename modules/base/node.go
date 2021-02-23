@@ -11,8 +11,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/rande/gonode/core/helper"
-	"github.com/twinj/uuid"
 )
 
 var (
@@ -27,13 +27,7 @@ type Reference struct {
 }
 
 func (m *Reference) MarshalJSON() ([]byte, error) {
-	var s string
-
-	if m.UUID != nil {
-		s = uuid.Formatter(m.UUID, uuid.FormatCanonical)
-	}
-
-	if cont, err := json.Marshal(s); err != nil {
+	if cont, err := json.Marshal(m.UUID.String()); err != nil {
 		return nil, err
 	} else {
 		return cont, nil
@@ -42,7 +36,7 @@ func (m *Reference) MarshalJSON() ([]byte, error) {
 
 func (m *Reference) UnmarshalJSON(data []byte) error {
 	if len(data) == 2 { // json => "", so 2 bytes, empty value
-		m.UUID = GetEmptyReference()
+		m.UUID = GetEmptyReference().UUID
 
 		return nil
 	}
@@ -54,14 +48,14 @@ func (m *Reference) UnmarshalJSON(data []byte) error {
 	if tmpUuid, err := uuid.Parse(string(data[1 : len(data)-1])); err != nil {
 		return err
 	} else {
-		m.UUID = GetReference(tmpUuid)
+		m.UUID = tmpUuid
 	}
 
 	return nil
 }
 
 func (m *Reference) CleanString() string {
-	return uuid.Formatter(m.UUID, uuid.FormatCanonical)
+	return m.String()
 }
 
 func GetReferenceFromString(reference string) (Reference, error) {

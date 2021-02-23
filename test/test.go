@@ -19,7 +19,6 @@ import (
 	"strings"
 	"testing"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/app/assets"
 	"github.com/rande/gonode/core/bindata"
@@ -28,22 +27,23 @@ import (
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/core/logger"
 	"github.com/rande/gonode/core/router"
+	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/modules/api"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/blog"
 	"github.com/rande/gonode/modules/debug"
 	"github.com/rande/gonode/modules/feed"
+	"github.com/rande/gonode/modules/guard"
 	"github.com/rande/gonode/modules/media"
 	"github.com/rande/gonode/modules/prism"
 	"github.com/rande/gonode/modules/raw"
 	"github.com/rande/gonode/modules/search"
 	"github.com/rande/gonode/modules/setup"
 	"github.com/rande/gonode/modules/user"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
-	"github.com/rande/gonode/core/security"
-	"github.com/rande/gonode/modules/guard"
 )
 
 func GetPager(app *goapp.App, res *Response) *api.ApiPager {

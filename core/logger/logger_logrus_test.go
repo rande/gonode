@@ -6,13 +6,9 @@
 package logger
 
 import (
-	"fmt"
-	"os"
 	"testing"
 
-	log "github.com/Sirupsen/logrus"
-	"github.com/rande/gonode/core/config"
-	"github.com/stretchr/testify/assert"
+	log "github.com/sirupsen/logrus"
 )
 
 func Test_Dispatch_SameLevel(t *testing.T) {
@@ -64,40 +60,4 @@ func Test_Dispatch_Fatal(t *testing.T) {
 	d.Fire(e)
 
 	h.AssertCalled(t, "Fire", e)
-}
-
-func Test_Config_Influx(t *testing.T) {
-	hook, err := GetHook(map[string]interface{}{
-		"service": "influxdb",
-		"tags":    []string{"salut"},
-		"url":     fmt.Sprintf("http://%s:8086", os.Getenv("INFLUXDB_HOST")),
-	})
-
-	assert.NoError(t, err)
-	assert.NotNil(t, hook)
-}
-
-func Test_Config_Influx_From_Config(t *testing.T) {
-	conf := &config.Config{
-		Databases: make(map[string]*config.Database),
-	}
-
-	err := config.LoadConfigurationFromString(`
-[logger]
-    [logger.hooks]
-        [logger.hooks.default]
-        service = "influxdb"
-        url = "http://{{ env "INFLUXDB_HOST" }}:8086"
-        tags = ["app.core"]
-        database = "gonode_stats"
-        level = "debug"
-
-`, conf)
-
-	assert.NoError(t, err)
-
-	hook, err := GetHook(conf.Logger.Hooks["default"])
-
-	assert.NoError(t, err)
-	assert.NotNil(t, hook)
 }

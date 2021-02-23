@@ -9,11 +9,11 @@ import (
 	"database/sql"
 	"reflect"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/flosch/pongo2"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/security"
+	log "github.com/sirupsen/logrus"
 )
 
 func GetValue(source interface{}, field string) interface{} {

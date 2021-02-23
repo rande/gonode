@@ -15,12 +15,12 @@ import (
 	"os"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/rande/goexif/exif"
 	"github.com/rande/goexif/mknote"
 	"github.com/rande/goexif/tiff"
 	"github.com/rande/gonode/core/vault"
 	"github.com/rande/gonode/modules/base"
+	log "github.com/sirupsen/logrus"
 )
 
 type ExifMeta map[string]string

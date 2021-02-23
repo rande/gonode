@@ -11,9 +11,9 @@ import (
 	"fmt"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	pq "github.com/lib/pq"
 	"github.com/rande/gonode/core/helper"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -125,7 +125,8 @@ func (s *Subscriber) waitAndDispatch() {
 			if _, ok := s.handlers[notification.Channel]; ok {
 				// go some handlers register
 				for e := s.handlers[notification.Channel].Front(); e != nil; e = e.Next() {
-					go func(f SubscriberHander) {
+					go func(e *list.Element) {
+						var f = e.Value.(SubscriberHander)
 						s.logger.WithFields(log.Fields{
 							"channel": notification.Channel,
 							"payload": notification.Extra,
@@ -157,7 +158,7 @@ func (s *Subscriber) waitAndDispatch() {
 							"handler": fmt.Sprintf("%T", f),
 						}).Debug("End processing message (ie: func return, goroutine started ?)")
 
-					}(e.Value.(SubscriberHander))
+					}(e)
 				}
 			} else {
 				s.logger.WithFields(log.Fields{

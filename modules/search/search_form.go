@@ -6,7 +6,7 @@
 package search
 
 import (
-	sq "github.com/lann/squirrel"
+	sq "github.com/Masterminds/squirrel"
 	"github.com/rande/gonode/core/squirrel"
 	"github.com/rande/gonode/modules/base"
 )

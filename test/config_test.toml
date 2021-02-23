@@ -3,7 +3,7 @@ bind= ":2508"
 
 [databases.master]
 type    = "master"
-dsn     = "postgres://postgres:gonode@database/gonode?sslmode=disable"
+dsn     = "postgres://postgres:gonode@localhost/gonode?sslmode=disable"
 enabled = true
 prefix  = "test"
 
@@ -78,11 +78,3 @@ key = "ZeSecretKey0oo"
 
     [logger.fields]
     app = "gonode"
-
-    [logger.hooks]
-        [logger.hooks.default]
-        service = "influxdb"
-        url = "http://influxdb:8086"
-        tags = ["app.core"]
-        database = "logger"
-        level = "debug"

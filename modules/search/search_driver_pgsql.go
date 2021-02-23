@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"strings"
 
-	sq "github.com/lann/squirrel"
+	sq "github.com/Masterminds/squirrel"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/core/squirrel"
 	"github.com/rande/gonode/modules/base"

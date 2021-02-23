@@ -8,7 +8,7 @@ package base
 import (
 	"container/list"
 
-	sq "github.com/lann/squirrel"
+	sq "github.com/Masterminds/squirrel"
 	"github.com/stretchr/testify/mock"
 )
 

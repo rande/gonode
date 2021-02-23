@@ -8,9 +8,8 @@ package squirrel
 import (
 	"testing"
 
-	sq "github.com/lann/squirrel"
+	sq "github.com/Masterminds/squirrel"
 	"github.com/stretchr/testify/assert"
-	//	"github.com/twinj/uuid"
 )
 
 func Test_ExprSlice_With_int(t *testing.T) {

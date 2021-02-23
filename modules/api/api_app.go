@@ -8,13 +8,13 @@ package api
 import (
 	"container/list"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/websocket"
 	"github.com/lib/pq"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/modules/base"
+	log "github.com/sirupsen/logrus"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
 )

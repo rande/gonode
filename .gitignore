@@ -3,7 +3,7 @@ explorer/node_modules
 explorer/dist
 dist/*
 app/assets/bindata.go
-data
+data/*
 admin/build
 admin/node_modules
 vendor

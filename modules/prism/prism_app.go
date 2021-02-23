@@ -11,15 +11,15 @@ import (
 	"net/url"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
+	sq "github.com/Masterminds/squirrel"
 	"github.com/flosch/pongo2"
-	sq "github.com/lann/squirrel"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/core/router"
 	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/modules/base"
+	log "github.com/sirupsen/logrus"
 	"github.com/zenazn/goji/web"
 )
 
@@ -273,7 +273,6 @@ func PrismPath(router *router.Router) func(nv *pongo2.Value, vparams ...*pongo2.
 }
 
 func Configure(l *goapp.Lifecycle, conf *config.Config) {
-
 	l.Prepare(func(app *goapp.App) error {
 		r := app.Get("gonode.router").(*router.Router)
 		prefix := ""
@@ -290,7 +289,6 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 	})
 
 	l.Prepare(func(app *goapp.App) error {
-
 		router := app.Get("gonode.router").(*router.Router)
 		pongo := app.Get("gonode.pongo").(*pongo2.TemplateSet)
 		pongo.Globals["prism_path"] = PrismPath(router)

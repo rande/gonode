@@ -11,10 +11,11 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"testing"
+
 	//"time"
 
 	"github.com/gorilla/schema"
-	//sq "github.com/lann/squirrel"
+	//sq "github.com/Masterminds/squirrel"
 	//"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/search"

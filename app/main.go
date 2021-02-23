@@ -8,7 +8,6 @@ package main
 import (
 	"os"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/mitchellh/cli"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/app/assets"
@@ -30,6 +29,7 @@ import (
 	"github.com/rande/gonode/modules/search"
 	"github.com/rande/gonode/modules/setup"
 	"github.com/rande/gonode/modules/user"
+	log "github.com/sirupsen/logrus"
 )
 
 func Configure(configFile string) *goapp.Lifecycle {

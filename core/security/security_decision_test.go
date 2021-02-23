@@ -96,7 +96,7 @@ func Test_AffirmativeDecision_Abstain_ForceTrue(t *testing.T) {
 	v.On("Support", s).Return(true)
 
 	d := &AffirmativeDecision{
-		Voters: []Voter{v},
+		Voters:                     []Voter{v},
 		AllowIfAllAbstainDecisions: true, // force
 	}
 

@@ -10,14 +10,11 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
-	"github.com/Abramovic/logrus_influxdb"
-	log "github.com/Sirupsen/logrus"
-	influxdb "github.com/influxdata/influxdb/client/v2"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/helper"
+	log "github.com/sirupsen/logrus"
 	"github.com/zenazn/goji/web"
 )
 
@@ -60,19 +57,6 @@ func GetHook(conf map[string]interface{}) (log.Hook, error) {
 	}
 
 	switch conf["service"] {
-	case "influxdb":
-		c, _ := influxdb.NewHTTPClient(influxdb.HTTPConfig{
-			Addr:      GetValue("url", conf, "http://localhost:8086").(string),
-			Timeout:   5 * time.Second,
-			Username:  GetValue("username", conf, "").(string),
-			Password:  GetValue("password", conf, "").(string),
-			UserAgent: "GoNode InfluxDBClient",
-		})
-
-		return logrus_influxdb.NewInfluxDB(&logrus_influxdb.Config{
-			Database: GetValue("database", conf, "gonode").(string),
-			Tags:     tags,
-		}, c)
 	}
 
 	return nil, NoHookHandlerError

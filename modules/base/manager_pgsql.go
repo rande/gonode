@@ -14,13 +14,13 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
-	sq "github.com/lann/squirrel"
+	sq "github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/core/squirrel"
-	"github.com/twinj/uuid"
+	log "github.com/sirupsen/logrus"
 )
 
 type PgNodeManager struct {
@@ -276,7 +276,7 @@ func (m *PgNodeManager) RemoveOne(node *Node) (*Node, error) {
 
 func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 	if node.Uuid.String() == GetEmptyReference().String() {
-		node.Uuid = GetReference(uuid.NewV4())
+		node.Uuid = GetReference(uuid.New())
 	}
 
 	if node.Slug == "" {

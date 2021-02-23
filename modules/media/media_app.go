@@ -8,12 +8,12 @@ package media
 import (
 	"net/http"
 
-	log "github.com/Sirupsen/logrus"
 	pq "github.com/lib/pq"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/vault"
 	"github.com/rande/gonode/modules/base"
+	log "github.com/sirupsen/logrus"
 )
 
 func Configure(l *goapp.Lifecycle, conf *config.Config) {

@@ -9,14 +9,14 @@ import (
 	"container/list"
 	"encoding/json"
 
-	sq "github.com/lann/squirrel"
+	sq "github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 	"github.com/rande/gonode/core/helper"
-	"github.com/twinj/uuid"
 )
 
 var (
-	emptyUuid = GetReference(uuid.New([]byte{0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11}))
-	rootUuid  = GetReference(uuid.New([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}))
+	emptyUuid = GetReference(uuid.MustParse("11111111-1111-1111-1111-111111111111"))
+	rootUuid  = GetReference(uuid.MustParse("00000000-0000-0000-0000-000000000000"))
 )
 
 func InterfaceToJsonMessage(ntype string, data interface{}) json.RawMessage {

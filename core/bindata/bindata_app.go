@@ -6,10 +6,10 @@
 package bindata
 
 import (
-	log "github.com/Sirupsen/logrus"
 	"github.com/flosch/pongo2"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
+	log "github.com/sirupsen/logrus"
 	"github.com/zenazn/goji/web"
 )
 
@@ -27,7 +27,6 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 	})
 
 	l.Prepare(func(app *goapp.App) error {
-
 		if !app.Has("goji.mux") {
 			return nil
 		}

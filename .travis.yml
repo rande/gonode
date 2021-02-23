@@ -14,9 +14,6 @@ matrix:
 #      env: TEST_FRONTEND=on TRAVIS_NODE_VERSION="0.12"
 
 before_script:
-  - curl https://dl.influxdata.com/influxdb/releases/influxdb-0.13.0_linux_amd64.tar.gz | tar xvzf -
-  - ./influxdb-0.13.0-1/usr/bin/influxd &
-  - sleep 2
   - if [ "$TEST_BACKEND" = "on" ]; then
         psql -c 'create database travis_ci_test;' -U postgres;
         cp -f test/config_travis.toml test/config_test.toml;

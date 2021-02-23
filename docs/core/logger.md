@@ -13,13 +13,6 @@ Configuration
     [logger.fields]
     app = "gonode"
 
-    [logger.hooks]
-        [logger.hooks.default]
-        service = "influxdb"
-        url = "http://localhost:8086"
-        tags = ["app.core"]
-        database = "logger"
-        level = "debug"
 ```
 
 Feel free to send PR to add support for others hooks.
@@ -31,7 +24,7 @@ Default usage:
 
 ```golang
 import (
-    log "github.com/Sirupsen/logrus"
+    log "github.com/sirupsen/logrus"
 )
 
 logger := app.Get("logger").(*log.Logger)

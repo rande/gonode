@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/zenazn/goji/web"
 )
 
@@ -88,7 +88,5 @@ func ConfigureBinDataMux(mux *web.Mux, Asset func(name string) ([]byte, error), 
 
 		res.WriteHeader(404)
 		res.Write([]byte("<html><head><title>Page not found</title></head><body><h1>Page not found</h1></body></html>"))
-
-		return
 	})
 }

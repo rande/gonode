@@ -8,12 +8,12 @@ package api
 import (
 	"fmt"
 
-	log "github.com/Sirupsen/logrus"
-	sq "github.com/lann/squirrel"
+	sq "github.com/Masterminds/squirrel"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/core/squirrel"
 	"github.com/rande/gonode/modules/base"
+	log "github.com/sirupsen/logrus"
 )
 
 const (

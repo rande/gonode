@@ -53,7 +53,7 @@ func Test_Marshal_Empty_Reference(t *testing.T) {
 	ref := Reference{}
 	data, err := ref.MarshalJSON()
 
-	assert.Len(t, data, 2) // => ""
+	assert.Len(t, data, 38) // => ""
 	assert.Nil(t, err)
 }
 
@@ -64,8 +64,17 @@ func Test_UnMarshal_NoData_Reference(t *testing.T) {
 	err := ref.UnmarshalJSON(input)
 
 	assert.Error(t, err)
+	assert.Len(t, ref.UUID, 16)
+}
+
+func Test_UnMarshal_Invalid_Reference(t *testing.T) {
+	input := []byte("0000000-00000-00000")
+
+	ref := Reference{}
+	err := ref.UnmarshalJSON(input)
+
+	assert.Error(t, err)
 	assert.Equal(t, err, InvalidUuidLengthError)
-	assert.Nil(t, ref.UUID)
 }
 
 func Test_UnMarshal_Empty_String_Reference(t *testing.T) {

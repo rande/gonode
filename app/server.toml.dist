@@ -4,7 +4,7 @@ test= true
 
 [databases.master]
 type    = "master"
-dsn     = "postgres://postgres:gonode@database/gonode?sslmode=disable"
+dsn     = "postgres://postgres:gonode@localhost/gonode?sslmode=disable"
 enabled = true
 prefix  = "prod"
 

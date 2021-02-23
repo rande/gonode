@@ -11,9 +11,9 @@ import (
 	"net/http"
 	"regexp"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
+	log "github.com/sirupsen/logrus"
 )
 
 // this authenticator will create a JWT Token from a standard form
