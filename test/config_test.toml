@@ -55,12 +55,13 @@ key = "ZeSecretKey0oo"
     roles = ["IS_AUTHENTICATED_ANONYMOUSLY"]
 
 [bindata]
+    base_path = ""
     templates = [
-        "github.com/rande/gonode/modules/setup/templates",
-        "github.com/rande/gonode/modules/blog/templates",
-        "github.com/rande/gonode/modules/prism/templates",
-        "github.com/rande/gonode/modules/search/templates",
-        "github.com/rande/gonode/modules/feed/templates",
+        "modules/setup/templates",
+        "modules/blog/templates",
+        "modules/prism/templates",
+        "modules/search/templates",
+        "modules/feed/templates",
     ]
 
     [bindata.assets]

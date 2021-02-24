@@ -18,20 +18,26 @@ Please note, the ``go-bindata`` must be run from ``GOPATH`` folder, so the asset
 The ``Makefile`` lines to generate the file will be:
 
     ```Makefile
+    GO_PATH = $(shell go env GOPATH)
+    GO_BINDATA_PATHS = $(GO_PATH)/src/github.com/rande/gonode/modules/... $(GO_PATH)/src/github.com/rande/gonode/explorer/dist/...
+    GO_BINDATA_IGNORE = "(.*)\.(go|DS_Store)"
+    GO_BINDATA_OUTPUT = $(GO_PATH)/src/github.com/rande/gonode/assets/bindata.go
+    GO_BINDATA_PACKAGE = assets
 
     bin:
-    	app/assets/bindata.sh
+    	cd $(GO_PATH)/src && go-bindata -debug -o $(GO_BINDATA_OUTPUT) -pkg $(GO_BINDATA_PACKAGE) -ignore $(GO_BINDATA_IGNORE) $(GO_BINDATA_PATHS)
 
     run: bin
-    	go run app/main.go server -config=app/server.toml.dist
+    	cd commands && go run main.go server -config=../server.toml.dist
     
-    build: bin
+    build:
     	rm -rf dist && mkdir dist
-    	app/assets/bindata.sh
-    	go build -a -o ./dist/gonode app/main.go
+    	cd $(GO_PATH)/src && go-bindata -o $(GO_BINDATA_OUTPUT) -pkg $(GO_BINDATA_PACKAGE) -ignore $(GO_BINDATA_IGNORE)  $(GO_BINDATA_PATHS)
+    	cd commands && go build -a -o ../dist/gonode
 
 
 Usage
 -----
 
 Just import the package ``assets`` and refer to the ``go-bindata`` documentation.
+

@@ -12,8 +12,8 @@ install:
 
 test:
 	./app/assets/bindata.sh
-	echo "mode: atomic" > data/coverage.out
 	mkdir -p data
+	echo "mode: atomic" > data/coverage.out
 
 	GONODE_TEST_OFFLINE=true GOPATH=${GOPATH} go test -v -failfast -covermode=atomic -coverprofile=data/coverage_core.out $(GONODE_CORE)
 	GOPATH=${GOPATH} go test -v -failfast -covermode=atomic -coverprofile=data/coverage_modules.out $(GONODE_MODULES)

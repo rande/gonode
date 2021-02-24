@@ -37,8 +37,8 @@ func getVaultFs(algo string, key []byte) *Vault {
 func getVaultS3(algo string, key []byte) *Vault {
 	root := os.Getenv("GONODE_TEST_AWS_VAULT_ROOT")
 
-	if len(os.Getenv("TRAVIS_JOB_NUMBER")) > 0 {
-		root += "/" + os.Getenv("TRAVIS_JOB_NUMBER")
+	if len(os.Getenv("GITHUB_RUN_ID")) > 0 {
+		root += "/" + os.Getenv("GITHUB_RUN_ID")
 	}
 
 	if len(root) == 0 {
@@ -131,10 +131,6 @@ func runTest(driver string, t *testing.T, f func(algo string, key []byte) *Vault
 			m = fmt.Sprintf("Type: %s/%s/smallMessage", driver, algo)
 			t.Log(m)
 			RunTestVault(t, v, smallMessage, m)
-
-			if _, travis := syscall.Getenv("TRAVIS"); travis == false {
-				continue
-			}
 
 			m = fmt.Sprintf("Type: %s/%s/largeMessage", driver, algo)
 			t.Log(m)

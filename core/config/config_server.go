@@ -120,7 +120,7 @@ func NewConfig() *Config {
 		},
 		BinData: &BinData{
 			BasePath: os.Getenv("GOPATH") + "/src",
-			Assets:   make(map[string]*BinDataAsset, 0),
+			Assets:   make(map[string]*BinDataAsset),
 		},
 		Media: &Media{
 			Image: &MediaImage{
