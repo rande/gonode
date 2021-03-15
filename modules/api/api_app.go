@@ -96,7 +96,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
 		logger.WithFields(log.Fields{
 			"module": "api.websocket",
-		}).Info("Starting PostgreSQL subcriber")
+		}).Debug("Starting PostgreSQL subcriber")
 
 		app.Get("gonode.postgres.subscriber").(*base.Subscriber).Register()
 
@@ -107,13 +107,13 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		logger := app.Get("logger").(*log.Logger)
 		logger.WithFields(log.Fields{
 			"module": "api.websocket",
-		}).Info("Closing PostgreSQL subcriber")
+		}).Debug("Closing PostgreSQL subcriber")
 
 		app.Get("gonode.postgres.subscriber").(*base.Subscriber).Stop()
 
 		logger.WithFields(log.Fields{
 			"module": "api.websocket",
-		}).Info("End closing PostgreSQL subcriber")
+		}).Debug("End closing PostgreSQL subcriber")
 
 		return nil
 	})

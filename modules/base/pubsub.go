@@ -75,7 +75,7 @@ type Subscriber struct {
 func (s *Subscriber) Stop() {
 	s.logger.WithFields(log.Fields{
 		"module": "node.pubsub",
-	}).Info("Sending a stop to channel subscriber")
+	}).Debug("Sending a stop to channel subscriber")
 
 	s.exit <- 1
 	s.listener.Close()

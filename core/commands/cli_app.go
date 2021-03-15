@@ -105,7 +105,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		logger := app.Get("logger").(*log.Logger)
 		logger.WithFields(log.Fields{
 			"module": "commands.server",
-		}).Info("Closing PostgreSQL connection")
+		}).Debug("Closing PostgreSQL connection")
 
 		db := app.Get("gonode.postgres.connection").(*sql.DB)
 		err := db.Close()
@@ -119,7 +119,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
 		logger.WithFields(log.Fields{
 			"module": "commands.server",
-		}).Info("End closing PostgreSQL connection")
+		}).Debug("End closing PostgreSQL connection")
 
 		return err
 	})

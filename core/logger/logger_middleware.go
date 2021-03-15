@@ -38,7 +38,7 @@ func GetMiddleware(logger *log.Logger) func(c *web.C, h http.Handler) http.Handl
 
 			fields = printEnd(fields, reqID, lw, t2.Sub(t1))
 
-			logger.WithFields(fields).Info("Serve request")
+			logger.WithFields(fields).Debug("Serve request")
 		}
 
 		return http.HandlerFunc(fn)

@@ -57,7 +57,7 @@ func (a *JwtLoginGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 				"module": "core.guard.jwt_login",
 				"error":  err,
 				"method": "application/json",
-			}).Info("Unable to decode JSON data")
+			}).Error("Unable to decode JSON data")
 
 			return nil, InvalidCredentialsFormat
 		}
@@ -70,7 +70,7 @@ func (a *JwtLoginGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 				"module": "core.guard.jwt_login",
 				"error":  err,
 				"method": "form-data",
-			}).Info("Unable to decode POST parameters")
+			}).Error("Unable to decode POST parameters")
 
 			return nil, InvalidCredentialsFormat
 		}
@@ -80,7 +80,7 @@ func (a *JwtLoginGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 		a.Logger.WithFields(log.Fields{
 			"module":   "core.guard.jwt_login",
 			"username": loginForm.Username,
-		}).Info("Starting authentification process")
+		}).Debug("Starting authentification process")
 	}
 
 	return &struct{ Username, Password string }{loginForm.Username, loginForm.Password}, nil
