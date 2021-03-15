@@ -247,6 +247,8 @@ func RunRequest(method string, path string, options ...interface{}) (*Response, 
 		}
 	}
 
+	req.Header.Set("Origin", "http://localhost")
+
 	helper.PanicOnError(err)
 
 	resp, err := client.Do(req)

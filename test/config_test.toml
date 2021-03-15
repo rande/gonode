@@ -41,6 +41,7 @@ key = "ZeSecretKey0oo"
     allowed_origins = ["*"]
     allowed_methods = ["GET", "PUT", "POST"]
     allowed_headers = ["Origin", "Accept", "Content-Type", "Authorization"]
+    # debug = false
 
     [[security.access]]
     path = "/api/v1.0/login"
@@ -75,7 +76,7 @@ key = "ZeSecretKey0oo"
     max_width = 1024
 
 [logger]
-    level = "debug"
+    level = "info"
 
     [logger.fields]
     app = "gonode"

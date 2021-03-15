@@ -88,7 +88,7 @@ func ConfigureSecurity(l *goapp.Lifecycle, conf *config.Config) {
 			AllowCredentials:   conf.Security.Cors.AllowCredentials,
 			MaxAge:             conf.Security.Cors.MaxAge,
 			OptionsPassthrough: conf.Security.Cors.OptionsPassthrough,
-			Debug:              true,
+			Debug:              conf.Security.Cors.Debug,
 		})
 
 		mux.Use(c.Handler)
@@ -120,7 +120,7 @@ func ConfigureCors(l *goapp.Lifecycle, conf *config.Config) {
 			AllowCredentials:   conf.Security.Cors.AllowCredentials,
 			MaxAge:             conf.Security.Cors.MaxAge,
 			OptionsPassthrough: conf.Security.Cors.OptionsPassthrough,
-			Debug:              true,
+			Debug:              conf.Security.Cors.Debug,
 		})
 
 		mux.Use(c.Handler)

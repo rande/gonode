@@ -50,6 +50,7 @@ type Security struct {
 		AllowCredentials   bool     `toml:"allow_credentials"`
 		MaxAge             int      `toml:"max_age"`
 		OptionsPassthrough bool     `toml:"options_passthrough"`
+		Debug              bool     `toml:"debug"`
 	} `toml:"cors"`
 	Access []*struct {
 		Path  string   `toml:"path"`
