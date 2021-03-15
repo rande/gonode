@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -98,28 +99,52 @@ func getAes(key interface{}) cipher.Block {
 }
 
 func AesOFBEncrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
-	var iv [aes.BlockSize]byte
+	iv := make([]byte, aes.BlockSize)
+	if _, err := rand.Read(iv); err != nil {
+		return 0, err
+	}
+
+	if _, err := w.Write(iv); err != nil {
+		return 0, err
+	}
+
 	stream := cipher.NewOFB(getAes(key), iv[:])
 
 	return NoopEncrypter(key, r, &cipher.StreamWriter{S: stream, W: w})
 }
 
 func AesOFBDecrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
-	var iv [aes.BlockSize]byte
+	iv := make([]byte, aes.BlockSize)
+	if _, err := r.Read(iv); err != nil {
+		return 0, err
+	}
+
 	stream := cipher.NewOFB(getAes(key), iv[:])
 
 	return NoopDecrypter(key, &cipher.StreamReader{S: stream, R: r}, w)
 }
 
 func AesCTREncrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
-	var iv [aes.BlockSize]byte
+	iv := make([]byte, aes.BlockSize)
+	if _, err := rand.Read(iv); err != nil {
+		return 0, err
+	}
+
+	if _, err := w.Write(iv); err != nil {
+		return 0, err
+	}
+
 	stream := cipher.NewCTR(getAes(key), iv[:])
 
 	return NoopEncrypter(key, r, &cipher.StreamWriter{S: stream, W: w})
 }
 
 func AesCTRDecrypter(key interface{}, r io.Reader, w io.Writer) (int64, error) {
-	var iv [aes.BlockSize]byte
+	iv := make([]byte, aes.BlockSize)
+	if _, err := r.Read(iv); err != nil {
+		return 0, err
+	}
+
 	stream := cipher.NewCTR(getAes(key), iv[:])
 
 	return NoopDecrypter(key, &cipher.StreamReader{S: stream, R: r}, w)
@@ -222,6 +247,13 @@ func AesCBCEncrypter(key interface{}, r io.Reader, w io.Writer) (written int64, 
 	}
 
 	iv := make([]byte, aes.BlockSize())
+	if _, err := rand.Read(iv); err != nil {
+		return 0, err
+	}
+
+	if _, err := w.Write(iv); err != nil {
+		return 0, err
+	}
 
 	block := cipher.NewCBCEncrypter(aes, iv)
 
@@ -261,12 +293,15 @@ func AesCBCDecrypter(key interface{}, r io.Reader, w io.Writer) (written int64, 
 	}
 
 	iv := make([]byte, aes.BlockSize())
+	if _, err := r.Read(iv); err != nil {
+		return 0, err
+	}
 
-	d := cipher.NewCBCDecrypter(aes, iv)
+	mode := cipher.NewCBCDecrypter(aes, iv)
 
 	for {
 
-		buf := make([]byte, d.BlockSize())
+		buf := make([]byte, mode.BlockSize())
 
 		if _, err = io.ReadFull(r, buf); err != nil {
 			if err == io.EOF {
@@ -276,11 +311,12 @@ func AesCBCDecrypter(key interface{}, r io.Reader, w io.Writer) (written int64, 
 			}
 		}
 
-		d.CryptBlocks(buf, buf)
+		mode.CryptBlocks(buf, buf)
 
-		if buf, err = unpad(buf, d.BlockSize()); err != nil {
+		if buf, err = unpad(buf, mode.BlockSize()); err != nil {
 			return
 		}
+
 		if twritten, err = w.Write(buf); err != nil {
 			return
 		} else {
