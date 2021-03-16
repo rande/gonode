@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    environment: qa
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -35,6 +36,13 @@ jobs:
         go get ./...
       
     - name: Test
+      env:
+        GONODE_TEST_AWS_VAULT_S3_BUCKET: ${{ secrets.GONODE_TEST_AWS_VAULT_S3_BUCKET }}
+        GONODE_TEST_OFFLINE: ${{ secrets.GONODE_TEST_OFFLINE }}
+        GONODE_TEST_S3_ACCESS_KEY: ${{ secrets.GONODE_TEST_S3_ACCESS_KEY }}
+        GONODE_TEST_S3_ENDPOINT: ${{ secrets.GONODE_TEST_S3_ENDPOINT }}
+        GONODE_TEST_S3_REGION: ${{ secrets.GONODE_TEST_S3_REGION }}
+        GONODE_TEST_S3_SECRET:  ${{ secrets.GONODE_TEST_S3_SECRET }}
       run: |
         make test
 

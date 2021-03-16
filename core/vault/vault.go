@@ -183,7 +183,7 @@ func (v *Vault) Put(name string, meta VaultMetadata, r io.Reader) (written int64
 		defer w.Close()
 	}
 
-	if _, err = io.Copy(w, buf); err != nil {
+	if written, err = io.Copy(w, buf); err != nil {
 		v.removeIfExists(vaultfile)
 		v.removeIfExists(metafile)
 
@@ -204,8 +204,6 @@ func (v *Vault) Put(name string, meta VaultMetadata, r io.Reader) (written int64
 		v.removeIfExists(vaultfile)
 		v.removeIfExists(metafile)
 		v.removeIfExists(binfile)
-
-		return
 	}
 
 	return

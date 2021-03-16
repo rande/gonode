@@ -30,7 +30,6 @@ func (w *s3Writer) Write(b []byte) (int, error) {
 
 func (w *s3Writer) Close() error {
 	name := w.file.Name()
-
 	defer func() {
 		os.Remove(name)
 	}()

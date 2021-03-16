@@ -13,7 +13,6 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"syscall"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -21,27 +20,17 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-// this is just a test to validata how the aws sdk behave
-func Test_Vault_Basic_S3_Usage(t *testing.T) {
-
-	if _, offline := syscall.Getenv("GONODE_TEST_OFFLINE"); offline == true {
-		t.Skip("OFFLINE TEST ONLY")
-		return
+func getEnv(name, def string) string {
+	value := os.Getenv(name)
+	if len(value) == 0 {
+		value = def
 	}
 
-	var err error
-	var headResult *s3.HeadObjectOutput
-	var getResult *s3.GetObjectOutput
+	return value
+}
 
-	root := os.Getenv("GONODE_TEST_AWS_VAULT_ROOT")
-	if len(root) == 0 {
-		root = "local"
-	}
-
-	profile := os.Getenv("GONODE_TEST_AWS_PROFILE")
-	if len(profile) == 0 {
-		profile = "gonode-test"
-	}
+func getChainCredentials() (*credentials.Credentials, error) {
+	profile := getEnv("GONODE_TEST_AWS_PROFILE", "gonode-test")
 
 	chainProvider := credentials.NewChainCredentials([]credentials.Provider{
 		&credentials.EnvProvider{},
@@ -53,21 +42,48 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 			Filename: os.Getenv("GONODE_TEST_AWS_CREDENTIALS_FILE"),
 			Profile:  profile,
 		},
+		&credentials.StaticProvider{Value: credentials.Value{
+			AccessKeyID:     getEnv("GONODE_TEST_S3_ACCESS_KEY", ""),
+			SecretAccessKey: getEnv("GONODE_TEST_S3_SECRET", ""),
+		}},
 	})
 
-	_, err = chainProvider.Get()
+	if _, err := chainProvider.Get(); err != nil {
+		return nil, err
+	}
+
+	return chainProvider, nil
+}
+
+func getDriver(chainProvider *credentials.Credentials) *DriverS3 {
+	return &DriverS3{
+		Bucket:      getEnv("GONODE_TEST_AWS_VAULT_S3_BUCKET", "gonode-qa"),
+		Root:        getEnv("GITHUB_RUN_ID", getEnv("GONODE_TEST_AWS_VAULT_ROOT", "local")),
+		Region:      getEnv("GONODE_TEST_S3_REGION", "eu-west-1"),
+		EndPoint:    getEnv("GONODE_TEST_S3_ENDPOINT", "s3-eu-west-1.amazonaws.com"),
+		Credentials: chainProvider,
+	}
+}
+
+// this is just a test to validata how the aws sdk behave
+func Test_Vault_Basic_S3_Usage(t *testing.T) {
+	if getEnv("GONODE_TEST_OFFLINE", "yes") == "yes" {
+		t.Skip("OFFLINE TEST ONLY")
+		return
+	}
+
+	var err error
+	var headResult *s3.HeadObjectOutput
+	var getResult *s3.GetObjectOutput
+
+	chainProvider, err := getChainCredentials()
 
 	if err != nil {
 		t.Skip("Unable to find credentials")
 	}
 
 	// init vault
-	v := &DriverS3{
-		Root:        root,
-		Region:      "eu-west-1",
-		EndPoint:    "s3-eu-west-1.amazonaws.com",
-		Credentials: chainProvider,
-	}
+	v := getDriver(chainProvider)
 
 	// init credentials information
 	config := &aws.Config{
@@ -79,15 +95,10 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 
 	s3client := s3.New(session.New(), config)
 
-	bucketName := os.Getenv("GONODE_TEST_AWS_VAULT_S3_BUCKET")
-	if len(bucketName) == 0 {
-		bucketName = "gonode-test"
-	}
-
 	key := fmt.Sprintf("%s/test/assd", v.Root)
 
 	headResult, err = s3client.HeadObject(&s3.HeadObjectInput{
-		Bucket: aws.String(bucketName),
+		Bucket: aws.String(v.Bucket),
 		Key:    aws.String("no-file"),
 	})
 
@@ -97,7 +108,7 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 	data := []byte("foobar et foo")
 
 	putObject := &s3.PutObjectInput{
-		Bucket:      aws.String(bucketName),
+		Bucket:      aws.String(v.Bucket),
 		Key:         aws.String(key),
 		Body:        bytes.NewReader(data),
 		ContentType: aws.String("application/octet-stream"),
@@ -106,7 +117,7 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 	_, err = s3client.PutObject(putObject)
 
 	headResult, err = s3client.HeadObject(&s3.HeadObjectInput{
-		Bucket: aws.String(bucketName),
+		Bucket: aws.String(v.Bucket),
 		Key:    aws.String(key),
 	})
 
@@ -114,7 +125,7 @@ func Test_Vault_Basic_S3_Usage(t *testing.T) {
 	assert.NotNil(t, headResult.ETag)
 
 	getObject := &s3.GetObjectInput{
-		Bucket: aws.String(bucketName),
+		Bucket: aws.String(v.Bucket),
 		Key:    aws.String(key),
 	}
 

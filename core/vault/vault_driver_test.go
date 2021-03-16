@@ -8,11 +8,9 @@ package vault
 import (
 	"fmt"
 	"os"
-	"syscall"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/stretchr/testify/assert"
 	//		"bytes"
@@ -35,48 +33,14 @@ func getVaultFs(algo string, key []byte) *Vault {
 }
 
 func getVaultS3(algo string, key []byte) *Vault {
-	root := os.Getenv("GONODE_TEST_AWS_VAULT_ROOT")
 
-	if len(os.Getenv("GITHUB_RUN_ID")) > 0 {
-		root += "/" + os.Getenv("GITHUB_RUN_ID")
-	}
-
-	if len(root) == 0 {
-		root = "local"
-	}
-
-	bucket := os.Getenv("GONODE_TEST_AWS_VAULT_BUCKET")
-	if len(bucket) == 0 {
-		bucket = "gonode-test"
-	}
-
-	fmt.Printf("bucket: %s, root: %s\n", bucket, root)
-
-	creds := credentials.NewChainCredentials([]credentials.Provider{
-		&credentials.EnvProvider{},
-		&credentials.SharedCredentialsProvider{
-			Filename: os.Getenv("HOME") + "/.aws/credentials",
-			Profile:  "gonode-test",
-		},
-		&credentials.SharedCredentialsProvider{
-			Filename: os.Getenv("GONODE_TEST_AWS_CREDENTIALS_FILE"),
-			Profile:  os.Getenv("GONODE_TEST_AWS_PROFILE"),
-		},
-	})
-
-	_, err := creds.Get()
+	creds, err := getChainCredentials()
 
 	if err != nil {
 		return nil
 	}
 
-	driver := &DriverS3{
-		Root:        root,
-		Region:      "eu-west-1",
-		EndPoint:    "s3-eu-west-1.amazonaws.com",
-		Bucket:      bucket,
-		Credentials: creds,
-	}
+	driver := getDriver(creds)
 
 	v := &Vault{
 		Algo:    algo,
@@ -88,14 +52,15 @@ func getVaultS3(algo string, key []byte) *Vault {
 
 	// delete objects
 	l, _ := driver.client.ListObjects(&s3.ListObjectsInput{
-		Bucket: aws.String(bucket),
-		Prefix: aws.String(root),
+		Bucket: aws.String(driver.Bucket),
+		Prefix: aws.String(driver.Root),
 	})
 
 	for _, o := range l.Contents {
+		fmt.Printf("Delete: %s / %s\n", driver.Bucket, *o.Key)
 		driver.client.DeleteObject(&s3.DeleteObjectInput{
 			Key:    o.Key,
-			Bucket: aws.String(bucket),
+			Bucket: aws.String(driver.Bucket),
 		})
 	}
 
@@ -148,13 +113,12 @@ func Test_Vault_Drivers_FS(t *testing.T) {
 }
 
 func Test_Vault_Drivers_S3(t *testing.T) {
-	if _, offline := syscall.Getenv("GONODE_TEST_OFFLINE"); offline == true {
+	if getEnv("GONODE_TEST_OFFLINE", "yes") == "yes" {
 		t.Skip("OFFLINE TEST ONLY")
-
 		return
 	}
 
-	//runTest("s3", t, getVaultS3)
+	runTest("s3", t, getVaultS3)
 }
 
 //func Test_Generate_Regression_Files(t *testing.T) {
