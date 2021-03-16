@@ -80,3 +80,16 @@ key = "ZeSecretKey0oo"
 
     [logger.fields]
     app = "gonode"
+
+    [logger.hooks]
+        [logger.hooks.default]
+        service = "lumberjackrus"
+        filename = "/tmp/general.log"
+        tags = ["app.core"]
+        database = "logger"
+        level = "debug" 
+        max_size = 10
+        max_backup = 100
+        max_age = 100
+        compress = false
+        local_time = false

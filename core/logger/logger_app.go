@@ -11,9 +11,11 @@ import (
 	"os"
 	"strings"
 
+	"github.com/orandin/lumberjackrus"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/helper"
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/zenazn/goji/web"
 )
@@ -57,6 +59,32 @@ func GetHook(conf map[string]interface{}) (log.Hook, error) {
 	}
 
 	switch conf["service"] {
+	case "lumberjackrus":
+		level, err := logrus.ParseLevel(GetValue("level", conf, "info").(string))
+
+		if err != nil {
+			return nil, err
+		}
+
+		hook, err := lumberjackrus.NewHook(
+			&lumberjackrus.LogFile{
+				Filename:   GetValue("filename", conf, fmt.Sprintf("%s/gonode.log", os.TempDir())).(string),
+				MaxSize:    int(GetValue("max_size", conf, 100).(int64)),
+				MaxBackups: int(GetValue("max_backups", conf, 0).(int)),
+				MaxAge:     int(GetValue("max_age", conf, 31).(int64)),
+				Compress:   GetValue("compress", conf, 100).(bool),
+				LocalTime:  GetValue("local_time", conf, 100).(bool),
+			},
+			level,
+			&logrus.TextFormatter{},
+			&lumberjackrus.LogFileOpts{},
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return hook, err
 	}
 
 	return nil, NoHookHandlerError

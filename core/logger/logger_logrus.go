@@ -14,7 +14,6 @@ type DispatchHook struct {
 }
 
 func (d *DispatchHook) Add(h log.Hook, l log.Level) {
-
 	d.Hooks[l] = append(d.Hooks[l], h)
 }
 
@@ -30,7 +29,6 @@ func (d *DispatchHook) Levels() []log.Level {
 }
 
 func (d *DispatchHook) Fire(e *log.Entry) error {
-
 	for l := range d.Hooks {
 		if _, ok := d.Hooks[l]; ok && l >= e.Level {
 			for _, h := range d.Hooks[l] {

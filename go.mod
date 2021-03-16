@@ -24,6 +24,7 @@ require (
 	github.com/mitchellh/cli v1.1.1
 	github.com/mmcdole/gofeed v1.0.0
 	github.com/myesui/uuid v1.0.0 // indirect
+	github.com/orandin/lumberjackrus v1.0.1 // indirect
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/rande/goapp v0.0.0-20160602122430-52b532af1ee5
 	github.com/rande/goexif v0.0.0-20160216213925-90ceb8b2ebfd
@@ -35,6 +36,7 @@ require (
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
 	golang.org/x/image v0.0.0-20200618115811-c13761719519 // indirect
 	golang.org/x/tools v0.1.0 // indirect
+	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/stretchr/testify.v1 v1.2.2 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 )
