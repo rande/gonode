@@ -8,7 +8,6 @@ package vault
 import (
 	"bytes"
 	"crypto/rand"
-	"fmt"
 	"io"
 	"testing"
 
@@ -30,10 +29,8 @@ func init() {
 	largeMessage = make([]byte, 1024*1024*1+2)
 	io.ReadFull(rand.Reader, largeMessage)
 
-	fmt.Println("Start generating XLarge message")
 	xLargeMessage = make([]byte, 1024*1024*10+3)
 	io.ReadFull(rand.Reader, xLargeMessage)
-	fmt.Println("End generating XLarge message")
 }
 
 // write/encrypted file
@@ -49,10 +46,10 @@ func RunTestVault(t *testing.T, v *Vault, plaintext []byte, msgPrefix string) {
 
 	written, err := v.Put(file, meta, reader)
 
-	assert.NoError(t, err, msgPrefix+"err returned")
+	assert.NoError(t, err, msgPrefix+": err returned")
 	assert.True(t, written >= int64(len(plaintext)), msgPrefix) // some cipher might add extra data
 	assert.True(t, written > 0, msgPrefix)                      // some cipher might add extra data
-	assert.True(t, v.Has(file), msgPrefix)
+	assert.True(t, v.Has(file), msgPrefix+": has file should be true")
 
 	invalid := []byte("Another invalid message with the same key")
 
@@ -75,13 +72,13 @@ func RunTestVault(t *testing.T, v *Vault, plaintext []byte, msgPrefix string) {
 	assert.Equal(t, plaintext, writer.Bytes(), msgPrefix)
 
 	// remove file
-	v.Remove(file)
+	err = v.Remove(file)
 	assert.NoError(t, err, msgPrefix)
 }
 
 // read stored encrypted files
 func RunRegressionTest(t *testing.T, v *Vault) {
-	file := "The secret file"
+	file := "The-secret-file"
 
 	assert.True(t, v.Has(file))
 
