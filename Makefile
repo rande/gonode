@@ -18,6 +18,12 @@ test:
 	tail -n +2 data/coverage_core.out >> data/coverage.out
 	tail -n +2 data/coverage_modules.out >> data/coverage.out
 	tail -n +2 data/coverage_integration.out >> data/coverage.out
+
+	sed -i '/_mock.go/d' data/coverage.out
+	sed -i '/bindata.go/d' data/coverage.out
+	sed -i '/test_/d' data/coverage.out
+	sed -i '/fake.go/d' data/coverage.out
+	
 	go tool cover -html data/coverage.out -o data/coverage.html
 
 run:
