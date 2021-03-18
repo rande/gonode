@@ -6,6 +6,15 @@ GONODE_MODULES = $(shell ls -d ./modules/* | grep -v go)
 GONODE_CORE = $(shell ls -d ./core/* | grep -v go)
 GOPATH = $(shell go env GOPATH)
 
+
+modtest:
+	./app/assets/bindata.sh
+	GOPATH=${GOPATH} go test -v -failfast $(GONODE_MODULES)
+
+coretest:
+	./app/assets/bindata.sh
+	GOPATH=${GOPATH} go test -v -failfast $(GONODE_CORE)
+
 test:
 	./app/assets/bindata.sh
 	mkdir -p data
@@ -18,6 +27,12 @@ test:
 	tail -n +2 data/coverage_core.out >> data/coverage.out
 	tail -n +2 data/coverage_modules.out >> data/coverage.out
 	tail -n +2 data/coverage_integration.out >> data/coverage.out
+
+	sed -i '/_mock.go/d' data/coverage.out
+	sed -i '/bindata.go/d' data/coverage.out
+	sed -i '/test_/d' data/coverage.out
+	sed -i '/fake.go/d' data/coverage.out
+	
 	go tool cover -html data/coverage.out -o data/coverage.html
 
 run:

@@ -27,20 +27,3 @@ func SendWithHttpCode(res http.ResponseWriter, code int, message string) {
 
 	res.Write(data)
 }
-
-func SendWithStatus(status string, message string, res http.ResponseWriter) {
-	res.Header().Set("Content-Type", "application/json")
-
-	if status == "KO" {
-		res.WriteHeader(http.StatusInternalServerError)
-	} else {
-		res.WriteHeader(http.StatusOK)
-	}
-
-	data, _ := json.Marshal(map[string]string{
-		"status":  status,
-		"message": message,
-	})
-
-	res.Write(data)
-}

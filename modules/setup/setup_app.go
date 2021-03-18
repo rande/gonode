@@ -156,9 +156,9 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 			err := tx.Commit()
 
 			if err != nil {
-				helper.SendWithStatus("KO", err.Error(), res)
+				helper.SendWithHttpCode(res, http.StatusInternalServerError, err.Error())
 			} else {
-				helper.SendWithStatus("OK", "Data purged!", res)
+				helper.SendWithHttpCode(res, http.StatusOK, "Data purged!")
 			}
 		})
 
@@ -167,17 +167,16 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 			nodes := manager.FindBy(manager.SelectBuilder(base.NewSelectOptions()), 0, 10)
 
 			if nodes.Len() != 0 {
-				helper.SendWithStatus("KO", "Table contains data, purge the data first!", res)
-
+				helper.SendWithHttpCode(res, http.StatusInternalServerError, "Table contains data, purge the data first!")
 				return
 			}
 
 			err := fixtures.LoadFixtures(manager, 100)
 
 			if err != nil {
-				helper.SendWithStatus("KO", err.Error(), res)
+				helper.SendWithHttpCode(res, http.StatusInternalServerError, err.Error())
 			} else {
-				helper.SendWithStatus("OK", "Data loaded!", res)
+				helper.SendWithHttpCode(res, http.StatusOK, "Data loaded")
 			}
 		})
 

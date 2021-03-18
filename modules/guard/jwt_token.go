@@ -21,9 +21,9 @@ type JwtToken struct {
 	Roles []string        `json:"roles"`
 }
 
-type JwtTokentHandler struct {
+type JwtTokenHandler struct {
 }
 
-func (h *JwtTokentHandler) GetStruct() (base.NodeData, base.NodeMeta) {
+func (h *JwtTokenHandler) GetStruct() (base.NodeData, base.NodeMeta) {
 	return &JwtToken{}, &JwtTokenMeta{}
 }

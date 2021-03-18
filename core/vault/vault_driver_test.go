@@ -97,13 +97,13 @@ func runTest(driver string, t *testing.T, f func(algo string, key []byte) *Vault
 			t.Log(m)
 			RunTestVault(t, v, smallMessage, m)
 
-			m = fmt.Sprintf("Type: %s/%s/largeMessage", driver, algo)
-			t.Log(m)
-			RunTestVault(t, v, largeMessage, m)
+			// m = fmt.Sprintf("Type: %s/%s/largeMessage", driver, algo)
+			// t.Log(m)
+			// RunTestVault(t, v, largeMessage, m)
 
-			m = fmt.Sprintf("Type: %s/%s/xLargeMessage", driver, algo)
-			t.Log(m)
-			RunTestVault(t, v, xLargeMessage, m)
+			// m = fmt.Sprintf("Type: %s/%s/xLargeMessage", driver, algo)
+			// t.Log(m)
+			// RunTestVault(t, v, xLargeMessage, m)
 		}
 	}
 }
