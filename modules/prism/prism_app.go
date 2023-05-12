@@ -15,6 +15,7 @@ import (
 	"github.com/flosch/pongo2"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/core/embed"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/core/router"
 	"github.com/rande/gonode/core/security"
@@ -288,6 +289,12 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		return nil
 	})
 
+	l.Prepare(func(app *goapp.App) error {
+		app.Get("gonode.embeds").(*embed.Embeds).Add("prism", GetEmbedFS())
+
+		return nil
+	})
+	
 	l.Prepare(func(app *goapp.App) error {
 		router := app.Get("gonode.router").(*router.Router)
 		pongo := app.Get("gonode.pongo").(*pongo2.TemplateSet)

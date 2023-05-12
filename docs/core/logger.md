@@ -1,10 +1,8 @@
-Logger
-======
+# Logger
 
 Integrate logrus into gonode.
 
-Configuration
--------------
+## Configuration
 
 ```toml
 [logger]
@@ -17,8 +15,7 @@ Configuration
 
 Feel free to send PR to add support for others hooks.
 
-Usage
------
+## Usage
 
 Default usage:
 
@@ -35,7 +32,7 @@ logger.WithFields(log.Fields{
 }).Warn("soft delete one")
 
 ```
-  
+
 Request's logger:
 
 ```golang
@@ -45,7 +42,7 @@ mux.Get(publicPath+"/*", func(c web.C, res http.ResponseWriter, req *http.Reques
 
     if l, ok := c.Env["logger"]; ok {
         logger = l.(*log.Entry).WithFields(log.Fields{
-            "module": "bindata.handler",
+            "module": "embed.handler",
         })
     }
 })

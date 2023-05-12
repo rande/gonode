@@ -56,21 +56,6 @@ path = "/tmp/gnode"
     path  = "^\\/"
     roles = ["IS_AUTHENTICATED_ANONYMOUSLY"]
 
-[bindata]
-    templates = [
-        "github.com/rande/gonode/modules/setup/templates",
-        "github.com/rande/gonode/modules/blog/templates",
-        "github.com/rande/gonode/modules/prism/templates",
-        "github.com/rande/gonode/modules/search/templates",
-        "github.com/rande/gonode/modules/feed/templates",
-    ]
-
-    [bindata.assets]
-        [bindata.assets.explorer]
-        index = "index.html"
-        public = "/explorer"
-        private = "github.com/rande/gonode/explorer/dist"
-
 [media]
     [media.image]
     allowed_widths = [100, 250, 500, 1024]

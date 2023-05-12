@@ -8,6 +8,7 @@ package feed
 import (
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/core/embed"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/search"
 )
@@ -22,6 +23,12 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 			Search:  app.Get("gonode.search.pgsql").(*search.SearchPGSQL),
 			Manager: app.Get("gonode.manager").(*base.PgNodeManager),
 		})
+
+		return nil
+	})
+
+	l.Prepare(func(app *goapp.App) error {
+		app.Get("gonode.embeds").(*embed.Embeds).Add("feed", GetEmbedFS())
 
 		return nil
 	})

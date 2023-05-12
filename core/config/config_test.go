@@ -66,19 +66,6 @@ key = "ZeSecretKey0oo"
 [search]
     max_result = 256
 
-[bindata]
-    base_path = "/var/go"
-    templates = [
-        "/path/post/templates",
-        "/path/media/templates",
-        #"/commented"
-    ]
-
-    [bindata.assets]
-        [bindata.assets.explorer]
-        public = "/explorer"
-        private = "github.com/rande/gonode/explorer/dist"
-
 [media]
     [media.image]
     allowed_widths = [100, 200]
@@ -121,12 +108,6 @@ key = "ZeSecretKey0oo"
 
 	// test search
 	assert.Equal(t, uint64(256), config.Search.MaxResult)
-
-	// test bindata
-	assert.Equal(t, "/explorer", config.BinData.Assets["explorer"].Public)
-	assert.Equal(t, "github.com/rande/gonode/explorer/dist", config.BinData.Assets["explorer"].Private)
-	assert.Equal(t, "/var/go", config.BinData.BasePath)
-	assert.Equal(t, []string{"/path/post/templates", "/path/media/templates"}, config.BinData.Templates)
 
 	// test media
 	assert.Equal(t, uint(300), config.Media.Image.MaxWidth)

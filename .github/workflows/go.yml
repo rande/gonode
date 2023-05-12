@@ -1,59 +1,57 @@
 name: Tests
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    push:
+        branches: [master]
+    pull_request:
+        branches: [master]
 
 jobs:
-  build:
-    environment: qa
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:11.6-alpine
-        env:
-          POSTGRES_DB: gonode
-        ports:
-          - 5432:5432
-        # needed because the postgres container does not provide a healthcheck
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    build:
+        environment: qa
+        runs-on: ubuntu-latest
+        services:
+            postgres:
+                image: postgres:11.6-alpine
+                env:
+                    POSTGRES_DB: gonode
+                ports:
+                    - 5432:5432
+                # needed because the postgres container does not provide a healthcheck
+                options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
-    steps:
-    - uses: actions/checkout@v2
+        steps:
+            - uses: actions/checkout@v2
 
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.15
+            - name: Set up Go
+              uses: actions/setup-go@v2
+              with:
+                  go-version: 1.15
 
-    - name: Install
-      run: |
-        go get github.com/mattn/goveralls
-        go get -u github.com/jteeuwen/go-bindata/...
-        ./app/assets/bindata.sh
-        go get ./...
-      
-    - name: Test
-      env:
-        GONODE_TEST_AWS_VAULT_S3_BUCKET: ${{ secrets.GONODE_TEST_AWS_VAULT_S3_BUCKET }}
-        GONODE_TEST_OFFLINE: ${{ secrets.GONODE_TEST_OFFLINE }}
-        GONODE_TEST_S3_ACCESS_KEY: ${{ secrets.GONODE_TEST_S3_ACCESS_KEY }}
-        GONODE_TEST_S3_ENDPOINT: ${{ secrets.GONODE_TEST_S3_ENDPOINT }}
-        GONODE_TEST_S3_REGION: ${{ secrets.GONODE_TEST_S3_REGION }}
-        GONODE_TEST_S3_SECRET:  ${{ secrets.GONODE_TEST_S3_SECRET }}
-      run: |
-        make test
+            - name: Install
+              run: |
+                  go get github.com/mattn/goveralls
+                  go get ./...
 
-    - name: Convert coverage to lcov
-      uses: jandelgado/gcov2lcov-action@v1.0.5
-      with:
-        infile: data/coverage.out
-        outfile: data/coverage.lcov
+            - name: Test
+              env:
+                  GONODE_TEST_AWS_VAULT_S3_BUCKET: ${{ secrets.GONODE_TEST_AWS_VAULT_S3_BUCKET }}
+                  GONODE_TEST_OFFLINE: ${{ secrets.GONODE_TEST_OFFLINE }}
+                  GONODE_TEST_S3_ACCESS_KEY: ${{ secrets.GONODE_TEST_S3_ACCESS_KEY }}
+                  GONODE_TEST_S3_ENDPOINT: ${{ secrets.GONODE_TEST_S3_ENDPOINT }}
+                  GONODE_TEST_S3_REGION: ${{ secrets.GONODE_TEST_S3_REGION }}
+                  GONODE_TEST_S3_SECRET: ${{ secrets.GONODE_TEST_S3_SECRET }}
+              run: |
+                  make test
 
-    - name: Coveralls
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        path-to-lcov: data/coverage.lcov
+            - name: Convert coverage to lcov
+              uses: jandelgado/gcov2lcov-action@v1.0.5
+              with:
+                  infile: data/coverage.out
+                  outfile: data/coverage.lcov
+
+            - name: Coveralls
+              uses: coverallsapp/github-action@master
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  path-to-lcov: data/coverage.lcov

@@ -10,10 +10,9 @@ import (
 
 	"github.com/mitchellh/cli"
 	"github.com/rande/goapp"
-	"github.com/rande/gonode/app/assets"
-	"github.com/rande/gonode/core/bindata"
 	"github.com/rande/gonode/core/commands"
 	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/core/embed"
 	"github.com/rande/gonode/core/logger"
 	"github.com/rande/gonode/core/router"
 	"github.com/rande/gonode/core/security"
@@ -38,17 +37,8 @@ func Configure(configFile string) *goapp.Lifecycle {
 	conf := config.NewConfig()
 	config.LoadConfigurationFromFile(configFile, conf)
 
-	l.Config(func(app *goapp.App) error {
-		assets.UpdateRootDir(conf.BinData.BasePath)
-
-		app.Set("gonode.asset", func(app *goapp.App) interface{} {
-			return assets.Asset
-		})
-
-		return nil
-	})
-
 	base.Configure(l, conf)
+	embed.Configure(l, conf)
 	debug.Configure(l, conf)
 	user.Configure(l, conf)
 	raw.Configure(l, conf)
@@ -64,7 +54,6 @@ func Configure(configFile string) *goapp.Lifecycle {
 	security.ConfigureSecurity(l, conf)
 	api.Configure(l, conf)
 	setup.Configure(l, conf)
-	bindata.Configure(l, conf)
 	prism.Configure(l, conf)
 	router.Configure(l, conf)
 

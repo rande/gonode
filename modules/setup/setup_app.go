@@ -11,6 +11,7 @@ import (
 
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/core/embed"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/test/fixtures"
@@ -179,6 +180,12 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 				helper.SendWithHttpCode(res, http.StatusOK, "Data loaded")
 			}
 		})
+
+		return nil
+	})
+
+	l.Prepare(func(app *goapp.App) error {
+		app.Get("gonode.embeds").(*embed.Embeds).Add("setup", GetEmbedFS())
 
 		return nil
 	})

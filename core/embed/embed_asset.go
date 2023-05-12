@@ -3,7 +3,7 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package bindata
+package embed
 
 import (
 	"net/http"
@@ -26,16 +26,21 @@ var contentTypes = map[string]string{
 	"gif":   "image/gif",
 }
 
-func ConfigureBinDataMux(mux *web.Mux, Asset func(name string) ([]byte, error), publicPath, privatePath, index string, logger *log.Logger) {
+
+func PageNotFound(res http.ResponseWriter) {
+	res.WriteHeader(404)
+		res.Write([]byte("<html><head><title>Page not found</title></head><body><h1>Page not found</h1></body></html>"))
+}
+
+func ConfigureEmbedMux(mux *web.Mux, embeds *Embeds, publicPath string, logger *log.Logger) {
 
 	lenPath := len(publicPath)
 
 	if logger != nil {
 		logger.WithFields(log.Fields{
-			"module":       "bindata.mux",
+			"module":       "embed.mux",
 			"public_path":  publicPath,
-			"private_path": privatePath,
-		}).Debug("Configure bindata assets")
+		}).Debug("Configure embed assets")
 	}
 
 	mux.Get(publicPath+"/*", func(c web.C, res http.ResponseWriter, req *http.Request) {
@@ -43,7 +48,7 @@ func ConfigureBinDataMux(mux *web.Mux, Asset func(name string) ([]byte, error), 
 
 		if l, ok := c.Env["logger"]; ok {
 			logger = l.(*log.Entry).WithFields(log.Fields{
-				"module": "bindata.handler",
+				"module": "embed.handler",
 			})
 		}
 
@@ -53,9 +58,18 @@ func ConfigureBinDataMux(mux *web.Mux, Asset func(name string) ([]byte, error), 
 			path = path[0 : len(path)-1]
 		}
 
+		sections := strings.Split(path, ",")
+
+		if (len(sections) < 2) {
+			PageNotFound(res)
+			return
+		}
+
+		module := sections[0]
+
 		paths := []string{
-			privatePath + path,
-			privatePath + path + "/" + index,
+			path,
+			path + "/index.html",
 		}
 
 		for _, path := range paths {
@@ -63,7 +77,7 @@ func ConfigureBinDataMux(mux *web.Mux, Asset func(name string) ([]byte, error), 
 				logger.Debug("GET:", path)
 			}
 
-			asset, err := Asset(path)
+			asset, err := embeds.ReadFile(module, strings.Join(sections[1:], "/"))
 
 			if err != nil {
 				if logger != nil {
@@ -79,6 +93,8 @@ func ConfigureBinDataMux(mux *web.Mux, Asset func(name string) ([]byte, error), 
 				res.Header().Set("Content-Type", contentTypes[ext])
 
 				logger.Debug("Content-Type:", contentTypes[ext])
+			} else {
+				res.Header().Set("Content-Type", "application/stream")
 			}
 
 			res.Write(asset)
@@ -86,7 +102,6 @@ func ConfigureBinDataMux(mux *web.Mux, Asset func(name string) ([]byte, error), 
 			return
 		}
 
-		res.WriteHeader(404)
-		res.Write([]byte("<html><head><title>Page not found</title></head><body><h1>Page not found</h1></body></html>"))
+		PageNotFound(res)
 	})
 }

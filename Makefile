@@ -8,15 +8,12 @@ GOPATH = $(shell go env GOPATH)
 
 
 modtest:
-	./app/assets/bindata.sh
 	GOPATH=${GOPATH} go test -v -failfast $(GONODE_MODULES)
 
 coretest:
-	./app/assets/bindata.sh
 	GOPATH=${GOPATH} go test -v -failfast $(GONODE_CORE)
 
 test:
-	./app/assets/bindata.sh
 	mkdir -p data
 	echo "mode: atomic" > data/coverage.out
 	GOPATH=${GOPATH} go test -v -failfast -covermode=atomic -coverprofile=data/coverage_core.out $(GONODE_CORE)
@@ -29,7 +26,6 @@ test:
 	tail -n +2 data/coverage_integration.out >> data/coverage.out
 
 	sed -i '/_mock.go/d' data/coverage.out
-	sed -i '/bindata.go/d' data/coverage.out
 	sed -i '/test_/d' data/coverage.out
 	sed -i '/fake.go/d' data/coverage.out
 	

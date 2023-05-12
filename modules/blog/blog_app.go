@@ -8,13 +8,19 @@ package blog
 import (
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/core/embed"
 	"github.com/rande/gonode/modules/base"
 )
 
 func Configure(l *goapp.Lifecycle, conf *config.Config) {
 	l.Prepare(func(app *goapp.App) error {
-
 		app.Get("gonode.handler_collection").(base.HandlerCollection).Add("blog.post", &PostHandler{})
+
+		return nil
+	})
+
+	l.Prepare(func(app *goapp.App) error {
+		app.Get("gonode.embeds").(*embed.Embeds).Add("prism", GetEmbedFS())
 
 		return nil
 	})

@@ -8,13 +8,13 @@ package search
 import (
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/core/embed"
 	"github.com/rande/gonode/modules/base"
 )
 
 func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
 	l.Config(func(app *goapp.App) error {
-
 		app.Set("gonode.search.pgsql", func(app *goapp.App) interface{} {
 			return &SearchPGSQL{}
 		})
@@ -38,6 +38,12 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 			Manager:   app.Get("gonode.manager").(*base.PgNodeManager),
 			MaxResult: 128,
 		})
+
+		return nil
+	})
+
+	l.Prepare(func(app *goapp.App) error {
+		app.Get("gonode.embeds").(*embed.Embeds).Add("prism", GetEmbedFS())
 
 		return nil
 	})

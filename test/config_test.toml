@@ -55,21 +55,6 @@ key = "ZeSecretKey0oo"
     path  = "^\\/"
     roles = ["IS_AUTHENTICATED_ANONYMOUSLY"]
 
-[bindata]
-    base_path = ""
-    templates = [
-        "modules/setup/templates",
-        "modules/blog/templates",
-        "modules/prism/templates",
-        "modules/search/templates",
-        "modules/feed/templates",
-    ]
-
-    [bindata.assets]
-        [bindata.assets.explorer]
-        public = "/explorer"
-        private = "github.com/rande/gonode/explorer/dist"
-
 [media]
     [media.image]
     allowed_widths = [20, 100, 250, 500, 1024]

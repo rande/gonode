@@ -15,11 +15,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_BinData_404(t *testing.T) {
+func Test_Embeded_404(t *testing.T) {
 	test.RunHttpTest(t, func(t *testing.T, ts *httptest.Server, app *App) {
 		auth := test.GetDefaultAuthHeader(ts)
 
-		res, _ := test.RunRequest("GET", ts.URL+"/explorer/error404", nil, auth)
+		res, _ := test.RunRequest("GET", ts.URL+"/static/setup/hello.txt", nil, auth)
 
 		assert.Equal(t, http.StatusNotFound, res.StatusCode)
 		assert.Equal(t, res.GetBody(), []byte("<html><head><title>Page not found</title></head><body><h1>Page not found</h1></body></html>"))
