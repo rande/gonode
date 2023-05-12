@@ -1,57 +1,49 @@
-Search
-======
+# Search
 
-Introduction
-------------
+## Introduction
 
-The ``search`` plugin provided a set of form to lookup node inside the datastore. The plugin is used to by the ``api``
- plugin to filter results.
+The `search` plugin provided a set of form to lookup node inside the datastore. The plugin is used to by the `api`
+plugin to filter results.
 
-
-Configuration
--------------
+## Configuration
 
     ```toml
     [search]
         max_result = 128
 
+-   `max_result` set the limit of returned results in one query.
 
-- ``max_result`` set the limit of returned results in one query.
+## Search filters
 
+-   `page`: current page
+-   `per_page`: number of result per page
+-   `order_by`: field to order
+-   `uuid`: array of uuid
+-   `type`: array of type
+-   `name`: name to filter
+-   `slug`: slug to filter
+-   `data.key`: array of value
+-   `meta.key`: array of value
+-   `status`: array of status
+-   `weight`: array of weight
+-   `revision`: revision number
+-   `enabled`: boolean (f/0/false or t/1/true)
+-   `deleted`: boolean (f/0/false or t/1/true)
+-   `current`: boolean (f/0/false or t/1/true)
+-   `updated_by`: array of uuid
+-   `created_by`: array of uuid
+-   `parent_uuid`: array of uuid
+-   `set_uuid`: array of uuid
+-   `source`: array of uuid
 
-Search filters
---------------
-
- - `page`: current page
- - `per_page`: number of result per page
- - `order_by`: field to order
- - `uuid`: array of uuid
- - `type`: array of type
- - `name`: name to filter
- - `slug`: slug to filter
- - `data.key`: array of value 
- - `meta.key`: array of value
- - `status`: array of status
- - `weight`: array of weight
- - `revision`: revision number
- - `enabled`: boolean (f/0/false or t/1/true)
- - `deleted`: boolean (f/0/false or t/1/true)
- - `current`: boolean (f/0/false or t/1/true)
- - `updated_by`: array of uuid
- - `created_by`: array of uuid
- - `parent_uuid`: array of uuid
- - `set_uuid`: array of uuid
- - `source`: array of uuid 
-
-core.index node
----------------
+## search.index node
 
 This type can be used to configure an entry point with a pre-filtered index. As an example:
 
     ```yaml
-    type: core.index
+    type: search.index
     name: Blog archives
     data:
         type: core.post
-    
+
 The data field accept all search filters.

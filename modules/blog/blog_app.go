@@ -20,7 +20,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 	})
 
 	l.Prepare(func(app *goapp.App) error {
-		app.Get("gonode.embeds").(*embed.Embeds).Add("prism", GetEmbedFS())
+		app.Get("gonode.embeds").(*embed.Embeds).Add("blog", GetEmbedFS())
 
 		return nil
 	})

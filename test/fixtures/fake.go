@@ -125,7 +125,7 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 
 	// create blog archives
 	archive := base.NewNode()
-	archive.Type = "core.index"
+	archive.Type = "search.index"
 	archive.Name = "Blog Archive"
 	archive.Slug = "blog"
 	archive.Data = &search.Index{

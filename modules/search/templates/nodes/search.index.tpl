@@ -1,4 +1,4 @@
-{% extends "layouts/base.tpl" %}
+{% extends "prism:layouts/base.tpl" %}
 
 {% block content %}
     <h1>Name: {{ node.Name }} - {{ node.Type }}</h1>

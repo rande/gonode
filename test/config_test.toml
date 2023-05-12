@@ -3,7 +3,7 @@ bind= ":2508"
 
 [databases.master]
 type    = "master"
-dsn     = "postgres://postgres:gonode@localhost/gonode?sslmode=disable"
+dsn     = "postgres://gonode:gonode@localhost/gonode?sslmode=disable"
 enabled = true
 prefix  = "test"
 

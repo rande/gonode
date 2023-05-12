@@ -30,10 +30,10 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
 	l.Prepare(func(app *goapp.App) error {
 		c := app.Get("gonode.handler_collection").(base.HandlerCollection)
-		c.Add("core.index", &IndexHandler{})
+		c.Add("search.index", &IndexHandler{})
 
 		cv := app.Get("gonode.view_handler_collection").(base.ViewHandlerCollection)
-		cv.Add("core.index", &IndexViewHandler{
+		cv.Add("search.index", &IndexViewHandler{
 			Search:    app.Get("gonode.search.pgsql").(*SearchPGSQL),
 			Manager:   app.Get("gonode.manager").(*base.PgNodeManager),
 			MaxResult: 128,
@@ -43,7 +43,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 	})
 
 	l.Prepare(func(app *goapp.App) error {
-		app.Get("gonode.embeds").(*embed.Embeds).Add("prism", GetEmbedFS())
+		app.Get("gonode.embeds").(*embed.Embeds).Add("search", GetEmbedFS())
 
 		return nil
 	})

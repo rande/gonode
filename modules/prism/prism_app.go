@@ -158,7 +158,7 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 
 			if !handler.Support(node, request, response) {
 				// the execute method already take care of the rendering, nothing to do
-				response.Template = "pages/bad_request.tpl"
+				response.Template = "prism:pages/bad_request.tpl"
 				response.StatusCode = http.StatusBadRequest
 
 				if logger != nil {
@@ -185,7 +185,7 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 						}).Warn("Error while executing ViewHandler")
 					}
 
-					response.Template = "pages/internal_error.tpl"
+					response.Template = "prism:pages/internal_error.tpl"
 					response.StatusCode = http.StatusInternalServerError
 				}
 
@@ -197,7 +197,7 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 			}
 
 		} else {
-			response.Template = "pages/not_found.tpl"
+			response.Template = "prism:pages/not_found.tpl"
 			response.StatusCode = http.StatusNotFound
 		}
 
@@ -294,7 +294,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
 		return nil
 	})
-	
+
 	l.Prepare(func(app *goapp.App) error {
 		router := app.Get("gonode.router").(*router.Router)
 		pongo := app.Get("gonode.pongo").(*pongo2.TemplateSet)

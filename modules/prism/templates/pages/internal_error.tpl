@@ -1,4 +1,4 @@
-{% extends "layouts/error.tpl" %}
+{% extends "prism:layouts/error.tpl" %}
 
 {% block page_title %}Internal Server Error{% endblock %}
 {% block content %}

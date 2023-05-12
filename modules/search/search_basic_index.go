@@ -113,6 +113,7 @@ func (v *IndexViewHandler) Execute(node *base.Node, request *base.ViewRequest, r
 			return err
 		}
 	}
+
 	// check page range
 	if uint64(search.PerPage) > v.MaxResult {
 		helper.SendWithHttpCode(response.HttpResponse, http.StatusPreconditionFailed, "Invalid `pagination` range")
@@ -132,7 +133,7 @@ func (v *IndexViewHandler) Execute(node *base.Node, request *base.ViewRequest, r
 	pager := GetPager(search, v.Manager, v.Search, options)
 
 	response.
-		Set(200, fmt.Sprintf("nodes/%s.tpl", node.Type)).
+		Set(200, fmt.Sprintf("search:nodes/%s.tpl", node.Type)).
 		Add("pager", pager)
 
 	return nil

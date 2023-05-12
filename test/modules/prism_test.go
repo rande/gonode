@@ -30,7 +30,7 @@ func Test_Prism_Blog_Archive(t *testing.T) {
 
 		manager.Save(node, false)
 
-		archive := app.Get("gonode.handler_collection").(base.HandlerCollection).NewNode("core.index")
+		archive := app.Get("gonode.handler_collection").(base.HandlerCollection).NewNode("search.index")
 		archive.Name = "Blog Archive"
 		archive.Access = []string{"node:prism:render", "IS_AUTHENTICATED_ANONYMOUSLY"}
 
