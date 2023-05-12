@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	UnableToFindEmbedError      = errors.New("Unable to find the embed file")
-	ModuleDoesNotExistError     = errors.New("Module does not exist")
-	InvalidPongoRefError        = errors.New("Invalid pongo reference name")
+	UnableToFindEmbedError  = errors.New("Unable to find the embed file")
+	ModuleDoesNotExistError = errors.New("Module does not exist")
+	InvalidPongoRefError    = errors.New("Invalid pongo reference name")
 )
 
 func NewEmbeds() *Embeds {
@@ -27,22 +27,22 @@ type Embeds struct {
 }
 
 func (a *Embeds) Add(module string, fs embed.FS) {
-	if (a.fs[module] == nil) {
-		a.fs[module] = make([]embed.FS, 0);
+	if a.fs[module] == nil {
+		a.fs[module] = make([]embed.FS, 0)
 	}
 
 	a.fs[module] = append(a.fs[module], fs)
 }
 
 func (a *Embeds) ReadFile(module string, path string) ([]byte, error) {
-	if (a.fs[module] == nil) {
+	if a.fs[module] == nil {
 		return nil, ModuleDoesNotExistError
 	}
 
 	for i := range a.fs[module] {
 		buff, _ := a.fs[module][i].ReadFile(path)
 
-		if (buff != nil) {
+		if buff != nil {
 			return buff, nil
 		}
 	}

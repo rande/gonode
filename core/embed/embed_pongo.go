@@ -12,7 +12,7 @@ import (
 )
 
 type PongoTemplateLoader struct {
-	Embeds *Embeds
+	Embeds   *Embeds
 	BasePath string
 }
 
@@ -40,12 +40,11 @@ func (l *PongoTemplateLoader) Get(path string) (io.Reader, error) {
 
 	sections := strings.Split(path, ":")
 
-
-	if (len(sections) != 2) {
+	if len(sections) != 2 {
 		return nil, InvalidPongoRefError
 	}
 
-	data, err := l.Embeds.ReadFile(sections[0], l.BasePath + "templates/" + strings.Join(sections[1:], "/"))
+	data, err := l.Embeds.ReadFile(sections[0], l.BasePath+"templates/"+strings.Join(sections[1:], "/"))
 
 	if err != nil {
 		return nil, err

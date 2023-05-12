@@ -48,10 +48,9 @@ func GetTestEmbedFS() embed.FS {
 func Test_PongoTemplateLoader_Integration(t *testing.T) {
 	embeds := NewEmbeds()
 	embeds.Add("testmodule", GetTestEmbedFS())
-	
-	
+
 	loader := &PongoTemplateLoader{
-		Embeds: embeds,
+		Embeds:   embeds,
 		BasePath: "fixtures/",
 	}
 
@@ -80,7 +79,7 @@ func Test_PongoTemplateLoader_Integration_NotFound(t *testing.T) {
 	embeds.Add("testmodule", GetTestEmbedFS())
 
 	loader := &PongoTemplateLoader{
-		Embeds: embeds,
+		Embeds:   embeds,
 		BasePath: "fixtures/",
 	}
 
@@ -93,11 +92,10 @@ func Test_PongoTemplateLoader_Integration_NotFound(t *testing.T) {
 func Test_PongoTemplateLoader_Integration_InvalidSyntax(t *testing.T) {
 
 	embeds := NewEmbeds()
-    embeds.Add("testmodule", GetTestEmbedFS())
-
+	embeds.Add("testmodule", GetTestEmbedFS())
 
 	loader := &PongoTemplateLoader{
-		Embeds: embeds,
+		Embeds:   embeds,
 		BasePath: "fixtures/",
 	}
 

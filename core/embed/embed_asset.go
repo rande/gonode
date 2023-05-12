@@ -26,10 +26,9 @@ var contentTypes = map[string]string{
 	"gif":   "image/gif",
 }
 
-
 func PageNotFound(res http.ResponseWriter) {
 	res.WriteHeader(404)
-		res.Write([]byte("<html><head><title>Page not found</title></head><body><h1>Page not found</h1></body></html>"))
+	res.Write([]byte("<html><head><title>Page not found</title></head><body><h1>Page not found</h1></body></html>"))
 }
 
 func ConfigureEmbedMux(mux *web.Mux, embeds *Embeds, publicPath string, logger *log.Logger) {
@@ -38,8 +37,8 @@ func ConfigureEmbedMux(mux *web.Mux, embeds *Embeds, publicPath string, logger *
 
 	if logger != nil {
 		logger.WithFields(log.Fields{
-			"module":       "embed.mux",
-			"public_path":  publicPath,
+			"module":      "embed.mux",
+			"public_path": publicPath,
 		}).Debug("Configure embed assets")
 	}
 
@@ -60,7 +59,7 @@ func ConfigureEmbedMux(mux *web.Mux, embeds *Embeds, publicPath string, logger *
 
 		sections := strings.Split(path, ",")
 
-		if (len(sections) < 2) {
+		if len(sections) < 2 {
 			PageNotFound(res)
 			return
 		}

@@ -23,7 +23,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		app.Set("gonode.pongo", func(app *goapp.App) interface{} {
 
 			return pongo2.NewSet("gonode.embeds", &PongoTemplateLoader{
-				Embeds: app.Get("gonode.embeds").(*Embeds),
+				Embeds:   app.Get("gonode.embeds").(*Embeds),
 				BasePath: "",
 			})
 		})
