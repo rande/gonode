@@ -24,11 +24,13 @@ var contentTypes = map[string]string{
 	"png":   "image/png",
 	"jpg":   "image/jpg",
 	"gif":   "image/gif",
+	"html":  "text/html",
+	"pdf":   "application/pdf",
 }
 
 func PageNotFound(res http.ResponseWriter) {
 	res.WriteHeader(404)
-	res.Write([]byte("<html><head><title>Page not found</title></head><body><h1>Page not found</h1></body></html>"))
+	res.Write([]byte("<html><head><title>Embed not found</title></head><body><h1>Embed not found</h1></body></html>"))
 }
 
 func ConfigureEmbedMux(mux *web.Mux, embeds *Embeds, publicPath string, logger *log.Logger) {
@@ -53,18 +55,26 @@ func ConfigureEmbedMux(mux *web.Mux, embeds *Embeds, publicPath string, logger *
 
 		path := req.RequestURI[lenPath:]
 
+		logger.WithFields(log.Fields{
+			"path": path,
+		}).Debug("Loading path")
+
 		if path[len(path)-1:] == "/" {
 			path = path[0 : len(path)-1]
 		}
 
-		sections := strings.Split(path, ",")
+		sections := strings.Split(path, "/")
+
+		logger.WithFields(log.Fields{
+			"sections": sections,
+		}).Debug("sections")
 
 		if len(sections) < 2 {
 			PageNotFound(res)
 			return
 		}
 
-		module := sections[0]
+		module := sections[1]
 
 		paths := []string{
 			path,
@@ -72,11 +82,14 @@ func ConfigureEmbedMux(mux *web.Mux, embeds *Embeds, publicPath string, logger *
 		}
 
 		for _, path := range paths {
-			if logger != nil {
-				logger.Debug("GET:", path)
-			}
+			modulePath := "static/" + strings.Join(sections[2:], "/")
 
-			asset, err := embeds.ReadFile(module, strings.Join(sections[1:], "/"))
+			logger.WithFields(log.Fields{
+				"embed.path":   modulePath,
+				"embed.module": module,
+			}).Debug("Trying to readfile")
+
+			asset, err := embeds.ReadFile(module, modulePath)
 
 			if err != nil {
 				if logger != nil {
