@@ -22,6 +22,6 @@ func Test_Embeded_404(t *testing.T) {
 		res, _ := test.RunRequest("GET", ts.URL+"/static/setup/hello.txt", nil, auth)
 
 		assert.Equal(t, http.StatusNotFound, res.StatusCode)
-		assert.Equal(t, res.GetBody(), []byte("<html><head><title>Page not found</title></head><body><h1>Page not found</h1></body></html>"))
+		assert.Equal(t, res.GetBody(), []byte("<html><head><title>Embed not found</title></head><body><h1>Embed not found</h1></body></html>"))
 	})
 }
