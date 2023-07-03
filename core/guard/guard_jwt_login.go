@@ -52,6 +52,7 @@ func (a *JwtLoginGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 
 	if req.Header.Get("Content-Type") == "application/json" {
 		decoder := json.NewDecoder(req.Body)
+
 		if err := decoder.Decode(loginForm); err != nil {
 			a.Logger.WithFields(log.Fields{
 				"module": "core.guard.jwt_login",
@@ -65,6 +66,8 @@ func (a *JwtLoginGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 		req.ParseForm()
 
 		decoder := schema.NewDecoder()
+		decoder.IgnoreUnknownKeys(true)
+
 		if err := decoder.Decode(loginForm, req.Form); err != nil {
 			a.Logger.WithFields(log.Fields{
 				"module": "core.guard.jwt_login",
@@ -150,17 +153,26 @@ func (a *JwtLoginGuardAuthenticator) CreateAuthenticatedToken(user GuardUser) (G
 }
 
 func (a *JwtLoginGuardAuthenticator) OnAuthenticationFailure(req *http.Request, res http.ResponseWriter, err error) bool {
-	// nothing to do
-	res.Header().Set("Content-Type", "application/json")
 
-	res.WriteHeader(http.StatusForbidden)
+	if req.Header.Get("Content-Type") == "application/json" {
+		res.Header().Set("Content-Type", "application/json")
+		res.WriteHeader(http.StatusForbidden)
 
-	data, _ := json.Marshal(map[string]string{
-		"status":  "KO",
-		"message": "Unable to authenticate request",
-	})
+		data, _ := json.Marshal(map[string]string{
+			"status":  "KO",
+			"message": "Unable to authenticate request",
+		})
 
-	res.Write(data)
+		res.Write(data)
+	} else {
+		redirectPath := req.URL.Query().Get("redirect")
+
+		if redirectPath == "" {
+			redirectPath = "/"
+		}
+
+		http.Redirect(res, req, redirectPath+"?login=invalid_credentials", http.StatusFound)
+	}
 
 	return true
 }
@@ -183,16 +195,37 @@ func (a *JwtLoginGuardAuthenticator) OnAuthenticationSuccess(req *http.Request, 
 	// Sign and get the complete encoded token as a string
 	tokenString, _ := jwtToken.SignedString([]byte(a.Key))
 
-	res.Header().Set("Content-Type", "application/json")
-	res.Header().Set("X-Token", tokenString)
+	if req.Header.Get("Content-Type") == "application/json" {
+		res.Header().Set("Content-Type", "application/json")
+		res.Header().Set("X-Token", tokenString)
 
-	data, _ := json.Marshal(map[string]string{
-		"status":  "OK",
-		"message": "Request is authenticated",
-		"token":   tokenString,
-	})
+		data, _ := json.Marshal(map[string]string{
+			"status":  "OK",
+			"message": "Request is authenticated",
+			"token":   tokenString,
+		})
 
-	res.Write(data)
+		res.Write(data)
+
+	} else {
+		http.SetCookie(res, &http.Cookie{
+			Name:     "access_token",
+			Value:    tokenString,
+			Path:     "/",
+			MaxAge:   84600,
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteLaxMode,
+		})
+
+		redirectPath := req.URL.Query().Get("redirect")
+
+		if redirectPath == "" {
+			redirectPath = "/"
+		}
+
+		http.Redirect(res, req, redirectPath+"?login=success", http.StatusFound)
+	}
 
 	return true
 }

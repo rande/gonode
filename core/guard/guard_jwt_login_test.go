@@ -98,6 +98,7 @@ func Test_JwtLoginGuardAuthenticator_onAuthenticationSuccess(t *testing.T) {
 	}
 
 	req, _ := http.NewRequest("POST", "/login", nil)
+	req.Header.Set("Content-Type", "application/json")
 	res := httptest.NewRecorder()
 	token := &DefaultGuardToken{
 		Username: "thomas",
@@ -148,6 +149,8 @@ func Test_JwtLoginGuardAuthenticator_onAuthenticationFailure(t *testing.T) {
 	}
 
 	req, _ := http.NewRequest("POST", "/login", nil)
+	req.Header.Set("Content-Type", "application/json")
+
 	res := httptest.NewRecorder()
 
 	err := InvalidCredentials

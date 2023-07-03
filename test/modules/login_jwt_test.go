@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"io"
 	"net/http/httptest"
-	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/dgrijalva/jwt-go"
@@ -46,9 +46,9 @@ func Test_Create_Username(t *testing.T) {
 
 		manager.Save(u, false)
 
-		res, _ := test.RunRequest("POST", fmt.Sprintf("%s/api/v1.0/login", ts.URL), url.Values{
-			"username": {data.Username},
-			"password": {"ZePassword"},
+		body := strings.NewReader(fmt.Sprintf(`{"username":"%s","password":"%s"}`, data.Username, "ZePassword"))
+		res, _ := test.RunRequest("POST", fmt.Sprintf("%s/api/v1.0/login", ts.URL), body, map[string]string{
+			"Content-Type": "application/json",
 		})
 
 		assert.Equal(t, 200, res.StatusCode)

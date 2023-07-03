@@ -106,7 +106,7 @@ func performAuthentication(c *web.C, a GuardAuthenticator, w http.ResponseWriter
 	}
 
 	// create a valid security token for the user
-	token, err := a.CreateAuthenticatedToken(user)
+	token, _ := a.CreateAuthenticatedToken(user)
 
 	c.Env["guard_token"] = token
 

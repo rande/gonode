@@ -164,20 +164,22 @@ func (r Response) GetBodyAsString() string {
 
 func GetDefaultAuthHeader(ts *httptest.Server) map[string]string {
 	return map[string]string{
+		"Content-Type":  "application/json",
 		"Authorization": fmt.Sprintf("Bearer %s", GetDefaultAuthToken(ts)),
 	}
 }
 
 func GetAuthHeaderFromCredentials(username, password string, ts *httptest.Server) map[string]string {
 	return map[string]string{
+		"Content-Type":  "application/json",
 		"Authorization": fmt.Sprintf("Bearer %s", GetAuthTokenFromCredentials(username, password, ts)),
 	}
 }
 
 func GetAuthTokenFromCredentials(username, password string, ts *httptest.Server) string {
-	res, _ := RunRequest("POST", fmt.Sprintf("%s/api/v1.0/login", ts.URL), url.Values{
-		"username": {username},
-		"password": {password},
+	body := strings.NewReader(fmt.Sprintf(`{"username":"%s","password":"%s"}`, username, password))
+	res, _ := RunRequest("POST", fmt.Sprintf("%s/api/v1.0/login", ts.URL), body, map[string]string{
+		"Content-Type":  "application/json",
 	})
 
 	if res.StatusCode != 200 {
@@ -225,7 +227,6 @@ func RunRequest(method string, path string, options ...interface{}) (*Response, 
 		req, err = http.NewRequest(method, path, v)
 	case io.Reader:
 		req, err = http.NewRequest(method, path, v)
-
 	case url.Values:
 		req, err = http.NewRequest(method, path, strings.NewReader(v.Encode()))
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")

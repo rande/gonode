@@ -16,6 +16,32 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Extract token from cookie request.
+type CookieExtractor struct {
+	CookieName string
+}
+
+func (e *CookieExtractor) ExtractToken(req *http.Request) (string, error) {
+	// Make sure form is parsed
+	token, err := req.Cookie(e.CookieName)
+
+	if err == request.ErrNoTokenInRequest {
+		return "", nil
+	}
+
+	return token.Value, nil
+}
+
+// Extractor for OAuth2 access tokens.  Looks in 'Authorization'
+// header then 'access_token' argument for a token.
+var OAuth2Extractor = &request.MultiExtractor{
+	&CookieExtractor{
+		CookieName: "access_token",
+	},
+	request.AuthorizationHeaderExtractor,
+	request.ArgumentExtractor{"access_token"},
+}
+
 // this authenticator will create a JWT Token from a standard form
 type JwtTokenGuardAuthenticator struct {
 	Path     *regexp.Regexp
@@ -40,7 +66,7 @@ func (a *JwtTokenGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 				}).Info("Invalid signing method")
 			}
 
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
 		return []byte(a.Key), nil
