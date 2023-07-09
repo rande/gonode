@@ -23,10 +23,10 @@ import (
 )
 
 var (
-	InvalidFitOptionsError = errors.New("Invalid fit options")
-	InvalidWidthRangeError = errors.New("Invalid width range")
-	WidthNotAllowedError   = errors.New("Width is not allowed")
-	InvalidProcessStatus   = errors.New("Invalid process status")
+	ErrInvalidFitOptions    = errors.New("invalid fit options")
+	ErrInvalidWidthRange    = errors.New("invalid width range")
+	ErrWidthNotAllowed      = errors.New("width is not allowed")
+	ErrInvalidProcessStatus = errors.New("invalid process status")
 )
 
 func ContainsSize(size uint, allowed []uint) bool {
@@ -59,7 +59,7 @@ func (m *MediaViewHandler) Execute(node *base.Node, request *base.ViewRequest, r
 	meta := node.Meta.(*ImageMeta)
 
 	if meta.SourceStatus != base.ProcessStatusInit && meta.SourceStatus != base.ProcessStatusDone {
-		return InvalidProcessStatus
+		return ErrInvalidProcessStatus
 	}
 
 	response.HttpResponse.Header().Set("Content-Type", meta.ContentType)
@@ -87,11 +87,11 @@ func (m *MediaViewHandler) imageResize(node *base.Node, request *base.ViewReques
 	}
 
 	if m.MaxWidth > 0 && uint(width) > m.MaxWidth {
-		return InvalidWidthRangeError
+		return ErrInvalidWidthRange
 	}
 
 	if !ContainsSize(uint(width), m.AllowedWidths) {
-		return WidthNotAllowedError
+		return ErrWidthNotAllowed
 	}
 
 	imageSrc, err := m.getImage(node)
@@ -109,7 +109,7 @@ func (m *MediaViewHandler) imageFit(node *base.Node, request *base.ViewRequest, 
 	options := strings.Split(request.HttpRequest.URL.Query().Get("mf"), ",")
 
 	if len(options) != 2 && len(options) != 4 {
-		return InvalidFitOptionsError
+		return ErrInvalidFitOptions
 	}
 
 	width, err := strconv.ParseInt(options[0], 10, 0)
@@ -123,17 +123,17 @@ func (m *MediaViewHandler) imageFit(node *base.Node, request *base.ViewRequest, 
 	}
 
 	if m.MaxWidth > 0 && uint(width) > m.MaxWidth {
-		return InvalidWidthRangeError
+		return ErrInvalidWidthRange
 	}
 
 	if !ContainsSize(uint(width), m.AllowedWidths) {
-		return WidthNotAllowedError
+		return ErrWidthNotAllowed
 	}
 
 	imageSrc, err := m.getImage(node)
 
 	if err != nil {
-		return InvalidFitOptionsError
+		return ErrInvalidFitOptions
 	}
 
 	croppedImg := imaging.Fill(imageSrc, int(width), int(height), imaging.Center, imaging.Lanczos)

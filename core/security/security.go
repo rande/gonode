@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	AccessForbiddenError = errors.New("Access Forbidden")
+	ErrAccessForbidden = errors.New("access Forbidden")
 )
 
 // Bare interface to used inside a request lifecycle
@@ -49,7 +49,7 @@ func GetTokenFromContext(c web.C) SecurityToken {
 
 func CheckAccess(token SecurityToken, attrs Attributes, res http.ResponseWriter, req *http.Request, auth AuthorizationChecker) error {
 	if token == nil { // no token
-		return AccessForbiddenError
+		return ErrAccessForbidden
 	}
 
 	r, err := auth.IsGranted(token, attrs, req)
@@ -59,7 +59,7 @@ func CheckAccess(token SecurityToken, attrs Attributes, res http.ResponseWriter,
 	}
 
 	if r == false {
-		return AccessForbiddenError
+		return ErrAccessForbidden
 	}
 
 	return nil

@@ -89,7 +89,7 @@ func (a *JwtTokenGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 				}).Warn("Invalid credentials format")
 			}
 
-			return nil, InvalidCredentialsFormat
+			return nil, ErrInvalidCredentialsFormat
 		}
 
 	} else {
@@ -103,7 +103,7 @@ func (a *JwtTokenGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 				}).Info("invalid credentials, missing usr field")
 			}
 
-			return nil, InvalidCredentialsFormat
+			return nil, ErrInvalidCredentialsFormat
 		}
 
 		if a.Logger != nil {
@@ -148,7 +148,7 @@ func (a *JwtTokenGuardAuthenticator) GetUser(credentials interface{}) (GuardUser
 		}).Info("Unable to found the user")
 	}
 
-	return nil, UnableRetrieveUser
+	return nil, ErrUnableRetrieveUser
 }
 
 func (a *JwtTokenGuardAuthenticator) CheckCredentials(credentials interface{}, user GuardUser) error {

@@ -200,7 +200,7 @@ func Test_JwtTokenGuardAuthenticator_onAuthenticationFailure(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/ressource", nil)
 	res := httptest.NewRecorder()
 
-	err := InvalidCredentials
+	err := ErrInvalidCredentials
 
 	a.OnAuthenticationFailure(req, res, err)
 

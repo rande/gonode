@@ -14,15 +14,15 @@ import (
 )
 
 var (
-	ValidationError             = errors.New("Unable to validate data")
-	RevisionError               = errors.New("Wrong revision while saving")
-	NotFoundError               = errors.New("Unable to find the node")
-	InvalidReferenceFormatError = errors.New("Unable to parse the reference")
-	AlreadyDeletedError         = errors.New("Unable to find the node")
-	NoStreamHandler             = errors.New("No stream handler defined")
-	AccessForbiddenError        = errors.New("Access forbidden")
-	InvalidVersionError         = errors.New("Wrong node version")
-	InvalidUuidLengthError      = errors.New("Invalid UUID length")
+	ErrValidation             = errors.New("unable to validate data")
+	ErrRevision               = errors.New("wrong revision while saving")
+	ErrNotFound               = errors.New("unable to find the node")
+	ErrInvalidReferenceFormat = errors.New("unable to parse the reference")
+	ErrAlreadyDeleted         = errors.New("unable to find the node")
+	ErrNoStreamHandler        = errors.New("no stream handler defined")
+	ErrAccessForbidden        = errors.New("access forbidden")
+	ErrInvalidVersion         = errors.New("wrong node version")
+	ErrInvalidUuidLength      = errors.New("invalid UUID length")
 )
 
 type validationError struct {
@@ -128,17 +128,17 @@ func HandleError(req *http.Request, res http.ResponseWriter, err error) {
 	statusCode := http.StatusInternalServerError
 
 	switch err {
-	case NotFoundError:
+	case ErrNotFound:
 		statusCode = http.StatusNotFound
-	case AlreadyDeletedError:
+	case ErrAlreadyDeleted:
 		statusCode = http.StatusGone
-	case AccessForbiddenError, security.AccessForbiddenError:
+	case ErrAccessForbidden, security.ErrAccessForbidden:
 		statusCode = http.StatusForbidden
-	case RevisionError:
+	case ErrRevision:
 		statusCode = http.StatusConflict
-	case ValidationError:
+	case ErrValidation:
 		statusCode = http.StatusPreconditionFailed
-	case InvalidVersionError:
+	case ErrInvalidVersion:
 		statusCode = http.StatusBadRequest
 	}
 

@@ -60,7 +60,7 @@ func (a *JwtLoginGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 				"method": "application/json",
 			}).Error("Unable to decode JSON data")
 
-			return nil, InvalidCredentialsFormat
+			return nil, ErrInvalidCredentialsFormat
 		}
 	} else {
 		req.ParseForm()
@@ -75,7 +75,7 @@ func (a *JwtLoginGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 				"method": "form-data",
 			}).Error("Unable to decode POST parameters")
 
-			return nil, InvalidCredentialsFormat
+			return nil, ErrInvalidCredentialsFormat
 		}
 	}
 
@@ -117,7 +117,7 @@ func (a *JwtLoginGuardAuthenticator) GetUser(credentials interface{}) (GuardUser
 		}).Info("Unable to found the user")
 	}
 
-	return nil, UnableRetrieveUser
+	return nil, ErrUnableRetrieveUser
 }
 
 func (a *JwtLoginGuardAuthenticator) CheckCredentials(credentials interface{}, user GuardUser) error {
@@ -132,7 +132,7 @@ func (a *JwtLoginGuardAuthenticator) CheckCredentials(credentials interface{}, u
 			}).Info("Invalid credentials")
 		}
 
-		return InvalidCredentials
+		return ErrInvalidCredentials
 	}
 
 	if a.Logger != nil {

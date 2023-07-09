@@ -69,8 +69,8 @@ func Test_Perform_Authentification_With_Invalid_Credentials(t *testing.T) {
 	a := &MockedAuthenticator{}
 	a.On("GetCredentials", r).Return(c, nil)
 	a.On("GetUser", c).Return(u, nil)
-	a.On("CheckCredentials", c, u).Return(InvalidCredentials)
-	a.On("OnAuthenticationFailure", r, w, InvalidCredentials).Return(true)
+	a.On("CheckCredentials", c, u).Return(ErrInvalidCredentials)
+	a.On("OnAuthenticationFailure", r, w, ErrInvalidCredentials).Return(true)
 
 	cw := &web.C{Env: make(map[interface{}]interface{})}
 

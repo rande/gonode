@@ -42,7 +42,7 @@ func (m *Reference) UnmarshalJSON(data []byte) error {
 	}
 
 	if len(data) < 32 {
-		return InvalidUuidLengthError
+		return ErrInvalidUuidLength
 	}
 
 	if tmpUuid, err := uuid.Parse(string(data[1 : len(data)-1])); err != nil {
@@ -62,7 +62,7 @@ func GetReferenceFromString(reference string) (Reference, error) {
 	v, err := uuid.Parse(reference)
 
 	if err != nil {
-		return GetEmptyReference(), InvalidReferenceFormatError
+		return GetEmptyReference(), ErrInvalidReferenceFormat
 	}
 
 	return GetReference(v), nil

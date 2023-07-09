@@ -144,7 +144,7 @@ func Test_MediaViewHandler_InvalidResize_Width(t *testing.T) {
 	err := m.Execute(n, request, response)
 
 	assert.Error(t, err)
-	assert.Equal(t, err, InvalidWidthRangeError)
+	assert.Equal(t, err, ErrInvalidWidthRange)
 }
 
 func Test_MediaViewHandler_Invalid_Crop_Width(t *testing.T) {
@@ -176,7 +176,7 @@ func Test_MediaViewHandler_Invalid_Crop_Width(t *testing.T) {
 	err := m.Execute(n, request, response)
 
 	assert.Error(t, err)
-	assert.Equal(t, err, InvalidWidthRangeError)
+	assert.Equal(t, err, ErrInvalidWidthRange)
 }
 
 func Test_MediaViewHandler_Invalid_Resize_NotAllowedWidth(t *testing.T) {
@@ -209,7 +209,7 @@ func Test_MediaViewHandler_Invalid_Resize_NotAllowedWidth(t *testing.T) {
 	err := m.Execute(n, request, response)
 
 	assert.Error(t, err)
-	assert.Equal(t, err, WidthNotAllowedError)
+	assert.Equal(t, err, ErrWidthNotAllowed)
 }
 
 func Test_MediaViewHandler_Invalid_Crop_NotAllowedWidth(t *testing.T) {
@@ -242,7 +242,7 @@ func Test_MediaViewHandler_Invalid_Crop_NotAllowedWidth(t *testing.T) {
 	err := m.Execute(n, request, response)
 
 	assert.Error(t, err)
-	assert.Equal(t, err, WidthNotAllowedError)
+	assert.Equal(t, err, ErrWidthNotAllowed)
 }
 
 func Test_MediaViewHandler_Resize(t *testing.T) {

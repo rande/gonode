@@ -74,7 +74,7 @@ func Test_UnMarshal_Invalid_Reference(t *testing.T) {
 	err := ref.UnmarshalJSON(input)
 
 	assert.Error(t, err)
-	assert.Equal(t, err, InvalidUuidLengthError)
+	assert.Equal(t, err, ErrInvalidUuidLength)
 }
 
 func Test_UnMarshal_Empty_String_Reference(t *testing.T) {

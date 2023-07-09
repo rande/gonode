@@ -21,8 +21,8 @@ import (
 )
 
 var (
-	MissingHookNameError = errors.New("missing hook name")
-	NoHookHandlerError   = errors.New("No hook handler")
+	ErrMissingHookName = errors.New("missing hook name")
+	ErrNoHookHandler   = errors.New("No hook handler")
 )
 
 func GetValue(name string, conf map[string]interface{}, d ...interface{}) interface{} {
@@ -39,7 +39,7 @@ func GetValue(name string, conf map[string]interface{}, d ...interface{}) interf
 
 func GetHook(conf map[string]interface{}) (log.Hook, error) {
 	if _, ok := conf["service"]; !ok {
-		return nil, MissingHookNameError
+		return nil, ErrMissingHookName
 	}
 
 	var tags []string
@@ -87,7 +87,7 @@ func GetHook(conf map[string]interface{}) (log.Hook, error) {
 		return hook, err
 	}
 
-	return nil, NoHookHandlerError
+	return nil, ErrNoHookHandler
 }
 
 func Configure(l *goapp.Lifecycle, conf *config.Config) {

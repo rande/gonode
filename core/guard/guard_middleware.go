@@ -78,7 +78,7 @@ func performAuthentication(c *web.C, a GuardAuthenticator, w http.ResponseWriter
 	// get credentials from request
 	credentials, err := a.GetCredentials(r)
 
-	if err == InvalidCredentialsFormat {
+	if err == ErrInvalidCredentialsFormat {
 		o = a.OnAuthenticationFailure(r, w, err)
 
 		return true, o

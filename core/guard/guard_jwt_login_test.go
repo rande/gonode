@@ -153,7 +153,7 @@ func Test_JwtLoginGuardAuthenticator_onAuthenticationFailure(t *testing.T) {
 
 	res := httptest.NewRecorder()
 
-	err := InvalidCredentials
+	err := ErrInvalidCredentials
 
 	a.OnAuthenticationFailure(req, res, err)
 	b := bytes.NewBuffer([]byte(""))

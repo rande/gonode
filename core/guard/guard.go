@@ -11,11 +11,12 @@ import (
 )
 
 var (
-	InvalidCredentialsFormat        = errors.New("Invalid credentials format")
-	InvalidCredentials              = errors.New("Invalid credentials")
-	UnableRetrieveUser              = errors.New("Unable to retrieve the user")
-	CredentialMismatch              = errors.New("Credential mismatch")
-	AuthenticatedTokenCreationError = errors.New("Unable to create authentication token")
+	ErrInvalidCredentialsFormat   = errors.New("invalid credentials format")
+	ErrInvalidCredentials         = errors.New("invalid credentials")
+	ErrUnableRetrieveUser         = errors.New("unable to retrieve the user")
+	ErrCredentialMismatch         = errors.New("credential mismatch")
+	ErrAuthenticatedTokenCreation = errors.New("unable to create authentication token")
+	ErrTokenExpired               = errors.New("token expired")
 )
 
 // Bare interface with the default requirement to check username and password

@@ -20,7 +20,7 @@ const (
 	NonceSize = 12
 )
 
-var VaultFileExistsError = errors.New("Vault file already exists")
+var ErrVaultFileExists = errors.New("vault file already exists")
 
 type VaultMetadata map[string]interface{}
 
@@ -154,7 +154,7 @@ func (v *Vault) Put(name string, meta VaultMetadata, r io.Reader) (written int64
 	var data []byte
 
 	if v.Has(name) {
-		return written, VaultFileExistsError
+		return written, ErrVaultFileExists
 	}
 
 	vaultname := GetVaultKey(name)

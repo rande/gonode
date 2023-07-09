@@ -97,16 +97,16 @@ func (a *Api) Save(node *base.Node, options *base.AccessOptions) (*base.Node, ba
 			result, _ := a.Authorizer.IsGranted(options.Token, nil, node)
 
 			if !result {
-				return nil, nil, base.AccessForbiddenError
+				return nil, nil, base.ErrAccessForbidden
 			}
 		}
 
 		if node.Deleted == true {
-			return nil, nil, base.AlreadyDeletedError
+			return nil, nil, base.ErrAlreadyDeleted
 		}
 
 		if node.Revision != saved.Revision {
-			return nil, nil, base.RevisionError
+			return nil, nil, base.ErrRevision
 		}
 
 		node.Id = saved.Id
@@ -124,7 +124,7 @@ func (a *Api) Save(node *base.Node, options *base.AccessOptions) (*base.Node, ba
 	}
 
 	if ok, errors := a.Manager.Validate(node); !ok {
-		return nil, errors, base.ValidationError
+		return nil, errors, base.ErrValidation
 	}
 
 	node, err := a.Manager.Save(node, true)
@@ -141,9 +141,9 @@ func (a *Api) Move(nodeUuid, parentUuid string, options *base.AccessOptions) (*A
 	}
 
 	if node := a.Manager.Find(nodeReference); node == nil {
-		return nil, base.NotFoundError
+		return nil, base.ErrNotFound
 	} else if result, _ := a.Authorizer.IsGranted(options.Token, nil, node); !result {
-		return nil, base.AccessForbiddenError
+		return nil, base.ErrAccessForbidden
 	}
 
 	// parent node
@@ -154,9 +154,9 @@ func (a *Api) Move(nodeUuid, parentUuid string, options *base.AccessOptions) (*A
 	}
 
 	if parent := a.Manager.Find(parentReference); parent == nil {
-		return nil, base.NotFoundError
+		return nil, base.ErrNotFound
 	} else if result, _ := a.Authorizer.IsGranted(options.Token, nil, parent); !result {
-		return nil, base.AccessForbiddenError
+		return nil, base.ErrAccessForbidden
 	}
 
 	// move node
@@ -174,7 +174,7 @@ func (a *Api) FindOne(uuid string, options *base.AccessOptions) (*base.Node, err
 	reference, err := base.GetReferenceFromString(uuid)
 
 	if err != nil {
-		return nil, base.NotFoundError
+		return nil, base.ErrNotFound
 	}
 
 	query := a.Manager.SelectBuilder(base.NewSelectOptions()).Where(sq.Eq{"uuid": reference.String()})
@@ -186,14 +186,14 @@ func (a *Api) FindOneBy(query sq.SelectBuilder, options *base.AccessOptions) (*b
 	node := a.Manager.FindOneBy(query)
 
 	if node == nil {
-		return nil, base.NotFoundError
+		return nil, base.ErrNotFound
 	}
 
 	if options != nil {
 		result, _ := a.Authorizer.IsGranted(options.Token, nil, node)
 
 		if !result {
-			return nil, base.AccessForbiddenError
+			return nil, base.ErrAccessForbidden
 		}
 	}
 
@@ -210,19 +210,19 @@ func (a *Api) RemoveOne(uuid string, options *base.AccessOptions) (*base.Node, e
 	node := a.Manager.Find(reference)
 
 	if node == nil {
-		return nil, base.NotFoundError
+		return nil, base.ErrNotFound
 	}
 
 	if options != nil {
 		result, _ := a.Authorizer.IsGranted(options.Token, nil, node)
 
 		if !result {
-			return nil, base.AccessForbiddenError
+			return nil, base.ErrAccessForbidden
 		}
 	}
 
 	if node.Deleted {
-		return nil, base.AlreadyDeletedError
+		return nil, base.ErrAlreadyDeleted
 	}
 
 	return a.Manager.RemoveOne(node)
