@@ -34,7 +34,7 @@ func versionChecker(c web.C, res http.ResponseWriter) error {
 		return nil
 	}
 
-	return base.InvalidVersionError
+	return base.ErrInvalidVersion
 }
 
 func Check(c web.C, res http.ResponseWriter, req *http.Request, attrs security.Attributes, auth security.AuthorizationChecker) bool {
@@ -176,7 +176,7 @@ func Api_GET_Node(app *goapp.App) func(c web.C, res http.ResponseWriter, req *ht
 			node := manager.Find(reference)
 
 			if node == nil {
-				base.HandleError(req, res, base.NotFoundError)
+				base.HandleError(req, res, base.ErrNotFound)
 
 				return
 			}
@@ -185,7 +185,7 @@ func Api_GET_Node(app *goapp.App) func(c web.C, res http.ResponseWriter, req *ht
 				base.HandleError(req, res, err)
 				return
 			} else if !granted {
-				base.HandleError(req, res, base.AccessForbiddenError)
+				base.HandleError(req, res, base.ErrAccessForbidden)
 				return
 			}
 
@@ -318,7 +318,7 @@ func Api_POST_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *
 
 		options := base.NewAccessOptionsFromToken(token)
 
-		if node, errors, err := apiHandler.Save(node, options); err != nil && err != base.ValidationError {
+		if node, errors, err := apiHandler.Save(node, options); err != nil && err != base.ErrValidation {
 			base.HandleError(req, res, err)
 		} else if errors != nil {
 			res.WriteHeader(http.StatusPreconditionFailed)
@@ -361,7 +361,7 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 			node := manager.Find(reference)
 
 			if node == nil {
-				base.HandleError(req, res, base.NotFoundError)
+				base.HandleError(req, res, base.ErrNotFound)
 				return
 			}
 
@@ -399,7 +399,7 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 				return
 			}
 
-			if node, errors, err := apiHandler.Save(node, options); err != nil && err != base.ValidationError {
+			if node, errors, err := apiHandler.Save(node, options); err != nil && err != base.ErrValidation {
 				base.HandleError(req, res, err)
 			} else if errors != nil {
 				res.WriteHeader(http.StatusPreconditionFailed)

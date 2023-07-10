@@ -18,7 +18,7 @@ var (
 	ACCESS_ABSTAIN = VoterResult(2)
 	ACCESS_DENIED  = VoterResult(-1)
 
-	NotStringableAttributeError = errors.New("Attribute is not stringable")
+	ErrNotStringableAttribute = errors.New("attribute is not stringable")
 )
 
 type Attributes []interface{}
@@ -36,7 +36,7 @@ func (attrs Attributes) ToStringSlice() ([]string, error) {
 		case fmt.Stringer:
 			roles = append(roles, s.String())
 		default:
-			err = NotStringableAttributeError
+			err = ErrNotStringableAttribute
 		}
 	}
 

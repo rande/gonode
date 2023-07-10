@@ -50,7 +50,7 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 				}).Debug("No roles associate with current token")
 			}
 
-			base.HandleError(req, res, base.AccessForbiddenError)
+			base.HandleError(req, res, base.ErrAccessForbidden)
 			return
 		}
 
@@ -148,7 +148,7 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 					}).Debug("Authorization not granded to access the node")
 				}
 
-				base.HandleError(req, res, base.AccessForbiddenError)
+				base.HandleError(req, res, base.ErrAccessForbidden)
 				return
 			}
 

@@ -165,7 +165,7 @@ func HandlerLoad(handler Handler, data []byte, meta []byte, node *Node) error {
 }
 
 func DefaultHandlerStoreStream(node *Node, r io.Reader) (int64, error) {
-	return 0, NoStreamHandler
+	return 0, ErrNoStreamHandler
 }
 
 type ViewHandlerCollection map[string]ViewHandler

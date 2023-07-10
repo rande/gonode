@@ -41,7 +41,7 @@ func (l *PongoTemplateLoader) Get(path string) (io.Reader, error) {
 	sections := strings.Split(path, ":")
 
 	if len(sections) != 2 {
-		return nil, InvalidPongoRefError
+		return nil, ErrInvalidPongoRef
 	}
 
 	data, err := l.Embeds.ReadFile(sections[0], l.BasePath+"templates/"+strings.Join(sections[1:], "/"))
