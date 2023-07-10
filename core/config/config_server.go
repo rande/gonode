@@ -17,7 +17,8 @@ type Guard struct {
 			Path string `toml:"path"`
 		} `toml:"login"`
 		Token struct {
-			Path string `toml:"path"`
+			Path   string   `toml:"path"`
+			Ignore []string `toml:"ignore"`
 		} `toml:"token"`
 	} `toml:"jwt"`
 	Anonymous struct {

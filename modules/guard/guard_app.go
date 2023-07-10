@@ -40,6 +40,12 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		manager := app.Get("gonode.manager").(*base.PgNodeManager)
 		logger := app.Get("logger").(*log.Logger)
 
+		ignore := []*regexp.Regexp{}
+
+		for _, path := range conf.Guard.Jwt.Token.Ignore {
+			ignore = append(ignore, regexp.MustCompile(path))
+		}
+
 		auths := []guard.GuardAuthenticator{
 			&guard.JwtLoginGuardAuthenticator{
 				LoginPath: regexp.MustCompile(conf.Guard.Jwt.Login.Path),
@@ -50,6 +56,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 			},
 			&guard.JwtTokenGuardAuthenticator{
 				Path:     regexp.MustCompile(conf.Guard.Jwt.Token.Path),
+				Ignore:   ignore,
 				Key:      []byte(conf.Guard.Key),
 				Validity: conf.Guard.Jwt.Validity,
 				Manager:  &GuardManager{manager},

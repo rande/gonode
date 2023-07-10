@@ -46,6 +46,7 @@ var OAuth2Extractor = &request.MultiExtractor{
 // this authenticator will create a JWT Token from a standard form
 type JwtTokenGuardAuthenticator struct {
 	Path     *regexp.Regexp
+	Ignore   []*regexp.Regexp
 	Manager  GuardManager
 	Validity int64
 	Key      []byte
@@ -53,6 +54,21 @@ type JwtTokenGuardAuthenticator struct {
 }
 
 func (a *JwtTokenGuardAuthenticator) GetCredentials(req *http.Request) (interface{}, error) {
+
+	for _, ignore := range a.Ignore {
+		if ignore.Match([]byte(req.URL.Path)) {
+			if a.Logger != nil {
+				a.Logger.WithFields(log.Fields{
+					"module": "core.guard.jwt_token",
+					"path":   req.URL.Path,
+					"regexp": ignore,
+				}).Info("Ignore path, skipping")
+			}
+
+			return nil, nil
+		}
+	}
+
 	if !a.Path.Match([]byte(req.URL.Path)) {
 		if a.Logger != nil {
 			a.Logger.WithFields(log.Fields{
