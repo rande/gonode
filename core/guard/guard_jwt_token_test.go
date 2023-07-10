@@ -108,6 +108,54 @@ func Test_JwtTokenGuardAuthenticator_getCredentials_Valid_Token_Header(t *testin
 	assert.Equal(t, "thomas", c.(*jwt.Token).Claims.(jwt.MapClaims)["usr"].(string))
 }
 
+func Test_JwtTokenGuardAuthenticator_getCredentials_TokenExpired_QueryString(t *testing.T) {
+
+	// token has expired
+	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2ODg5NDM5MTYsInJscyI6WyJST0xFX0FETUlOIiwiUk9MRV9BUEkiLCJub2RlOmFwaTptYXN0ZXIiXSwidXNyIjoiYWRtaW4ifQ.xwRhUkHqNHBqLf0rQ-wNIM67KS634qeG8oOto8_sFVE"
+
+	req, _ := http.NewRequest("GET", "/ressource", nil)
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tokenString))
+
+	a := &JwtTokenGuardAuthenticator{
+		Path:     regexp.MustCompile("/*"),
+		Manager:  &MockedManager{},
+		Validity: 12,
+		Key:      []byte("ZeKey"),
+	}
+
+	c, err := a.GetCredentials(req)
+
+	assert.Nil(t, c)
+	assert.NotNil(t, err)
+
+	assert.Equal(t, ErrTokenExpired, err)
+	fmt.Println(err)
+}
+
+func Test_JwtTokenGuardAuthenticator_getCredentials_Invalid_QueryString(t *testing.T) {
+
+	// token is not valid anymore
+	tokenString := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+
+	req, _ := http.NewRequest("GET", "/ressource", nil)
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tokenString))
+
+	a := &JwtTokenGuardAuthenticator{
+		Path:     regexp.MustCompile("/*"),
+		Manager:  &MockedManager{},
+		Validity: 12,
+		Key:      []byte("ZeKey"),
+	}
+
+	c, err := a.GetCredentials(req)
+
+	assert.Nil(t, c)
+	assert.NotNil(t, err)
+
+	assert.Equal(t, ErrInvalidCredentialsFormat, err)
+	fmt.Println(err)
+}
+
 func Test_JwtTokenGuardAuthenticator_getCredentials_Valid_Token_QueryString(t *testing.T) {
 	a := &JwtTokenGuardAuthenticator{
 		Path:     regexp.MustCompile("/*"),
@@ -198,6 +246,9 @@ func Test_JwtTokenGuardAuthenticator_onAuthenticationFailure(t *testing.T) {
 	}
 
 	req, _ := http.NewRequest("GET", "/ressource", nil)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+
 	res := httptest.NewRecorder()
 
 	err := ErrInvalidCredentials

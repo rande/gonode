@@ -29,7 +29,7 @@ func GetGuardMiddleware(auths []GuardAuthenticator) func(c *web.C, h http.Handle
 					logger.WithFields(log.Fields{
 						"module": "core.guard.middleware",
 						"type":   fmt.Sprintf("%T", authenticator),
-					}).Debug("Starting authentificator process")
+					}).Debug("Starting a authentificator process")
 				}
 
 				performed, output := performAuthentication(c, authenticator, w, r)
@@ -79,6 +79,12 @@ func performAuthentication(c *web.C, a GuardAuthenticator, w http.ResponseWriter
 	credentials, err := a.GetCredentials(r)
 
 	if err == ErrInvalidCredentialsFormat {
+		o = a.OnAuthenticationFailure(r, w, err)
+
+		return true, o
+	}
+
+	if err == ErrTokenExpired {
 		o = a.OnAuthenticationFailure(r, w, err)
 
 		return true, o

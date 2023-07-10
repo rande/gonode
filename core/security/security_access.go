@@ -48,6 +48,12 @@ func RenderForbidden(w http.ResponseWriter) {
 	w.Write([]byte("<html><head><title>Forbidden</title></head><body><h1>Forbidden</h1><p>Sorry, you don't have enough credentials to view the requested resource.</p></body></html>"))
 }
 
+func RenderExpiredToken(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+	w.WriteHeader(http.StatusUnauthorized)
+	w.Write([]byte("<html><head><title>Expired Authentication</title></head><body><h1>Expired Authentication</h1><p>Sorry, you are not authenticated anymore, please reconnect!</p></body></html>"))
+}
+
 func AccessCheckerMiddleware(ac *AccessChecker) func(c *web.C, h http.Handler) http.Handler {
 
 	return func(c *web.C, h http.Handler) http.Handler {

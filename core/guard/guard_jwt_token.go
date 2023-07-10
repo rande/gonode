@@ -13,6 +13,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
+	"github.com/rande/gonode/core/security"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -25,8 +26,8 @@ func (e *CookieExtractor) ExtractToken(req *http.Request) (string, error) {
 	// Make sure form is parsed
 	token, err := req.Cookie(e.CookieName)
 
-	if err == request.ErrNoTokenInRequest {
-		return "", nil
+	if err == http.ErrNoCookie {
+		return "", request.ErrNoTokenInRequest
 	}
 
 	return token.Value, nil
@@ -53,10 +54,18 @@ type JwtTokenGuardAuthenticator struct {
 
 func (a *JwtTokenGuardAuthenticator) GetCredentials(req *http.Request) (interface{}, error) {
 	if !a.Path.Match([]byte(req.URL.Path)) {
+		if a.Logger != nil {
+			a.Logger.WithFields(log.Fields{
+				"module": "core.guard.jwt_token",
+				"path":   req.URL.Path,
+				"regexp": a.Path,
+			}).Info("Invalid path, skipping")
+		}
+
 		return nil, nil
 	}
 
-	if credentials, err := request.ParseFromRequest(req, request.OAuth2Extractor, func(token *jwt.Token) (interface{}, error) {
+	credentials, err := request.ParseFromRequest(req, OAuth2Extractor, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			if a.Logger != nil {
@@ -70,30 +79,14 @@ func (a *JwtTokenGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 		}
 
 		return []byte(a.Key), nil
-	}); err != nil {
+	})
 
-		if err == request.ErrNoTokenInRequest {
-			if a.Logger != nil {
-				a.Logger.WithFields(log.Fields{
-					"module": "core.guard.jwt_token",
-					"error":  err.Error(),
-				}).Debug("No token in request, skipping")
-			}
+	// no error, no credentials, nothing to do.
+	if credentials == nil && err == nil {
+		return nil, nil
+	}
 
-			return nil, nil
-		} else {
-			if a.Logger != nil {
-				a.Logger.WithFields(log.Fields{
-					"module": "core.guard.jwt_token",
-					"error":  err.Error(),
-				}).Warn("Invalid credentials format")
-			}
-
-			return nil, ErrInvalidCredentialsFormat
-		}
-
-	} else {
-
+	if credentials != nil && err == nil {
 		claims := credentials.Claims.(jwt.MapClaims)
 		if _, ok := claims["usr"]; !ok {
 
@@ -116,6 +109,41 @@ func (a *JwtTokenGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 
 		return credentials, nil
 	}
+
+	// we have an error
+	if err == request.ErrNoTokenInRequest {
+		if a.Logger != nil {
+			a.Logger.WithFields(log.Fields{
+				"module": "core.guard.jwt_token",
+				"error":  err.Error(),
+			}).Debug("No token in request, skipping")
+		}
+
+		return nil, nil
+	}
+
+	if e, ok := err.(*jwt.ValidationError); ok {
+		if (e.Errors & jwt.ValidationErrorExpired) != 0 {
+			if a.Logger != nil {
+				a.Logger.WithFields(log.Fields{
+					"module": "core.guard.jwt_token",
+					"error":  err.Error(),
+					"code":   e.Errors,
+				}).Warn("Token expired, please refresh it")
+			}
+
+			return nil, ErrTokenExpired
+		}
+	}
+
+	if a.Logger != nil {
+		a.Logger.WithFields(log.Fields{
+			"module": "core.guard.jwt_token",
+			"error":  err.Error(),
+		}).Warn("Invalid credentials format")
+	}
+
+	return nil, ErrInvalidCredentialsFormat
 }
 
 func (a *JwtTokenGuardAuthenticator) GetUser(credentials interface{}) (GuardUser, error) {
@@ -165,17 +193,27 @@ func (a *JwtTokenGuardAuthenticator) CreateAuthenticatedToken(user GuardUser) (G
 }
 
 func (a *JwtTokenGuardAuthenticator) OnAuthenticationFailure(req *http.Request, res http.ResponseWriter, err error) bool {
-	// nothing to do
-	res.Header().Set("Content-Type", "application/json")
 
-	res.WriteHeader(http.StatusForbidden)
+	if req.Header.Get("Accept") == "application/json" {
+		res.Header().Set("Content-Type", "application/json")
 
-	data, _ := json.Marshal(map[string]string{
-		"status":  "KO",
-		"message": "Unable to validate the token",
-	})
+		res.WriteHeader(http.StatusForbidden)
 
-	res.Write(data)
+		data, _ := json.Marshal(map[string]string{
+			"status":  "KO",
+			"message": "Unable to validate the token",
+		})
+
+		res.Write(data)
+
+		return true
+	}
+
+	if err == ErrTokenExpired {
+		security.RenderExpiredToken(res)
+	} else {
+		security.RenderForbidden(res)
+	}
 
 	return true
 }

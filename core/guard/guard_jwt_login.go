@@ -207,25 +207,26 @@ func (a *JwtLoginGuardAuthenticator) OnAuthenticationSuccess(req *http.Request, 
 
 		res.Write(data)
 
-	} else {
-		http.SetCookie(res, &http.Cookie{
-			Name:     "access_token",
-			Value:    tokenString,
-			Path:     "/",
-			MaxAge:   84600,
-			HttpOnly: true,
-			Secure:   true,
-			SameSite: http.SameSiteLaxMode,
-		})
-
-		redirectPath := req.URL.Query().Get("redirect")
-
-		if redirectPath == "" {
-			redirectPath = "/"
-		}
-
-		http.Redirect(res, req, redirectPath+"?login=success", http.StatusFound)
+		return true
 	}
+
+	http.SetCookie(res, &http.Cookie{
+		Name:     "access_token",
+		Value:    tokenString,
+		Path:     "/",
+		MaxAge:   84600,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	redirectPath := req.URL.Query().Get("redirect")
+
+	if redirectPath == "" {
+		redirectPath = "/"
+	}
+
+	http.Redirect(res, req, redirectPath+"?login=success", http.StatusFound)
 
 	return true
 }
