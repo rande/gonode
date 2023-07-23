@@ -15,6 +15,14 @@ import (
 	"github.com/zenazn/goji/web/mutil"
 )
 
+func GetLoggerFromContext(c web.C) *log.Entry {
+	if logger, ok := c.Env["logger"]; ok {
+		return logger.(*log.Entry)
+	}
+
+	return nil
+}
+
 func GetMiddleware(logger *log.Logger) func(c *web.C, h http.Handler) http.Handler {
 	return func(c *web.C, h http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {

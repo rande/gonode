@@ -9,7 +9,7 @@ import (
 	"embed"
 )
 
-//go:embed all:static
+//go:embed all:static all:templates
 var content embed.FS
 
 func GetEmbedFS() embed.FS {

@@ -81,6 +81,10 @@ type Logger struct {
 	Hooks  map[string]map[string]interface{} `toml:"hooks"`
 }
 
+type Dashboard struct {
+	Prefix string `toml:"prefix"`
+}
+
 type Config struct {
 	Name       string               `toml:"name"`
 	Databases  map[string]*Database `toml:"databases"`
@@ -93,6 +97,7 @@ type Config struct {
 	Media      *Media               `toml:"media"`
 	Logger     *Logger              `toml:"logger"`
 	Api        *Api                 `toml:"api"`
+	Dashboard  *Dashboard           `toml:"dashboard"`
 }
 
 func NewConfig() *Config {
@@ -113,6 +118,9 @@ func NewConfig() *Config {
 		},
 		Api: &Api{
 			Prefix: "/api",
+		},
+		Dashboard: &Dashboard{
+			Prefix: "/dashboard",
 		},
 	}
 }

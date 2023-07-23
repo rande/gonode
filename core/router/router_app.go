@@ -32,8 +32,19 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		router := app.Get("gonode.router").(*Router)
 		pongo := app.Get("gonode.pongo").(*pongo2.TemplateSet)
 
-		pongo.Globals["path"] = func(name, params *pongo2.Value) *pongo2.Value {
-			path, err := router.GeneratePath(name.String(), params.Interface().(url.Values))
+		pongo.Globals["path"] = func(args ...*pongo2.Value) *pongo2.Value {
+			if len(args) == 0 {
+				panic("url: missing arguments, at least one is required (name, params))")
+			}
+
+			name := args[0].String()
+			params := url.Values{}
+
+			if len(args) > 1 && args[1] != nil && args[1].Interface() != nil {
+				params = args[1].Interface().(url.Values)
+			}
+
+			path, err := router.GeneratePath(name, params)
 
 			if err != nil {
 				panic(err)
@@ -42,8 +53,24 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 			return pongo2.AsSafeValue(path)
 		}
 
-		pongo.Globals["url"] = func(name, params, requestContext *pongo2.Value) *pongo2.Value {
-			path, err := router.GenerateUrl(name.String(), params.Interface().(url.Values), requestContext.Interface().(*RequestContext))
+		pongo.Globals["url"] = func(args ...*pongo2.Value) *pongo2.Value {
+			if len(args) == 0 {
+				panic("url: missing arguments, at least one is required (name string, params url.Values, request_context *RequestContext))")
+			}
+
+			name := args[0].String()
+			params := url.Values{}
+			requestContext := &RequestContext{}
+
+			if len(args) > 1 && args[1] != nil && args[1].Interface() != nil {
+				params = args[1].Interface().(url.Values)
+			}
+
+			if len(args) > 2 && args[2] != nil && args[2].Interface() != nil {
+				requestContext = args[2].Interface().(*RequestContext)
+			}
+
+			path, err := router.GenerateUrl(name, params, requestContext)
 
 			if err != nil {
 				panic(err)
@@ -52,8 +79,19 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 			return pongo2.AsSafeValue(path)
 		}
 
-		pongo.Globals["net"] = func(name, params *pongo2.Value) *pongo2.Value {
-			path, err := router.GenerateNet(name.String(), params.Interface().(url.Values))
+		pongo.Globals["net"] = func(args ...*pongo2.Value) *pongo2.Value {
+			if len(args) == 0 {
+				panic("url: missing arguments, at least one is required (name, params))")
+			}
+
+			name := args[0].String()
+			params := url.Values{}
+
+			if len(args) > 1 && args[1] != nil && args[1].Interface() != nil {
+				params = args[1].Interface().(url.Values)
+			}
+
+			path, err := router.GenerateNet(name, params)
 
 			if err != nil {
 				panic(err)

@@ -55,8 +55,9 @@ func NewViewHandlerMetadata() *HandlerViewMetadata {
 type Handlers interface {
 	NewNode(t string) *Node
 	Get(node *Node) Handler
-	GetByCode(code string) Handler
-	GetKeys() []string
+	GetByType(code string) Handler
+	GetTypes() []string
+	HasType(code string) bool
 }
 
 type HandlerCollection map[string]Handler
@@ -70,10 +71,10 @@ func (c HandlerCollection) NewNode(t string) *Node {
 }
 
 func (c HandlerCollection) Get(node *Node) Handler {
-	return c.GetByCode(node.Type)
+	return c.GetByType(node.Type)
 }
 
-func (c HandlerCollection) GetByCode(code string) Handler {
+func (c HandlerCollection) GetByType(code string) Handler {
 	if handler, ok := c[code]; ok {
 		return handler.(Handler)
 	}
@@ -81,7 +82,13 @@ func (c HandlerCollection) GetByCode(code string) Handler {
 	return c["default"].(Handler)
 }
 
-func (c HandlerCollection) GetKeys() []string {
+func (c HandlerCollection) HasType(code string) bool {
+	_, ok := c[code]
+
+	return ok
+}
+
+func (c HandlerCollection) GetTypes() []string {
 	keys := make([]string, 0)
 
 	for k := range c {
@@ -171,10 +178,10 @@ func DefaultHandlerStoreStream(node *Node, r io.Reader) (int64, error) {
 type ViewHandlerCollection map[string]ViewHandler
 
 func (c ViewHandlerCollection) Get(node *Node) ViewHandler {
-	return c.GetByCode(node.Type)
+	return c.GetByType(node.Type)
 }
 
-func (c ViewHandlerCollection) GetByCode(code string) ViewHandler {
+func (c ViewHandlerCollection) GetByType(code string) ViewHandler {
 	if handler, ok := c[code]; ok {
 		return handler.(ViewHandler)
 	}
@@ -182,7 +189,7 @@ func (c ViewHandlerCollection) GetByCode(code string) ViewHandler {
 	return c["default"].(ViewHandler)
 }
 
-func (c ViewHandlerCollection) GetKeys() []string {
+func (c ViewHandlerCollection) GetTypes() []string {
 	keys := make([]string, 0)
 
 	for k := range c {
@@ -190,6 +197,12 @@ func (c ViewHandlerCollection) GetKeys() []string {
 	}
 
 	return keys
+}
+
+func (c ViewHandlerCollection) HasType(code string) bool {
+	_, ok := c[code]
+
+	return ok
 }
 
 func (c ViewHandlerCollection) Add(code string, h ViewHandler) {
@@ -212,6 +225,7 @@ func NewViewResponse(res http.ResponseWriter) *ViewResponse {
 		StatusCode:   200,
 		Context:      pongo2.Context{},
 		HttpResponse: res,
+		ContentType:  "text/html; charset=UTF-8",
 	}
 }
 
@@ -220,6 +234,7 @@ type ViewResponse struct {
 	Template     string
 	Context      pongo2.Context
 	HttpResponse http.ResponseWriter
+	ContentType  string
 }
 
 func (r *ViewResponse) Set(code int, template string) *ViewResponse {

@@ -7,4 +7,4 @@
         <h2>{{ node.Data.Title }}</h2>
         {{ node.Data.Content }}
     </div>
-{% endblock %}}
+{% endblock %}

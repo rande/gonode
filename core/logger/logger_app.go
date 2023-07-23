@@ -76,7 +76,10 @@ func GetHook(conf map[string]interface{}) (log.Hook, error) {
 				LocalTime:  GetValue("local_time", conf, 100).(bool),
 			},
 			level,
-			&logrus.TextFormatter{},
+			&logrus.TextFormatter{
+				DisableColors: false,
+				ForceColors:   true,
+			},
 			&lumberjackrus.LogFileOpts{},
 		)
 

@@ -4,12 +4,18 @@ test= true
 
 [databases.master]
 type    = "master"
-dsn     = "postgres://postgres:gonode@localhost/gonode?sslmode=disable"
+dsn     = "postgres://postgres:@localhost/postgres?sslmode=disable"
 enabled = true
 prefix  = "prod"
 
 [filesystem]
 path = "/tmp/gnode"
+
+[dashboard]
+prefix = "/dashboard"
+
+[api]
+prefix = "/api"
 
 [guard]
     key = "ZeSecretKey0oo"
@@ -19,7 +25,8 @@ path = "/tmp/gnode"
         path = "\\/api\\/v([0-9\\.]*)\\/login"
 
         [guard.jwt.token]
-        path = "^\\/api\\/v([0-9\\.]*)"
+        path = "^(\\/api\\/v([0-9\\.]*)|\\/dashboard(.*))"
+        ignore = ["\\/dashboard/login"]
 
     [guard.anonymous]
         roles = [
@@ -41,7 +48,11 @@ path = "/tmp/gnode"
     allowed_headers = ["Origin", "Accept", "Content-Type", "Authorization"]
 
     [[security.access]]
-    path  = "^\\/admin"
+    path  = "^\\/dashboard/login"
+    roles = ["IS_AUTHENTICATED_ANONYMOUSLY"]
+
+    [[security.access]]
+    path  = "^\\/dashboard"
     roles = ["ROLE_ADMIN"]
 
     [[security.access]]

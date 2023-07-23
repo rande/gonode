@@ -445,7 +445,7 @@ func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 	return node, err
 }
 
-func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
+func (m *PgNodeManager) Save(node *Node, newRevision bool) (*Node, error) {
 
 	var contextLogger *log.Entry
 
@@ -496,7 +496,7 @@ func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 			Date:        node.CreatedAt,
 			Name:        node.Name,
 			Revision:    node.Revision,
-			NewRevision: revision,
+			NewRevision: newRevision,
 		})
 
 		return node, err
@@ -521,7 +521,7 @@ func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 		contextLogger.Debug("updating node")
 	}
 
-	if revision {
+	if newRevision {
 		// 3. Update the revision number
 		node.Revision++
 		node.CreatedAt = saved.CreatedAt
@@ -542,7 +542,7 @@ func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 		h.PostUpdate(node, m)
 	}
 
-	if revision {
+	if newRevision {
 		node.UpdatedAt = saved.UpdatedAt
 		id := node.Id
 		_, err = m.insertNode(node, m.Prefix+"_nodes_audit")
@@ -560,7 +560,7 @@ func (m *PgNodeManager) Save(node *Node, revision bool) (*Node, error) {
 		Revision:    node.Revision,
 		Date:        node.UpdatedAt,
 		Name:        node.Name,
-		NewRevision: revision,
+		NewRevision: newRevision,
 	})
 
 	return node, err
