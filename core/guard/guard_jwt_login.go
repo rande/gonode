@@ -19,11 +19,11 @@ import (
 
 // this authenticator will create a JWT Token from a standard form
 type JwtLoginGuardAuthenticator struct {
-	LoginPath *regexp.Regexp
-	Manager   GuardManager
-	Validity  int64
-	Key       []byte
-	Logger    *log.Logger
+	EndPoint *regexp.Regexp
+	Manager  GuardManager
+	Validity int64
+	Key      []byte
+	Logger   *log.Logger
 }
 
 func (a *JwtLoginGuardAuthenticator) GetCredentials(req *http.Request) (interface{}, error) {
@@ -36,7 +36,7 @@ func (a *JwtLoginGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 		return nil, nil
 	}
 
-	if !a.LoginPath.Match([]byte(req.URL.Path)) {
+	if !a.EndPoint.Match([]byte(req.URL.Path)) {
 		a.Logger.WithFields(log.Fields{
 			"module": "core.guard.jwt_login",
 			"path":   req.URL.Path,

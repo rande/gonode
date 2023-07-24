@@ -46,10 +46,10 @@ key = "ZeSecretKey0oo"
 
     [guard.jwt]
         [guard.jwt.login]
-        path = "/login"
+        endpoint = "/login"
 
         [guard.jwt.token]
-        path = "^\\/nodes\\/(.*)$"
+        apply = "^\\/nodes\\/(.*)$"
 
 [security]
     voters = ["security.voter.role"]
@@ -92,8 +92,8 @@ key = "ZeSecretKey0oo"
 	assert.Equal(t, config.Filesystem.Path, "/tmp/gnode")
 
 	// test guard
-	assert.Equal(t, config.Guard.Jwt.Login.Path, "/login")
-	assert.Equal(t, config.Guard.Jwt.Token.Path, `^\/nodes\/(.*)$`)
+	assert.Equal(t, config.Guard.Jwt.Login.EndPoint, "/login")
+	assert.Equal(t, config.Guard.Jwt.Token.Apply, `^\/nodes\/(.*)$`)
 
 	// test security: cors
 	assert.False(t, config.Security.Cors.AllowCredentials)
@@ -117,7 +117,7 @@ key = "ZeSecretKey0oo"
 	assert.Equal(t, map[string]string{"app": "gonode"}, config.Logger.Fields)
 
 	// debug
-	config.Guard.Jwt.Login.Path = `^\/nodes\/(.*)$`
+	config.Guard.Jwt.Login.EndPoint = `^\/nodes\/(.*)$`
 
 	w := bytes.NewBufferString("")
 	e := toml.NewEncoder(w)

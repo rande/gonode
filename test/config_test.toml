@@ -3,9 +3,12 @@ bind= ":2508"
 
 [databases.master]
 type    = "master"
-dsn     = "postgres://gonode:gonode@localhost/gonode?sslmode=disable"
+dsn     = "postgres://postgres:@localhost/postgres?sslmode=disable"
 enabled = true
 prefix  = "test"
+
+[dashboard]
+prefix = "/dashboard"
 
 [api]
 prefix = "/api"
@@ -18,10 +21,10 @@ key = "ZeSecretKey0oo"
 
     [guard.jwt]
         [guard.jwt.login]
-        path = "\\/api\\/v([0-9\\.]*)\\/login"
+        endpoint = "\\/api\\/v([0-9\\.]*)\\/login"
 
         [guard.jwt.token]
-        path = "^\\/api\\/v([0-9\\.]*)"
+        apply = "^\\/api\\/v([0-9\\.]*)"
 
     [guard.anonymous]
         roles = [
@@ -41,7 +44,7 @@ key = "ZeSecretKey0oo"
     allowed_origins = ["*"]
     allowed_methods = ["GET", "PUT", "POST"]
     allowed_headers = ["Origin", "Accept", "Content-Type", "Authorization"]
-    # debug = false
+    # debug = falseI8
 
     [[security.access]]
     path = "/api/v1.0/login"

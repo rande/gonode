@@ -40,7 +40,7 @@ func GetToken() *jwt.Token {
 
 func Test_JwtTokenGuardAuthenticator_getCredentials_NoMatch(t *testing.T) {
 	a := &JwtTokenGuardAuthenticator{
-		Path:     regexp.MustCompile("/api/*"),
+		Apply:    regexp.MustCompile("/api/*"),
 		Manager:  &MockedManager{},
 		Validity: 12,
 		Key:      []byte("ZeKey"),
@@ -56,7 +56,7 @@ func Test_JwtTokenGuardAuthenticator_getCredentials_NoMatch(t *testing.T) {
 
 func Test_JwtTokenGuardAuthenticator_getCredentials_NoHeader_Request(t *testing.T) {
 	a := &JwtTokenGuardAuthenticator{
-		Path:     regexp.MustCompile("/*"),
+		Apply:    regexp.MustCompile("/*"),
 		Manager:  &MockedManager{},
 		Validity: 12,
 		Key:      []byte("ZeKey"),
@@ -72,7 +72,7 @@ func Test_JwtTokenGuardAuthenticator_getCredentials_NoHeader_Request(t *testing.
 
 func Test_JwtTokenGuardAuthenticator_getCredentials_Invalid_Token(t *testing.T) {
 	a := &JwtTokenGuardAuthenticator{
-		Path:     regexp.MustCompile("/*"),
+		Apply:    regexp.MustCompile("/*"),
 		Manager:  &MockedManager{},
 		Validity: 12,
 		Key:      []byte("ZeKey"),
@@ -89,7 +89,7 @@ func Test_JwtTokenGuardAuthenticator_getCredentials_Invalid_Token(t *testing.T) 
 
 func Test_JwtTokenGuardAuthenticator_getCredentials_Valid_Token_Header(t *testing.T) {
 	a := &JwtTokenGuardAuthenticator{
-		Path:     regexp.MustCompile("/*"),
+		Apply:    regexp.MustCompile("/*"),
 		Manager:  &MockedManager{},
 		Validity: 12,
 		Key:      []byte("ZeKey"),
@@ -117,7 +117,7 @@ func Test_JwtTokenGuardAuthenticator_getCredentials_TokenExpired_QueryString(t *
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tokenString))
 
 	a := &JwtTokenGuardAuthenticator{
-		Path:     regexp.MustCompile("/*"),
+		Apply:    regexp.MustCompile("/*"),
 		Manager:  &MockedManager{},
 		Validity: 12,
 		Key:      []byte("ZeKey"),
@@ -141,7 +141,7 @@ func Test_JwtTokenGuardAuthenticator_getCredentials_Invalid_QueryString(t *testi
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tokenString))
 
 	a := &JwtTokenGuardAuthenticator{
-		Path:     regexp.MustCompile("/*"),
+		Apply:    regexp.MustCompile("/*"),
 		Manager:  &MockedManager{},
 		Validity: 12,
 		Key:      []byte("ZeKey"),
@@ -158,7 +158,7 @@ func Test_JwtTokenGuardAuthenticator_getCredentials_Invalid_QueryString(t *testi
 
 func Test_JwtTokenGuardAuthenticator_getCredentials_Valid_Token_QueryString(t *testing.T) {
 	a := &JwtTokenGuardAuthenticator{
-		Path:     regexp.MustCompile("/*"),
+		Apply:    regexp.MustCompile("/*"),
 		Manager:  &MockedManager{},
 		Validity: 12,
 		Key:      []byte("ZeKey"),
@@ -178,7 +178,7 @@ func Test_JwtTokenGuardAuthenticator_getCredentials_Valid_Token_QueryString(t *t
 
 func Test_JwtTokenGuardAuthenticator_checkCredentials(t *testing.T) {
 	a := &JwtTokenGuardAuthenticator{
-		Path:     regexp.MustCompile("/*"),
+		Apply:    regexp.MustCompile("/*"),
 		Manager:  &MockedManager{},
 		Validity: 12,
 		Key:      []byte("ZeKey"),
@@ -195,7 +195,7 @@ func Test_JwtTokenGuardAuthenticator_checkCredentials(t *testing.T) {
 
 func Test_JwtTokenGuardAuthenticator_createAuthenticatedToken(t *testing.T) {
 	a := &JwtTokenGuardAuthenticator{
-		Path:     regexp.MustCompile("/*"),
+		Apply:    regexp.MustCompile("/*"),
 		Manager:  &MockedManager{},
 		Validity: 12,
 		Key:      []byte("ZeKey"),
@@ -216,7 +216,7 @@ func Test_JwtTokenGuardAuthenticator_createAuthenticatedToken(t *testing.T) {
 
 func Test_JwtTokenGuardAuthenticator_onAuthenticationSuccess(t *testing.T) {
 	a := &JwtTokenGuardAuthenticator{
-		Path:     regexp.MustCompile("/*"),
+		Apply:    regexp.MustCompile("/*"),
 		Manager:  &MockedManager{},
 		Validity: 12,
 		Key:      []byte("ZeKey"),
@@ -239,7 +239,7 @@ func Test_JwtTokenGuardAuthenticator_onAuthenticationSuccess(t *testing.T) {
 
 func Test_JwtTokenGuardAuthenticator_onAuthenticationFailure(t *testing.T) {
 	a := &JwtTokenGuardAuthenticator{
-		Path:     regexp.MustCompile("/*"),
+		Apply:    regexp.MustCompile("/*"),
 		Manager:  &MockedManager{},
 		Validity: 12,
 		Key:      []byte("ZeKey"),

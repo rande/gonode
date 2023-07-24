@@ -22,12 +22,13 @@ prefix = "/api"
 
     [guard.jwt]
         [guard.jwt.login]
-        path = "\\/api\\/v([0-9\\.]*)\\/login"
+        endpoint = "\\/api\\/v([0-9\\.]*)\\/login"
+        page = "http://localhost:2508/dashboard/login"
 
         [guard.jwt.token]
-        path = "^(\\/api\\/v([0-9\\.]*)|\\/dashboard(.*))"
-        ignore = ["\\/dashboard/login"]
-
+        apply = "^(\\/api\\/v([0-9\\.]*)|\\/dashboard(.*))"
+        ignore = ["\\/dashboard\\/login"]
+        
     [guard.anonymous]
         roles = [
             "IS_AUTHENTICATED_ANONYMOUSLY",
@@ -48,7 +49,7 @@ prefix = "/api"
     allowed_headers = ["Origin", "Accept", "Content-Type", "Authorization"]
 
     [[security.access]]
-    path  = "^\\/dashboard/login"
+    path  = "^\\/dashboard\\/login"
     roles = ["IS_AUTHENTICATED_ANONYMOUSLY"]
 
     [[security.access]]

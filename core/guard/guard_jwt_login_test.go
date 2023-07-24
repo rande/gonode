@@ -24,10 +24,10 @@ import (
 
 func Test_JwtLoginGuardAuthenticator_getCredentials_Valid_Request(t *testing.T) {
 	a := &JwtLoginGuardAuthenticator{
-		LoginPath: regexp.MustCompile("/login"),
-		Manager:   &MockedManager{},
-		Validity:  12,
-		Key:       []byte("ZeKey"),
+		EndPoint: regexp.MustCompile("/login"),
+		Manager:  &MockedManager{},
+		Validity: 12,
+		Key:      []byte("ZeKey"),
 	}
 
 	v := url.Values{
@@ -51,10 +51,10 @@ func Test_JwtLoginGuardAuthenticator_getCredentials_Valid_Request(t *testing.T) 
 
 func Test_JwtLoginGuardAuthenticator_checkCredentials_Valid_Password(t *testing.T) {
 	a := &JwtLoginGuardAuthenticator{
-		LoginPath: regexp.MustCompile("/login"),
-		Manager:   &MockedManager{},
-		Validity:  12,
-		Key:       []byte("ZeKey"),
+		EndPoint: regexp.MustCompile("/login"),
+		Manager:  &MockedManager{},
+		Validity: 12,
+		Key:      []byte("ZeKey"),
 	}
 
 	password, _ := bcrypt.GenerateFromPassword([]byte("ZePassword"), 1)
@@ -69,10 +69,10 @@ func Test_JwtLoginGuardAuthenticator_checkCredentials_Valid_Password(t *testing.
 
 func Test_JwtLoginGuardAuthenticator_createAuthenticatedToken(t *testing.T) {
 	a := &JwtLoginGuardAuthenticator{
-		LoginPath: regexp.MustCompile("/login"),
-		Manager:   &MockedManager{},
-		Validity:  12,
-		Key:       []byte("ZeKey"),
+		EndPoint: regexp.MustCompile("/login"),
+		Manager:  &MockedManager{},
+		Validity: 12,
+		Key:      []byte("ZeKey"),
 	}
 
 	u := &DefaultGuardUser{
@@ -91,10 +91,10 @@ func Test_JwtLoginGuardAuthenticator_createAuthenticatedToken(t *testing.T) {
 
 func Test_JwtLoginGuardAuthenticator_onAuthenticationSuccess(t *testing.T) {
 	a := &JwtLoginGuardAuthenticator{
-		LoginPath: regexp.MustCompile("/login"),
-		Manager:   &MockedManager{},
-		Validity:  12,
-		Key:       []byte("ZeKey"),
+		EndPoint: regexp.MustCompile("/login"),
+		Manager:  &MockedManager{},
+		Validity: 12,
+		Key:      []byte("ZeKey"),
 	}
 
 	req, _ := http.NewRequest("POST", "/login", nil)
@@ -142,10 +142,10 @@ func Test_JwtLoginGuardAuthenticator_onAuthenticationSuccess(t *testing.T) {
 
 func Test_JwtLoginGuardAuthenticator_onAuthenticationFailure(t *testing.T) {
 	a := &JwtLoginGuardAuthenticator{
-		LoginPath: regexp.MustCompile("/login"),
-		Manager:   &MockedManager{},
-		Validity:  12,
-		Key:       []byte("ZeKey"),
+		EndPoint: regexp.MustCompile("/login"),
+		Manager:  &MockedManager{},
+		Validity: 12,
+		Key:      []byte("ZeKey"),
 	}
 
 	req, _ := http.NewRequest("POST", "/login", nil)

@@ -45,16 +45,16 @@ var OAuth2Extractor = &request.MultiExtractor{
 
 // this authenticator will create a JWT Token from a standard form
 type JwtTokenGuardAuthenticator struct {
-	Path     *regexp.Regexp
-	Ignore   []*regexp.Regexp
-	Manager  GuardManager
-	Validity int64
-	Key      []byte
-	Logger   *log.Logger
+	Apply     *regexp.Regexp // url to intercept as it is a login request
+	Ignore    []*regexp.Regexp
+	Manager   GuardManager
+	Validity  int64
+	Key       []byte
+	Logger    *log.Logger
+	LoginPage string // url to redirect to if the token is not valid
 }
 
 func (a *JwtTokenGuardAuthenticator) GetCredentials(req *http.Request) (interface{}, error) {
-
 	for _, ignore := range a.Ignore {
 		if ignore.Match([]byte(req.URL.Path)) {
 			if a.Logger != nil {
@@ -69,12 +69,12 @@ func (a *JwtTokenGuardAuthenticator) GetCredentials(req *http.Request) (interfac
 		}
 	}
 
-	if !a.Path.Match([]byte(req.URL.Path)) {
+	if !a.Apply.Match([]byte(req.URL.Path)) {
 		if a.Logger != nil {
 			a.Logger.WithFields(log.Fields{
 				"module": "core.guard.jwt_token",
 				"path":   req.URL.Path,
-				"regexp": a.Path,
+				"regexp": a.Apply,
 			}).Info("Invalid path, skipping")
 		}
 
@@ -221,6 +221,19 @@ func (a *JwtTokenGuardAuthenticator) OnAuthenticationFailure(req *http.Request, 
 		})
 
 		res.Write(data)
+
+		return true
+	}
+
+	// redirect to the login page
+	if a.LoginPage != "" && err == ErrTokenExpired {
+		http.Redirect(res, req, a.LoginPage+"?reason=token_expired", http.StatusFound)
+
+		return true
+	}
+
+	if a.LoginPage != "" && err == ErrInvalidCredentialsFormat {
+		http.Redirect(res, req, a.LoginPage+"?reason=invalid_format", http.StatusFound)
 
 		return true
 	}

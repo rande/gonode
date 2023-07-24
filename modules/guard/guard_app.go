@@ -48,19 +48,20 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
 		auths := []guard.GuardAuthenticator{
 			&guard.JwtLoginGuardAuthenticator{
-				LoginPath: regexp.MustCompile(conf.Guard.Jwt.Login.Path),
-				Key:       []byte(conf.Guard.Key),
-				Validity:  conf.Guard.Jwt.Validity,
-				Manager:   &GuardManager{manager},
-				Logger:    logger,
-			},
-			&guard.JwtTokenGuardAuthenticator{
-				Path:     regexp.MustCompile(conf.Guard.Jwt.Token.Path),
-				Ignore:   ignore,
+				EndPoint: regexp.MustCompile(conf.Guard.Jwt.Login.EndPoint),
 				Key:      []byte(conf.Guard.Key),
 				Validity: conf.Guard.Jwt.Validity,
 				Manager:  &GuardManager{manager},
 				Logger:   logger,
+			},
+			&guard.JwtTokenGuardAuthenticator{
+				Apply:     regexp.MustCompile(conf.Guard.Jwt.Token.Apply),
+				Ignore:    ignore,
+				Key:       []byte(conf.Guard.Key),
+				Validity:  conf.Guard.Jwt.Validity,
+				Manager:   &GuardManager{manager},
+				Logger:    logger,
+				LoginPage: conf.Guard.Jwt.Login.Page,
 			},
 			&guard.AnonymousAuthenticator{
 				DefaultRoles: conf.Guard.Anonymous.Roles,

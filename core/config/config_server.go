@@ -14,10 +14,11 @@ type Guard struct {
 	Jwt struct {
 		Validity int64 `toml:"validity"`
 		Login    struct {
-			Path string `toml:"path"`
+			EndPoint string `toml:"endpoint"`
+			Page     string `toml:"page"`
 		} `toml:"login"`
 		Token struct {
-			Path   string   `toml:"path"`
+			Apply  string   `toml:"apply"`
 			Ignore []string `toml:"ignore"`
 		} `toml:"token"`
 	} `toml:"jwt"`
