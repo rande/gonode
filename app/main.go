@@ -13,6 +13,7 @@ import (
 	"github.com/rande/gonode/core/commands"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/embed"
+	"github.com/rande/gonode/core/form"
 	"github.com/rande/gonode/core/logger"
 	"github.com/rande/gonode/core/router"
 	"github.com/rande/gonode/core/security"
@@ -40,6 +41,7 @@ func Configure(configFile string) *goapp.Lifecycle {
 
 	base.Configure(l, conf)
 	embed.Configure(l, conf)
+	form.Configure(l, conf)
 	debug.Configure(l, conf)
 	user.Configure(l, conf)
 	raw.Configure(l, conf)

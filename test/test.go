@@ -23,6 +23,7 @@ import (
 	"github.com/rande/gonode/core/commands"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/embed"
+	"github.com/rande/gonode/core/form"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/core/logger"
 	"github.com/rande/gonode/core/router"
@@ -114,6 +115,7 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 	})
 
 	base.Configure(l, conf)
+	form.Configure(l, conf)
 	embed.Configure(l, conf)
 	debug.Configure(l, conf)
 	user.Configure(l, conf)
@@ -179,7 +181,7 @@ func GetAuthHeaderFromCredentials(username, password string, ts *httptest.Server
 func GetAuthTokenFromCredentials(username, password string, ts *httptest.Server) string {
 	body := strings.NewReader(fmt.Sprintf(`{"username":"%s","password":"%s"}`, username, password))
 	res, _ := RunRequest("POST", fmt.Sprintf("%s/api/v1.0/login", ts.URL), body, map[string]string{
-		"Content-Type":  "application/json",
+		"Content-Type": "application/json",
 	})
 
 	if res.StatusCode != 200 {

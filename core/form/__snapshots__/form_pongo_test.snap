@@ -1,0 +1,9 @@
+
+[Test_Form_Rendering - 1]
+<form action="POST" action="" encoding="">
+    <label class="" style="" for="name">name</label>
+<input name="name" type="text" value="John Doe" id="name" placeholder="Enter the name" required readonly autofocus size="10" maxlength="100" minlength="10" max="100" min="10" step="10" pattern="^[a-z]+$" autocomplete="on">
+    <label class="" style="" for="email">email</label>
+<input name="email" type="email" value="john.doe@gmail.com" id="email">
+</form>
+---
