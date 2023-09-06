@@ -18,6 +18,16 @@ var (
 
 var replacers = strings.NewReplacer(".", "_", "[", "_", "]", "")
 
+type FieldCollectionValue struct {
+	Value interface{}
+	Key   string
+}
+
+type FieldCollectionOptions struct {
+	Items     []*FieldCollectionValue
+	Configure func(value interface{}) *Form
+}
+
 type FieldOption struct {
 	Label   string
 	Checked bool
@@ -104,6 +114,14 @@ func (f *FormField) Value(name string) interface{} {
 	return nil
 }
 
+func (f *FormField) Add(name string, fieldType string, value interface{}) *FormField {
+	field := create(name, fieldType, value)
+
+	f.Children = append(f.Children, field)
+
+	return field
+}
+
 type Form struct {
 	Fields    []*FormField
 	State     string
@@ -112,6 +130,9 @@ type Form struct {
 
 func defaultMarshal(field *FormField, form *Form) error {
 	field.Input.Value = fmt.Sprintf("%s", field.InitialValue)
+
+	field.Input.Name = fmt.Sprintf("%s%s", field.Prefix, field.Name)
+	field.Input.Id = replacers.Replace(field.Input.Name)
 
 	return nil
 }
@@ -134,7 +155,7 @@ func defaultUnmarshal(field *FormField, form *Form, values url.Values) error {
 }
 
 func formMarshal(field *FormField, form *Form) error {
-	subForm := form.Get(field.Name).InitialValue.(*Form)
+	subForm := field.InitialValue.(*Form)
 
 	field.Children = subForm.Fields
 
@@ -154,6 +175,42 @@ func formUnmarshal(field *FormField, form *Form, values url.Values) error {
 
 	for _, child := range field.Children {
 		child.Unmarshal(child, form, values)
+	}
+
+	return nil
+}
+
+func collectionMarshal(field *FormField, form *Form) error {
+	options := field.InitialValue.(*FieldCollectionOptions)
+
+	field.Input.Name = fmt.Sprintf("%s%s", field.Prefix, field.Name)
+	field.Input.Id = replacers.Replace(field.Input.Name)
+
+	for _, value := range options.Items {
+		subForm := options.Configure(value.Value)
+
+		subField := create(value.Key, "form", subForm)
+		subField.Input.Name = fmt.Sprintf("%s[%s]", field.Input.Name, value.Key)
+		subField.Input.Id = replacers.Replace(subField.Input.Name)
+		subField.Prefix = field.Input.Name + "."
+
+		fmt.Printf("collectionMarshal: %s\n", subField.Input.Name)
+
+		field.Children = append(field.Children, subField)
+
+		subField.Marshal(subField, form)
+	}
+
+	return nil
+}
+
+func collectionUnmarshal(field *FormField, form *Form, values url.Values) error {
+	options := field.InitialValue.(*FieldCollectionOptions)
+
+	for _, value := range options.Items {
+		subField := field.Get(value.Key)
+
+		subField.Unmarshal(subField, form, values)
 	}
 
 	return nil
@@ -243,6 +300,31 @@ func (f *Form) Value(name string) interface{} {
 	return nil
 }
 
+func create(name string, fieldType string, value interface{}) *FormField {
+	field := CreateFormField()
+	field.Name = name
+	field.Input.Type = fieldType
+	field.Label.Value = name
+	field.InitialValue = value
+
+	if fieldType == "checkbox" {
+		field.Marshal = checkboxMarshal
+		field.Unmarshal = checkboxUnmarshal
+	}
+
+	if fieldType == "form" {
+		field.Marshal = formMarshal
+		field.Unmarshal = formUnmarshal
+	}
+
+	if fieldType == "collection" {
+		field.Marshal = collectionMarshal
+		field.Unmarshal = collectionUnmarshal
+	}
+
+	return field
+}
+
 func CreateForm() *Form {
 	return &Form{}
 }
@@ -280,21 +362,7 @@ func CreateFormField() *FormField {
 }
 
 func (f *Form) Add(name string, fieldType string, value interface{}) *Form {
-	field := CreateFormField()
-	field.Name = name
-	field.Input.Type = fieldType
-	field.Label.Value = name
-	field.InitialValue = value
-
-	if fieldType == "checkbox" {
-		field.Marshal = checkboxMarshal
-		field.Unmarshal = checkboxUnmarshal
-	}
-
-	if fieldType == "form" {
-		field.Marshal = formMarshal
-		field.Unmarshal = formUnmarshal
-	}
+	field := create(name, fieldType, value)
 
 	f.Fields = append(f.Fields, field)
 

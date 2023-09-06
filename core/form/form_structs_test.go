@@ -94,3 +94,48 @@ func Test_Bind_Form_Nested_Basic(t *testing.T) {
 
 	assert.True(t, form.Get("post").Get("options").SubmitedValue.(FieldOptions)["admin"].Checked)
 }
+
+type Tag struct {
+	Id      int
+	Name    string
+	Enabled bool
+}
+
+func Test_Bind_Form_Collection(t *testing.T) {
+	values := []*FieldCollectionValue{
+		{Key: "0", Value: &Tag{Id: 1, Name: "tag1", Enabled: true}},
+		{Key: "1", Value: &Tag{Id: 1, Name: "tag2", Enabled: true}},
+	}
+
+	form := &Form{}
+	form.Add("tags", "collection", &FieldCollectionOptions{
+		Items: values,
+		Configure: func(value interface{}) *Form {
+			tag := value.(*Tag)
+
+			tagForm := &Form{}
+			tagForm.Add("name", "text", tag.Name)
+			tagForm.Add("options", "checkbox", FieldOptions{
+				"enabled": {Label: "Is Enabled", Checked: tag.Enabled},
+			})
+
+			return tagForm
+		},
+	})
+
+	PrepareForm(form)
+
+	assert.Equal(t, form.Get("tags").Get("0").Get("name").Input.Name, "tags[0].name")
+
+	v := url.Values{
+		"tags[0].name":             []string{"TAG 1"},
+		"tags[0].options[enabled]": []string{"false"},
+		"tags[1].name":             []string{"TAG 2"},
+		"tags[1].options[enabled]": []string{"false"},
+	}
+
+	BindUrlValues(form, v)
+
+	assert.NotNil(t, form.Get("tags").Get("0").Get("name").SubmitedValue, "TAG 1")
+
+}
