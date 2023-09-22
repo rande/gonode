@@ -7,8 +7,8 @@ package form
 
 import (
 	"errors"
-	"fmt"
 	"net/url"
+	"reflect"
 	"strings"
 )
 
@@ -33,7 +33,7 @@ type FieldOption struct {
 	Checked bool
 }
 
-type FieldOptions map[string]FieldOption
+type FieldOptions map[string]*FieldOption
 
 type Attributes map[string]string
 
@@ -92,6 +92,7 @@ type FormField struct {
 	// from serialized to go
 	Unmarshal func(field *FormField, form *Form, values url.Values) error
 	// Validator
+	reflect reflect.Value
 }
 
 func (f *FormField) Get(name string) *FormField {
@@ -114,7 +115,13 @@ func (f *FormField) Value(name string) interface{} {
 	return nil
 }
 
-func (f *FormField) Add(name string, fieldType string, value interface{}) *FormField {
+func (f *FormField) Add(name string, fieldType string, options ...interface{}) *FormField {
+	var value interface{} = nil
+
+	if len(options) > 0 {
+		value = options[0]
+	}
+
 	field := create(name, fieldType, value)
 
 	f.Children = append(f.Children, field)
@@ -123,143 +130,12 @@ func (f *FormField) Add(name string, fieldType string, value interface{}) *FormF
 }
 
 type Form struct {
+	Data      interface{}
 	Fields    []*FormField
 	State     string
 	HasErrors bool
-}
-
-func defaultMarshal(field *FormField, form *Form) error {
-	field.Input.Value = fmt.Sprintf("%s", field.InitialValue)
-
-	field.Input.Name = fmt.Sprintf("%s%s", field.Prefix, field.Name)
-	field.Input.Id = replacers.Replace(field.Input.Name)
-
-	return nil
-}
-
-func defaultUnmarshal(field *FormField, form *Form, values url.Values) error {
-	value, err := getValue(field, values)
-
-	if err != nil {
-		field.Errors = append(field.Errors, err.Error())
-		field.HasErrors = true
-
-		return err
-	}
-
-	// to do, add a validator call
-	field.SubmitedValue = value
-	field.Touched = true
-
-	return nil
-}
-
-func formMarshal(field *FormField, form *Form) error {
-	subForm := field.InitialValue.(*Form)
-
-	field.Children = subForm.Fields
-
-	for _, subField := range field.Children {
-		subField.Input.Name = fmt.Sprintf("%s.%s", field.Name, subField.Name)
-		subField.Input.Id = replacers.Replace(subField.Input.Name)
-		subField.Prefix = field.Input.Name + "."
-
-		subField.Marshal(subField, form)
-	}
-
-	return nil
-}
-
-func formUnmarshal(field *FormField, form *Form, values url.Values) error {
-	fmt.Printf("formUnmarshal: %s\n", field.Name)
-
-	for _, child := range field.Children {
-		child.Unmarshal(child, form, values)
-	}
-
-	return nil
-}
-
-func collectionMarshal(field *FormField, form *Form) error {
-	options := field.InitialValue.(*FieldCollectionOptions)
-
-	field.Input.Name = fmt.Sprintf("%s%s", field.Prefix, field.Name)
-	field.Input.Id = replacers.Replace(field.Input.Name)
-
-	for _, value := range options.Items {
-		subForm := options.Configure(value.Value)
-
-		subField := create(value.Key, "form", subForm)
-		subField.Input.Name = fmt.Sprintf("%s[%s]", field.Input.Name, value.Key)
-		subField.Input.Id = replacers.Replace(subField.Input.Name)
-		subField.Prefix = field.Input.Name + "."
-
-		fmt.Printf("collectionMarshal: %s\n", subField.Input.Name)
-
-		field.Children = append(field.Children, subField)
-
-		subField.Marshal(subField, form)
-	}
-
-	return nil
-}
-
-func collectionUnmarshal(field *FormField, form *Form, values url.Values) error {
-	options := field.InitialValue.(*FieldCollectionOptions)
-
-	for _, value := range options.Items {
-		subField := field.Get(value.Key)
-
-		subField.Unmarshal(subField, form, values)
-	}
-
-	return nil
-}
-
-func checkboxMarshal(field *FormField, form *Form) error {
-
-	field.Input.Name = fmt.Sprintf("%s%s", field.Prefix, field.Name)
-	field.Input.Id = replacers.Replace(field.Input.Name)
-
-	for name, option := range field.InitialValue.(FieldOptions) {
-		// find a nice way to generate the name
-		subField := CreateFormField()
-		subField.Name = name
-		subField.Input.Name = fmt.Sprintf("%s[%s]", field.Input.Name, name)
-		subField.Input.Id = replacers.Replace(subField.Input.Name)
-		subField.Label.Value = option.Label
-		subField.Input.Type = "checkbox"
-		subField.InitialValue = option.Checked
-
-		field.Children = append(field.Children, subField)
-	}
-
-	return nil
-}
-
-func checkboxUnmarshal(field *FormField, form *Form, values url.Values) error {
-	// we need to check for extra values!
-	submitedValue := FieldOptions{}
-	for name, option := range field.InitialValue.(FieldOptions) {
-		value, err := getValue(field.Get(name), values)
-
-		if err != nil {
-			field.Errors = append(field.Errors, err.Error())
-			field.HasErrors = true
-
-			return err
-		}
-
-		submitedValue[name] = FieldOption{
-			Label:   option.Label,
-			Checked: value == "checked" || value == "true" || value == "1" || value == "on" || value == "yes",
-		}
-	}
-
-	field.SubmitedValue = submitedValue
-	field.Touched = true
-
-	return nil
+	reflect   reflect.Value
+	Locale    string
 }
 
 func (f *Form) Get(name string) *FormField {
@@ -274,7 +150,7 @@ func (f *Form) Get(name string) *FormField {
 
 type FormTypes interface {
 	string | bool | int
-	// bool | string | int | float | []string | []int | []float | []bool | map[string]string | map[string]int | map[string]float | map[string]bool
+	// bool | string | int | float | []string | []int | []float | []bool | map[string]string | map[string]int | map
 }
 
 func Val[T FormTypes](form *Form, name string) T {
@@ -322,11 +198,39 @@ func create(name string, fieldType string, value interface{}) *FormField {
 		field.Unmarshal = collectionUnmarshal
 	}
 
+	if fieldType == "bool" {
+		field.Marshal = booleanMarshal
+		field.Unmarshal = booleanUnmarshal
+	}
+
+	if fieldType == "int" {
+		field.Marshal = numberMarshal
+		field.Unmarshal = intUnmarshal
+	}
+
+	if fieldType == "float" {
+		field.Marshal = numberMarshal
+		field.Unmarshal = floatUnmarshal
+	}
+
+	if fieldType == "uint" {
+		field.Marshal = numberMarshal
+		field.Unmarshal = unintUnmarshal
+	}
+
 	return field
 }
 
-func CreateForm() *Form {
-	return &Form{}
+func CreateForm(data interface{}) *Form {
+
+	if data == nil {
+		return &Form{}
+	}
+
+	return &Form{
+		Data:    data,
+		reflect: reflect.ValueOf(data).Elem(),
+	}
 }
 
 func CreateFormField() *FormField {
@@ -361,7 +265,13 @@ func CreateFormField() *FormField {
 	}
 }
 
-func (f *Form) Add(name string, fieldType string, value interface{}) *Form {
+func (f *Form) Add(name string, fieldType string, options ...interface{}) *Form {
+	var value interface{} = nil
+
+	if len(options) > 0 {
+		value = options[0]
+	}
+
 	field := create(name, fieldType, value)
 
 	f.Fields = append(f.Fields, field)
@@ -378,25 +288,92 @@ func PrepareForm(form *Form) error {
 func iterateFields(form *Form, fields []*FormField) {
 	for _, field := range fields {
 		field.Input.Name = field.Name
-		field.Marshal(field, form)
+		marshal(field, form)
 		field.Input.Id = replacers.Replace(field.Input.Name)
-		fmt.Printf("iterateField: %s\n", field.Input.Id)
 	}
 }
 
 func BindUrlValues(form *Form, values url.Values) error {
 	for _, field := range form.Fields {
-		field.Unmarshal(field, form, values)
+		unmarshal(field, form, values)
 	}
 
 	return nil
 }
 
-func getValue(field *FormField, values url.Values) (string, error) {
+func AttachValues(form *Form) error {
+	// cannot attach value if no entity is linked
+	if form.Data == nil {
+		return nil
+	}
 
+	attachValues(form.Fields)
+
+	return nil
+}
+
+func getValue(field *FormField, values url.Values) (string, error) {
 	if !values.Has(field.Input.Name) {
 		return "", ErrNoValue
 	}
 
 	return values.Get(field.Input.Name), nil
+}
+
+func attachValues(fields []*FormField) {
+	// fmt.Println("Attach Value")
+
+	for _, field := range fields {
+		// fmt.Printf("Field name: %s\n", field.Name)
+
+		if v, ok := field.InitialValue.(*Form); ok {
+			// fmt.Printf("Sub form: %s\n", field.Name)
+			if v.Data == nil {
+				// fmt.Printf("skipping no data attached: %s\n", field.Name)
+				continue
+			}
+
+			attachValues(v.Fields)
+
+			continue
+		}
+
+		if field.reflect.Kind() == reflect.Invalid {
+			// fmt.Printf("Invalid type: %s\n", field.Name)
+			continue
+		}
+
+		newValue := reflect.ValueOf(field.SubmitedValue)
+
+		if field.reflect.Kind() != newValue.Kind() {
+			// fmt.Printf("Incompatible Type, field: %s (kind: %s) submitted: %s\n", field.Name, field.reflect.Kind(), newValue.Kind())
+			continue
+		}
+
+		// fmt.Printf("Type, field: %s (kind: %s) submitted: %s, value: %s\n", field.Name, field.reflect.Kind(), newValue.Kind(), newValue.Interface())
+
+		field.reflect.Set(newValue)
+	}
+}
+
+func marshal(field *FormField, form *Form) {
+	// we do not try to get the value, if the value is already set
+	// and if form.Data is not set.
+	if form.Data != nil || field.InitialValue == nil {
+		field.reflect = form.reflect.FieldByName(field.Name)
+
+		if field.reflect.Kind() != reflect.Invalid {
+			field.InitialValue = field.reflect.Interface()
+		}
+	}
+
+	field.Marshal(field, form)
+}
+
+func unmarshal(field *FormField, form *Form, values url.Values) {
+	field.Unmarshal(field, form, values)
+}
+
+func yes(value string) bool {
+	return value == "checked" || value == "true" || value == "1" || value == "on" || value == "yes"
 }
