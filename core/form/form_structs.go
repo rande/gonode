@@ -7,6 +7,7 @@ package form
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"reflect"
 	"strings"
@@ -28,12 +29,16 @@ type FieldCollectionOptions struct {
 	Configure func(value interface{}) *Form
 }
 
-type FieldOption struct {
+type CheckboxOption struct {
 	Label   string
 	Checked bool
 }
 
-type FieldOptions map[string]*FieldOption
+type FieldOption struct {
+	Label string
+}
+
+type CheckboxOptions map[string]*CheckboxOption
 
 type Attributes map[string]string
 
@@ -43,12 +48,12 @@ type Input struct {
 	Class        string
 	Style        string
 	Value        string
-	Placeholder  string
+	Placeholder  string // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#placeholder
 	Type         string
 	Id           string
-	Pattern      string
+	Pattern      string // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#pattern
 	List         string
-	Autocomplete string
+	Autocomplete string // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#autocomplete
 	Readonly     bool
 	Checked      bool
 	Multiple     bool
@@ -76,6 +81,7 @@ type FormField struct {
 	Prefix        string // used for nested forms
 	Name          string
 	Module        string
+	Help          string
 	Attributes    Attributes
 	Label         Label
 	Input         Input
@@ -87,6 +93,7 @@ type FormField struct {
 	Submitted     bool
 	Errors        []string
 	HasErrors     bool
+	Validators    []func(field *FormField, form *Form) error
 	// from go to serialized
 	Marshal func(field *FormField, form *Form) error
 	// from serialized to go
@@ -206,16 +213,24 @@ func create(name string, fieldType string, value interface{}) *FormField {
 	if fieldType == "int" {
 		field.Marshal = numberMarshal
 		field.Unmarshal = intUnmarshal
+		field.Input.Type = "number"
 	}
 
 	if fieldType == "float" {
 		field.Marshal = numberMarshal
 		field.Unmarshal = floatUnmarshal
+		field.Input.Type = "number"
 	}
 
 	if fieldType == "uint" {
 		field.Marshal = numberMarshal
 		field.Unmarshal = unintUnmarshal
+		field.Input.Type = "number"
+	}
+
+	if fieldType == "date" {
+		field.Marshal = dateMarshal
+		field.Unmarshal = dateUnmarshal
 	}
 
 	return field
@@ -252,6 +267,7 @@ func CreateFormField() *FormField {
 			Readonly:    false,
 		},
 		Module:        "form",
+		Help:          "",
 		InitialValue:  nil,
 		Mandatory:     true,
 		SubmitedValue: nil,
@@ -262,10 +278,35 @@ func CreateFormField() *FormField {
 		Marshal:       defaultMarshal,
 		Unmarshal:     defaultUnmarshal,
 		Attributes:    Attributes{},
+		Validators:    []func(field *FormField, form *Form) error{},
 	}
 }
 
-func (f *Form) Add(name string, fieldType string, options ...interface{}) *Form {
+func (f *FormField) AddValidator(validator func(field *FormField, form *Form) error) *FormField {
+	f.Validators = append(f.Validators, validator)
+
+	return f
+}
+
+func (f *FormField) AddValidators(validators ...func(field *FormField, form *Form) error) *FormField {
+	f.Validators = append(f.Validators, validators...)
+
+	return f
+}
+
+func (f *FormField) SetModule(name string) *FormField {
+	f.Module = name
+
+	return f
+}
+
+func (f *FormField) SetHelp(help string) *FormField {
+	f.Help = help
+
+	return f
+}
+
+func (f *Form) Add(name string, fieldType string, options ...interface{}) *FormField {
 	var value interface{} = nil
 
 	if len(options) > 0 {
@@ -276,21 +317,13 @@ func (f *Form) Add(name string, fieldType string, options ...interface{}) *Form 
 
 	f.Fields = append(f.Fields, field)
 
-	return f
+	return field
 }
 
 func PrepareForm(form *Form) error {
 	iterateFields(form, form.Fields)
 
 	return nil
-}
-
-func iterateFields(form *Form, fields []*FormField) {
-	for _, field := range fields {
-		field.Input.Name = field.Name
-		marshal(field, form)
-		field.Input.Id = replacers.Replace(field.Input.Name)
-	}
 }
 
 func BindUrlValues(form *Form, values url.Values) error {
@@ -334,7 +367,11 @@ func attachValues(fields []*FormField) {
 			}
 
 			attachValues(v.Fields)
+			continue
+		}
 
+		if !field.Touched {
+			// fmt.Printf("Field not touched: %s, skipping\n", field.Name)
 			continue
 		}
 
@@ -345,33 +382,12 @@ func attachValues(fields []*FormField) {
 
 		newValue := reflect.ValueOf(field.SubmitedValue)
 
-		if field.reflect.Kind() != newValue.Kind() {
-			// fmt.Printf("Incompatible Type, field: %s (kind: %s) submitted: %s\n", field.Name, field.reflect.Kind(), newValue.Kind())
-			continue
-		}
-
-		// fmt.Printf("Type, field: %s (kind: %s) submitted: %s, value: %s\n", field.Name, field.reflect.Kind(), newValue.Kind(), newValue.Interface())
-
-		field.reflect.Set(newValue)
-	}
-}
-
-func marshal(field *FormField, form *Form) {
-	// we do not try to get the value, if the value is already set
-	// and if form.Data is not set.
-	if form.Data != nil || field.InitialValue == nil {
-		field.reflect = form.reflect.FieldByName(field.Name)
-
-		if field.reflect.Kind() != reflect.Invalid {
-			field.InitialValue = field.reflect.Interface()
+		if newValue.CanConvert(field.reflect.Type()) {
+			field.reflect.Set(newValue.Convert(field.reflect.Type()))
+		} else {
+			fmt.Printf("Unable to convert type: Type, field: %s (kind: %s) submitted: %s, value: %s\n", field.Name, field.reflect.Kind(), newValue.Kind(), newValue.Interface())
 		}
 	}
-
-	field.Marshal(field, form)
-}
-
-func unmarshal(field *FormField, form *Form, values url.Values) {
-	field.Unmarshal(field, form, values)
 }
 
 func yes(value string) bool {

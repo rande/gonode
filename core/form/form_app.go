@@ -22,6 +22,8 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		pongo.Globals["form_field"] = createPongoField(pongo)
 		pongo.Globals["form_label"] = createPongoLabel(pongo)
 		pongo.Globals["form_input"] = createPongoInput(pongo)
+		pongo.Globals["form_help"] = createPongoHelp(pongo)
+		pongo.Globals["form_errors"] = createPongoErrors(pongo)
 
 		return nil
 	})

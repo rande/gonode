@@ -6,9 +6,10 @@
 package form
 
 import (
-	"fmt"
+	"net/url"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/flosch/pongo2"
 	"github.com/gkampitakis/go-snaps/snaps"
@@ -18,8 +19,6 @@ import (
 )
 
 func TestMain(t *testing.M) {
-
-	fmt.Println("Setup")
 	v := t.Run()
 
 	// After all tests have run `go-snaps` can check for not used snapshots
@@ -44,14 +43,19 @@ func GetPongo() *pongo2.TemplateSet {
 	pongo.Globals["form_field"] = createPongoField(pongo)
 	pongo.Globals["form_label"] = createPongoLabel(pongo)
 	pongo.Globals["form_input"] = createPongoInput(pongo)
+	pongo.Globals["form_help"] = createPongoHelp(pongo)
+	pongo.Globals["form_errors"] = createPongoErrors(pongo)
 
 	return pongo
 }
 func Test_Form_Rendering(t *testing.T) {
 
+	now := time.Date(2022, time.April, 1, 1, 1, 1, 1, time.UTC)
+
 	form := &Form{}
 	form.Add("name", "text", "John Doe")
 	form.Add("email", "email", "john.doe@gmail.com")
+	form.Add("date", "date", now)
 
 	PrepareForm(form)
 
@@ -64,7 +68,6 @@ func Test_Form_Rendering(t *testing.T) {
 	assert.Equal(t, "John Doe", form.Get("name").Input.Value)
 
 	form.Get("name").Input.Pattern = "^[a-z]+$"
-	form.Get("name").Input.Placeholder = "Enter the name"
 	form.Get("name").Input.Placeholder = "Enter the name"
 	form.Get("name").Input.Readonly = true
 	form.Get("name").Input.Required = true
@@ -87,6 +90,43 @@ func Test_Form_Rendering(t *testing.T) {
 
 	// fmt.Printf("%s", err.Error())
 	assert.Nil(t, err)
+
+	snaps.MatchSnapshot(t, html)
+}
+
+func Test_Form_Rendering_Error(t *testing.T) {
+
+	form := CreateForm(nil)
+	form.Add("position", "int", 1).AddValidators(RequiredValidator(), EmailValidator()).SetHelp("The position")
+
+	PrepareForm(form)
+
+	pongo := GetPongo()
+	template, _ := pongo.FromFile("form:form.tpl")
+
+	// -- Render form
+	html, _ := template.Execute(pongo2.Context{
+		"form": form,
+	})
+
+	snaps.MatchSnapshot(t, html)
+
+	// -- Bind form with request values
+	v := url.Values{
+		"position": []string{"foo"},
+	}
+
+	BindUrlValues(form, v)
+
+	// -- validate form
+	result := ValidateForm(form)
+
+	assert.False(t, result)
+
+	// -- render form with errors
+	html, _ = template.Execute(pongo2.Context{
+		"form": form,
+	})
 
 	snaps.MatchSnapshot(t, html)
 }

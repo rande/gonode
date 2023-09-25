@@ -6,10 +6,15 @@
 package form
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/flosch/pongo2"
 	"github.com/rande/gonode/core/helper"
+)
+
+var (
+	ErrNoTemplate = errors.New("unable to find the template to render")
 )
 
 type AttributOption struct {
@@ -61,14 +66,69 @@ func createPongoLabel(pongo *pongo2.TemplateSet) func(field *FormField, form *Fo
 func createPongoInput(pongo *pongo2.TemplateSet) func(field *FormField, form *Form) *pongo2.Value {
 
 	return func(field *FormField, form *Form) *pongo2.Value {
+		templates := []string{
+			fmt.Sprintf("%s:fields/input.%s.tpl", field.Module, field.Input.Type),
+			"form:fields/input.base.tpl",
+		}
 
-		tpl, err := pongo.FromFile(fmt.Sprintf("%s:fields/input.%s.tpl", field.Module, field.Input.Type))
+		for _, path := range templates {
+			tpl, err := pongo.FromFile(path)
+
+			if err == nil {
+				data, err := tpl.Execute(pongo2.Context{
+					"form":  form,
+					"field": field,
+					"input": field.Input,
+					"label": field.Label,
+				})
+
+				helper.PanicOnError(err)
+
+				return pongo2.AsSafeValue(data)
+			}
+		}
+
+		helper.PanicOnError(ErrNoTemplate)
+
+		return nil
+	}
+}
+
+func createPongoErrors(pongo *pongo2.TemplateSet) func(field *FormField, form *Form) *pongo2.Value {
+
+	return func(field *FormField, form *Form) *pongo2.Value {
+
+		tpl, err := pongo.FromFile("form:errors.tpl")
+
+		helper.PanicOnError(err)
+
+		data, err := tpl.Execute(pongo2.Context{
+			"form":      form,
+			"field":     field,
+			"input":     field.Input,
+			"label":     field.Label,
+			"error":     field.Errors,
+			"hasErrors": len(field.Errors) > 0,
+		})
+
+		helper.PanicOnError(err)
+
+		return pongo2.AsSafeValue(data)
+	}
+}
+
+func createPongoHelp(pongo *pongo2.TemplateSet) func(field *FormField, form *Form) *pongo2.Value {
+
+	return func(field *FormField, form *Form) *pongo2.Value {
+
+		tpl, err := pongo.FromFile("form:help.tpl")
 
 		helper.PanicOnError(err)
 
 		data, err := tpl.Execute(pongo2.Context{
 			"form":  form,
 			"field": field,
+			"help":  field.Help,
 			"input": field.Input,
 			"label": field.Label,
 		})

@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -20,6 +21,7 @@ type TestUser struct {
 	Email    string
 	Position int8
 	Ratio    float32
+	DOB      time.Time
 }
 
 type TestBlogPost struct {
@@ -76,6 +78,69 @@ func Test_Bind_Form_Basic(t *testing.T) {
 
 	assert.Equal(t, "John Doe", form.Get("name").InitialValue)
 	assert.Equal(t, "Thomas", form.Get("name").SubmitedValue)
+}
+
+func Test_Bind_Form_Basic_Errors(t *testing.T) {
+
+	form := &Form{}
+	form.Add("name", "text", "John Doe")
+
+	PrepareForm(form)
+
+	v := url.Values{
+		"name": []string{"Thomas"},
+	}
+
+	BindUrlValues(form, v)
+
+	assert.Equal(t, "John Doe", form.Get("name").InitialValue)
+	assert.Equal(t, "Thomas", form.Get("name").SubmitedValue)
+
+	ValidateForm(form)
+}
+
+func Test_FormField_Validate(t *testing.T) {
+	form := CreateForm(nil)
+	field := form.Add("name", "email").AddValidators(RequiredValidator(), EmailValidator())
+
+	field.Touched = true
+	field.SubmitedValue = "john.doe@example.com"
+
+	result := validateForm(form.Fields, form)
+
+	assert.True(t, result)
+
+	field.Touched = false
+	field.SubmitedValue = nil
+
+	result = validateForm(form.Fields, form)
+
+	assert.False(t, result)
+
+	assert.Equal(t, 2, len(field.Errors))
+	assert.Equal(t, ErrValidatorRequired.Error(), field.Errors[0])
+	assert.Equal(t, ErrValidatorEmail.Error(), field.Errors[1])
+}
+
+func Test_FormField_Validate_TypeMismatch(t *testing.T) {
+	form := CreateForm(nil)
+	field := form.Add("name", "int", "hello").AddValidators(RequiredValidator(), EmailValidator())
+
+	PrepareForm(form)
+
+	v := url.Values{
+		"name": []string{"foo"},
+	}
+
+	BindUrlValues(form, v)
+
+	result := ValidateForm(form)
+
+	assert.False(t, result)
+
+	assert.Equal(t, 2, len(field.Errors))
+	assert.Equal(t, ErrInvalidType.Error(), field.Errors[0])
+	assert.Equal(t, ErrValidatorEmail.Error(), field.Errors[1])
 }
 
 func Test_Bind_Form_Basic_Struct(t *testing.T) {
@@ -153,7 +218,7 @@ func Test_Reflect(t *testing.T) {
 func Test_Bind_Form_Nested_Basic(t *testing.T) {
 	form := CreateForm(nil)
 	form.Add("name", "text", "John Doe")
-	form.Add("options", "checkbox", FieldOptions{
+	form.Add("options", "checkbox", CheckboxOptions{
 		"enabled": {Label: "Enabled", Checked: true},
 		"hidden":  {Label: "Hidden", Checked: false},
 	})
@@ -161,7 +226,7 @@ func Test_Bind_Form_Nested_Basic(t *testing.T) {
 	subForm := CreateForm(nil)
 	subForm.Add("title", "text", "The title")
 	subForm.Add("Body", "text", "The body")
-	subForm.Add("options", "checkbox", FieldOptions{
+	subForm.Add("options", "checkbox", CheckboxOptions{
 		"validated": {Label: "Is Validated", Checked: true},
 	})
 
@@ -209,6 +274,7 @@ func Test_Bind_Form_Nested_Basic_Struct(t *testing.T) {
 		Hidden:   false,
 		Position: 1,
 		Ratio:    0.2,
+		DOB:      time.Date(1981, time.November, 30, 0, 0, 0, 0, time.UTC),
 	}
 
 	blog := &TestBlogPost{
@@ -222,13 +288,14 @@ func Test_Bind_Form_Nested_Basic_Struct(t *testing.T) {
 	form.Add("Enabled", "bool")
 	form.Add("Position", "int")
 	form.Add("Ratio", "float")
+	form.Add("DOB", "date")
 
 	// add a field not linked an entity
 	subForm := CreateForm(blog)
 	subForm.Add("Title", "text")
 	subForm.Add("Body", "text")
 	subForm.Add("IsValidated", "boolean")
-	subForm.Add("options", "checkbox", FieldOptions{
+	subForm.Add("options", "checkbox", CheckboxOptions{
 		"enabled": {Label: "Enabled", Checked: true},
 		"hidden":  {Label: "Hidden", Checked: false},
 	})
@@ -256,6 +323,8 @@ func Test_Bind_Form_Nested_Basic_Struct(t *testing.T) {
 	v := url.Values{
 		"Name":                  []string{"Thomas"},
 		"Enabled":               []string{"no"},
+		"Position":              []string{"12"},
+		"Ratio":                 []string{"1.2"},
 		"post.Title":            []string{"New title"},
 		"post.Body":             []string{"New Body"},
 		"post.options[enabled]": []string{"false"},
@@ -269,17 +338,19 @@ func Test_Bind_Form_Nested_Basic_Struct(t *testing.T) {
 
 	assert.Equal(t, "New title", form.Get("post").Get("Title").SubmitedValue)
 
-	if v, ok := form.Get("post").Get("options").SubmitedValue.(FieldOptions); ok {
+	if v, ok := form.Get("post").Get("options").SubmitedValue.(CheckboxOptions); ok {
 		assert.Equal(t, false, v["enabled"].Checked)
 		assert.Equal(t, true, v["hidden"].Checked)
 	} else {
-		t.Error("options is not a FieldOptions")
+		t.Error("options is not a CheckboxOptions")
 	}
 
 	AttachValues(form)
 
 	assert.Equal(t, "Thomas", user.Name)
 	assert.Equal(t, false, user.Enabled)
+	assert.Equal(t, float32(1.2), user.Ratio)
+	assert.Equal(t, int8(12), user.Position)
 	assert.Equal(t, "New title", blog.Title)
 	assert.Equal(t, true, blog.IsValidated) // not submitted
 }
@@ -298,7 +369,7 @@ func Test_Bind_Form_Collection(t *testing.T) {
 
 			tagForm := &Form{}
 			tagForm.Add("name", "text", tag.Name)
-			tagForm.Add("options", "checkbox", FieldOptions{
+			tagForm.Add("options", "checkbox", CheckboxOptions{
 				"enabled": {Label: "Is Enabled", Checked: tag.Enabled},
 			})
 

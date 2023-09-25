@@ -1,9 +1,22 @@
 
-[Test_Form_Rendering - 1]
+[Test_Form_Rendering_Error - 1]
 <form action="POST" action="" encoding="">
-    <label class="" style="" for="name">name</label>
-<input name="name" type="text" value="John Doe" id="name" placeholder="Enter the name" required readonly autofocus size="10" maxlength="100" minlength="10" max="100" min="10" step="10" pattern="^[a-z]+$" autocomplete="on">
-    <label class="" style="" for="email">email</label>
-<input name="email" type="email" value="john.doe@gmail.com" id="email">
+    <label for="position">position</label>
+<input name="position" type="number" value="1" id="position">
+<span>The position</span>
+
+</form>
+---
+
+[Test_Form_Rendering_Error - 2]
+<form action="POST" action="" encoding="">
+    <label for="position">position</label>
+<input name="position" type="number" value="foo" id="position">
+<span>The position</span>
+    <ul>
+            <li>value does not match the expected type</li>
+            <li>the value is not a valid email</li>
+    </ul>
+
 </form>
 ---
