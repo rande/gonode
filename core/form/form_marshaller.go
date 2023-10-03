@@ -112,60 +112,95 @@ func booleanUnmarshal(field *FormField, form *Form, values url.Values) error {
 func numberMarshal(field *FormField, form *Form) error {
 	defaultMarshal(field, form)
 
-	field.Input.Value = fmt.Sprintf("%d", field.InitialValue)
+	if field.InitialValue != nil {
+		field.Input.Value = fmt.Sprintf("%d", field.InitialValue)
+	} else {
+		field.Input.Value = "0"
+	}
 
 	return nil
 }
 
-func intUnmarshal(field *FormField, form *Form, values url.Values) error {
+func numberUnmarshal(field *FormField, form *Form, values url.Values) error {
 	defaultUnmarshal(field, form, values)
 
 	if field.HasErrors {
 		return nil
 	}
 
-	if v, ok := field.SubmitedValue.(string); ok {
-		if i, err := strconv.ParseInt(v, 10, 64); err != nil {
-			field.Errors = append(field.Errors, ErrInvalidType.Error())
-		} else {
-			field.SubmitedValue = i
-		}
-	}
+	var v string
+	var ok bool
+	hasError := true
 
-	return nil
-}
-
-func unintUnmarshal(field *FormField, form *Form, values url.Values) error {
-	defaultUnmarshal(field, form, values)
-
-	if field.HasErrors {
+	if v, ok = field.SubmitedValue.(string); !ok {
+		field.Errors = append(field.Errors, ErrInvalidType.Error())
 		return nil
 	}
 
-	if v, ok := field.SubmitedValue.(string); ok {
-		if i, err := strconv.ParseUint(v, 10, 64); err != nil {
-			field.Errors = append(field.Errors, ErrInvalidType.Error())
-		} else {
-			field.SubmitedValue = i
+	if field.reflect.Kind() == reflect.Int {
+		if i, err := strconv.ParseInt(v, 10, 0); err == nil {
+			field.SubmitedValue = int(i)
+			hasError = false
+		}
+	} else if field.reflect.Kind() == reflect.Int8 {
+		if i, err := strconv.ParseInt(v, 10, 8); err == nil {
+			field.SubmitedValue = int8(i)
+			hasError = false
+		}
+	} else if field.reflect.Kind() == reflect.Int16 {
+		if i, err := strconv.ParseInt(v, 10, 16); err == nil {
+			field.SubmitedValue = int16(i)
+			hasError = false
+		}
+	} else if field.reflect.Kind() == reflect.Int32 {
+		if i, err := strconv.ParseInt(v, 10, 32); err == nil {
+			field.SubmitedValue = int32(i)
+			hasError = false
+		}
+	} else if field.reflect.Kind() == reflect.Int64 {
+		if i, err := strconv.ParseInt(v, 10, 64); err == nil {
+			field.SubmitedValue = int64(i)
+			hasError = false
+		}
+	} else if field.reflect.Kind() == reflect.Uint {
+		if i, err := strconv.ParseUint(v, 10, 0); err == nil {
+			field.SubmitedValue = uint(i)
+			hasError = false
+		}
+	} else if field.reflect.Kind() == reflect.Uint8 {
+		if i, err := strconv.ParseUint(v, 10, 8); err == nil {
+			field.SubmitedValue = uint8(i)
+			hasError = false
+		}
+	} else if field.reflect.Kind() == reflect.Uint16 {
+		if i, err := strconv.ParseUint(v, 10, 16); err == nil {
+			field.SubmitedValue = uint16(i)
+			hasError = false
+		}
+	} else if field.reflect.Kind() == reflect.Uint32 {
+		if i, err := strconv.ParseUint(v, 10, 32); err == nil {
+			field.SubmitedValue = uint32(i)
+			hasError = false
+		}
+	} else if field.reflect.Kind() == reflect.Uint64 {
+		if i, err := strconv.ParseUint(v, 10, 64); err == nil {
+			field.SubmitedValue = uint64(i)
+			hasError = false
+		}
+	} else if field.reflect.Kind() == reflect.Float32 {
+		if i, err := strconv.ParseFloat(v, 32); err == nil {
+			field.SubmitedValue = float32(i)
+			hasError = false
+		}
+	} else if field.reflect.Kind() == reflect.Float64 {
+		if i, err := strconv.ParseFloat(v, 64); err == nil {
+			field.SubmitedValue = float64(i)
+			hasError = false
 		}
 	}
 
-	return nil
-}
-
-func floatUnmarshal(field *FormField, form *Form, values url.Values) error {
-	defaultUnmarshal(field, form, values)
-
-	if field.HasErrors {
-		return nil
-	}
-
-	if v, ok := field.SubmitedValue.(string); ok {
-		if i, err := strconv.ParseFloat(v, 64); err != nil {
-			field.Errors = append(field.Errors, ErrInvalidType.Error())
-		} else {
-			field.SubmitedValue = i
-		}
+	if hasError {
+		field.Errors = append(field.Errors, ErrInvalidType.Error())
 	}
 
 	return nil

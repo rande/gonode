@@ -63,8 +63,8 @@ type Input struct {
 	Size         int
 	MinLength    int
 	MaxLength    int
-	Min          int
-	Max          int
+	Min          interface{}
+	Max          interface{}
 	Step         int
 	Height       int
 	Width        int
@@ -93,7 +93,7 @@ type FormField struct {
 	Submitted     bool
 	Errors        []string
 	HasErrors     bool
-	Validators    []func(field *FormField, form *Form) error
+	Validators    []Validator
 	// from go to serialized
 	Marshal func(field *FormField, form *Form) error
 	// from serialized to go
@@ -190,6 +190,18 @@ func create(name string, fieldType string, value interface{}) *FormField {
 	field.Label.Value = name
 	field.InitialValue = value
 
+	field.Input.Class = "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+	field.Label.Class = "block text-gray-700 text-sm font-bold mb-2"
+
+	if fieldType == "color" {
+		field.Input.Class = ""
+	}
+
+	if fieldType == "range" {
+		field.Input.Class = ""
+		field.Marshal = numberMarshal
+	}
+
 	if fieldType == "checkbox" {
 		field.Marshal = checkboxMarshal
 		field.Unmarshal = checkboxUnmarshal
@@ -208,24 +220,13 @@ func create(name string, fieldType string, value interface{}) *FormField {
 	if fieldType == "bool" {
 		field.Marshal = booleanMarshal
 		field.Unmarshal = booleanUnmarshal
+		field.Input.Type = "checkbox"
+		field.Input.Class = ""
 	}
 
-	if fieldType == "int" {
+	if fieldType == "number" {
 		field.Marshal = numberMarshal
-		field.Unmarshal = intUnmarshal
-		field.Input.Type = "number"
-	}
-
-	if fieldType == "float" {
-		field.Marshal = numberMarshal
-		field.Unmarshal = floatUnmarshal
-		field.Input.Type = "number"
-	}
-
-	if fieldType == "uint" {
-		field.Marshal = numberMarshal
-		field.Unmarshal = unintUnmarshal
-		field.Input.Type = "number"
+		field.Unmarshal = numberUnmarshal
 	}
 
 	if fieldType == "date" {
@@ -237,7 +238,6 @@ func create(name string, fieldType string, value interface{}) *FormField {
 }
 
 func CreateForm(data interface{}) *Form {
-
 	if data == nil {
 		return &Form{}
 	}
@@ -278,31 +278,218 @@ func CreateFormField() *FormField {
 		Marshal:       defaultMarshal,
 		Unmarshal:     defaultUnmarshal,
 		Attributes:    Attributes{},
-		Validators:    []func(field *FormField, form *Form) error{},
+		Validators:    []Validator{},
 	}
 }
 
-func (f *FormField) AddValidator(validator func(field *FormField, form *Form) error) *FormField {
+func (f *FormField) AddValidator(validator Validator) *FormField {
 	f.Validators = append(f.Validators, validator)
-
 	return f
 }
 
-func (f *FormField) AddValidators(validators ...func(field *FormField, form *Form) error) *FormField {
+func (f *FormField) AddValidators(validators ...Validator) *FormField {
 	f.Validators = append(f.Validators, validators...)
+	return f
+}
+
+func (f *FormField) ResetValidators() *FormField {
+	f.Validators = []Validator{}
+	return f
+}
+
+func (f *FormField) RemoveValidator(code string) *FormField {
+	validators := []Validator{}
+
+	for _, validator := range f.Validators {
+		if validator.Code() != code {
+			validators = append(validators, validator)
+		}
+	}
+
+	f.Validators = validators
 
 	return f
 }
 
-func (f *FormField) SetModule(name string) *FormField {
-	f.Module = name
+func (f *FormField) SetModule(value string) *FormField {
+	f.Module = value
+	return f
+}
+
+func (f *FormField) SetHelp(value string) *FormField {
+	f.Help = value
+	return f
+}
+
+func (f *FormField) SetClass(value string) *FormField {
+	f.Input.Class = value
+	return f
+}
+
+func (f *FormField) SetMin(min interface{}) *FormField {
+	f.Input.Min = min
+
+	kind := reflect.ValueOf(min).Kind()
+	var v Validator
+
+	if kind == reflect.Int {
+		v = MinValidator(min.(int))
+	} else if kind == reflect.Int8 {
+		v = MinValidator(min.(int8))
+	} else if kind == reflect.Int16 {
+		v = MinValidator(min.(int16))
+	} else if kind == reflect.Int32 {
+		v = MinValidator(min.(int32))
+	} else if kind == reflect.Int64 {
+		v = MinValidator(min.(int64))
+	} else if kind == reflect.Uint {
+		v = MinValidator(min.(uint))
+	} else if kind == reflect.Uint8 {
+		v = MinValidator(min.(uint8))
+	} else if kind == reflect.Uint16 {
+		v = MinValidator(min.(int16))
+	} else if kind == reflect.Uint32 {
+		v = MinValidator(min.(int32))
+	} else if kind == reflect.Uint64 {
+		v = MinValidator(min.(int64))
+	} else if kind == reflect.Float32 {
+		v = MinValidator(min.(float32))
+	} else if kind == reflect.Float64 {
+		v = MinValidator(min.(float64))
+	} else {
+		panic(fmt.Sprintf("Unable to handle type: %s", kind))
+	}
+
+	f.RemoveValidator("min").AddValidator(v)
 
 	return f
 }
 
-func (f *FormField) SetHelp(help string) *FormField {
-	f.Help = help
+func (f *FormField) SetMax(max interface{}) *FormField {
+	f.Input.Max = max
 
+	kind := reflect.ValueOf(max).Kind()
+	var v Validator
+
+	if kind == reflect.Int {
+		v = MaxValidator(max.(int))
+	} else if kind == reflect.Int8 {
+		v = MaxValidator(max.(int8))
+	} else if kind == reflect.Int16 {
+		v = MaxValidator(max.(int16))
+	} else if kind == reflect.Int32 {
+		v = MaxValidator(max.(int32))
+	} else if kind == reflect.Int64 {
+		v = MaxValidator(max.(int64))
+	} else if kind == reflect.Uint {
+		v = MaxValidator(max.(uint))
+	} else if kind == reflect.Uint8 {
+		v = MaxValidator(max.(uint8))
+	} else if kind == reflect.Uint16 {
+		v = MaxValidator(max.(int16))
+	} else if kind == reflect.Uint32 {
+		v = MaxValidator(max.(int32))
+	} else if kind == reflect.Uint64 {
+		v = MaxValidator(max.(int64))
+	} else if kind == reflect.Float32 {
+		v = MaxValidator(max.(float32))
+	} else if kind == reflect.Float64 {
+		v = MaxValidator(max.(float64))
+	} else {
+		panic(fmt.Sprintf("Unable to handle type: %s", kind))
+	}
+
+	f.RemoveValidator("max").AddValidator(v)
+
+	return f
+}
+
+func (f *FormField) SetStep(value int) *FormField {
+	f.Input.Step = value
+	return f
+}
+
+func (f *FormField) SetMaxLength(value int) *FormField {
+	f.Input.MaxLength = value
+	return f
+}
+
+func (f *FormField) SetMinLength(value int) *FormField {
+	f.Input.MinLength = value
+	return f
+}
+
+func (f *FormField) SetSize(value int) *FormField {
+	f.Input.Size = value
+	return f
+}
+
+func (f *FormField) SetHeight(value int) *FormField {
+	f.Input.Height = value
+	return f
+}
+
+func (f *FormField) SetWidth(value int) *FormField {
+	f.Input.Width = value
+	return f
+}
+
+func (f *FormField) SetNovalidation(value bool) *FormField {
+	f.Input.Novalidate = value
+	return f
+}
+
+func (f *FormField) SetAutofocus(value bool) *FormField {
+	f.Input.Autofocus = value
+	return f
+}
+
+func (f *FormField) SetRequired(value bool) *FormField {
+	f.Input.Required = value
+	return f
+}
+
+func (f *FormField) SetMultiple(value bool) *FormField {
+	f.Input.Multiple = value
+	return f
+}
+
+func (f *FormField) SetChecked(value bool) *FormField {
+	f.Input.Checked = value
+	return f
+}
+
+func (f *FormField) SetReadonly(value bool) *FormField {
+	f.Input.Readonly = value
+	return f
+}
+
+func (f *FormField) SetPattern(value string) *FormField {
+	f.Input.Pattern = value
+	return f
+}
+
+func (f *FormField) SetType(value string) *FormField {
+	f.Input.Type = value
+	return f
+}
+func (f *FormField) SetPlaceholder(value string) *FormField {
+	f.Input.Placeholder = value
+	return f
+}
+
+func (f *FormField) SetTemplate(value string) *FormField {
+	f.Input.Template = value
+	return f
+}
+
+func (f *FormField) SetList(value string) *FormField {
+	f.Input.List = value
+	return f
+}
+
+func (f *FormField) SetAutocomplete(value string) *FormField {
+	f.Input.Autocomplete = value
 	return f
 }
 

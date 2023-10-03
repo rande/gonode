@@ -1,22 +1,48 @@
 
+[Test_Form_Rendering - 1]
+<form action="POST" action="" encoding="">
+        <label for="name"class="block text-gray-700 text-sm font-bold mb-2">name</label>
+    John Doe
+<input name="name" type="text" value="John Doe" id="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter the name" required readonly autofocus size="10" maxlength="100" minlength="10" max="100" min="10" step="10" pattern="^[a-z]+$" autocomplete="on">
+    
+    
+
+        <label for="email"class="block text-gray-700 text-sm font-bold mb-2">email</label>
+    john.doe@gmail.com
+<input name="email" type="email" value="john.doe@gmail.com" id="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" max="" min="">
+    
+    
+
+        <label for="date"class="block text-gray-700 text-sm font-bold mb-2">date</label>
+    2022-04-01
+<input name="date" type="date" value="2022-04-01" id="date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" max="" min="">
+    
+    
+
+</form>
+---
+
 [Test_Form_Rendering_Error - 1]
 <form action="POST" action="" encoding="">
-    <label for="position">position</label>
-<input name="position" type="number" value="1" id="position">
-<span>The position</span>
+        <label for="position"class="block text-gray-700 text-sm font-bold mb-2">position</label>
+    %!s(int=1)
+<input name="position" type="int" value="%!s(int=1)" id="position" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" max="" min="">
+    <span>The position</span>
+    
 
 </form>
 ---
 
 [Test_Form_Rendering_Error - 2]
 <form action="POST" action="" encoding="">
-    <label for="position">position</label>
-<input name="position" type="number" value="foo" id="position">
-<span>The position</span>
-    <ul>
-            <li>value does not match the expected type</li>
+        <label for="position"class="block text-gray-700 text-sm font-bold mb-2">position</label>
+    foo
+<input name="position" type="int" value="foo" id="position" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" max="" min="">
+    <span>The position</span>
+        <ul>
             <li>the value is not a valid email</li>
     </ul>
+
 
 </form>
 ---

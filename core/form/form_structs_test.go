@@ -118,13 +118,28 @@ func Test_FormField_Validate(t *testing.T) {
 	assert.False(t, result)
 
 	assert.Equal(t, 2, len(field.Errors))
-	assert.Equal(t, ErrValidatorRequired.Error(), field.Errors[0])
-	assert.Equal(t, ErrValidatorEmail.Error(), field.Errors[1])
+	assert.Equal(t, ErrRequiredValidator.Error(), field.Errors[0])
+	assert.Equal(t, ErrEmailValidator.Error(), field.Errors[1])
+}
+
+func Test_FormField_Validate_MinMax(t *testing.T) {
+	form := CreateForm(nil)
+	field := form.Add("age", "number", 30).SetMin(18).SetMax(48).SetMin(20)
+
+	field.Touched = true
+	field.SubmitedValue = 22
+
+	result := validateForm(form.Fields, form)
+	assert.True(t, result)
+
+	field.SubmitedValue = 19
+	result = validateForm(form.Fields, form)
+	assert.False(t, result)
 }
 
 func Test_FormField_Validate_TypeMismatch(t *testing.T) {
 	form := CreateForm(nil)
-	field := form.Add("name", "int", "hello").AddValidators(RequiredValidator(), EmailValidator())
+	field := form.Add("name", "number", "hello").AddValidators(RequiredValidator(), EmailValidator())
 
 	PrepareForm(form)
 
@@ -140,7 +155,7 @@ func Test_FormField_Validate_TypeMismatch(t *testing.T) {
 
 	assert.Equal(t, 2, len(field.Errors))
 	assert.Equal(t, ErrInvalidType.Error(), field.Errors[0])
-	assert.Equal(t, ErrValidatorEmail.Error(), field.Errors[1])
+	assert.Equal(t, ErrEmailValidator.Error(), field.Errors[1])
 }
 
 func Test_Bind_Form_Basic_Struct(t *testing.T) {
@@ -286,8 +301,8 @@ func Test_Bind_Form_Nested_Basic_Struct(t *testing.T) {
 	form := CreateForm(user)
 	form.Add("Name", "text")
 	form.Add("Enabled", "bool")
-	form.Add("Position", "int")
-	form.Add("Ratio", "float")
+	form.Add("Position", "number")
+	form.Add("Ratio", "number")
 	form.Add("DOB", "date")
 
 	// add a field not linked an entity

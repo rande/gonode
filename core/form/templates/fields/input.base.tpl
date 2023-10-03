@@ -1,6 +1,7 @@
+{{input.Value}}
 {%if true %}<input name="{{ input.Name}}" type="{{ input.Type }}" value="{{input.Value}}" id="{{ input.Id }}"{% endif %}
-    {% if input.Class %}class="{{ input.Class }}" {% endif %}
-    {% if input.Style %}class="{{ input.Style }}" {% endif %}
+    {% if input.Class %} class="{{ input.Class }}" {% endif %}
+    {% if input.Style %} style="{{ input.Style }}" {% endif %}
     {% if input.Placeholder %} placeholder="{{ input.Placeholder }}"{% endif %}
     {% if input.Required %} required {% endif %}
     {% if input.Readonly %} readonly {% endif %}

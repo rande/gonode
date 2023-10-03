@@ -22,10 +22,12 @@ type AttributOption struct {
 	Value interface{}
 }
 
-func createPongoField(pongo *pongo2.TemplateSet) func(field *FormField, form *Form) *pongo2.Value {
+func createPongoField(pongo *pongo2.TemplateSet) func(name string, form *Form) *pongo2.Value {
 
-	return func(field *FormField, form *Form) *pongo2.Value {
+	return func(name string, form *Form) *pongo2.Value {
 		tpl, err := pongo.FromFile("form:field.tpl")
+
+		field := form.Get(name)
 
 		helper.PanicOnError(err)
 
@@ -42,9 +44,11 @@ func createPongoField(pongo *pongo2.TemplateSet) func(field *FormField, form *Fo
 	}
 }
 
-func createPongoLabel(pongo *pongo2.TemplateSet) func(field *FormField, form *Form) *pongo2.Value {
+func createPongoLabel(pongo *pongo2.TemplateSet) func(name string, form *Form) *pongo2.Value {
 
-	return func(field *FormField, form *Form) *pongo2.Value {
+	return func(name string, form *Form) *pongo2.Value {
+
+		field := form.Get(name)
 
 		tpl, err := pongo.FromFile(field.Label.Template)
 
@@ -63,9 +67,12 @@ func createPongoLabel(pongo *pongo2.TemplateSet) func(field *FormField, form *Fo
 	}
 }
 
-func createPongoInput(pongo *pongo2.TemplateSet) func(field *FormField, form *Form) *pongo2.Value {
+func createPongoInput(pongo *pongo2.TemplateSet) func(name string, form *Form) *pongo2.Value {
 
-	return func(field *FormField, form *Form) *pongo2.Value {
+	return func(name string, form *Form) *pongo2.Value {
+
+		field := form.Get(name)
+
 		templates := []string{
 			fmt.Sprintf("%s:fields/input.%s.tpl", field.Module, field.Input.Type),
 			"form:fields/input.base.tpl",
@@ -94,9 +101,11 @@ func createPongoInput(pongo *pongo2.TemplateSet) func(field *FormField, form *Fo
 	}
 }
 
-func createPongoErrors(pongo *pongo2.TemplateSet) func(field *FormField, form *Form) *pongo2.Value {
+func createPongoErrors(pongo *pongo2.TemplateSet) func(name string, form *Form) *pongo2.Value {
 
-	return func(field *FormField, form *Form) *pongo2.Value {
+	return func(name string, form *Form) *pongo2.Value {
+
+		field := form.Get(name)
 
 		tpl, err := pongo.FromFile("form:errors.tpl")
 
@@ -117,9 +126,11 @@ func createPongoErrors(pongo *pongo2.TemplateSet) func(field *FormField, form *F
 	}
 }
 
-func createPongoHelp(pongo *pongo2.TemplateSet) func(field *FormField, form *Form) *pongo2.Value {
+func createPongoHelp(pongo *pongo2.TemplateSet) func(name string, form *Form) *pongo2.Value {
 
-	return func(field *FormField, form *Form) *pongo2.Value {
+	return func(name string, form *Form) *pongo2.Value {
+
+		field := form.Get(name)
 
 		tpl, err := pongo.FromFile("form:help.tpl")
 
