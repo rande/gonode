@@ -1,5 +1,5 @@
 name= "GoNode - poc"
-bind= "0.0.0.0:2508"
+bind= "127.0.0.1:2508"
 test= true
 
 [databases.master]
