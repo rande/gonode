@@ -34,10 +34,8 @@ func (l *PongoTemplateLoader) Abs(base, name string) string {
 }
 
 // Get returns an io.Reader where the template's content can be read from.
+// blog:foo/blog.post.tpl => module=blog templates/foo/blog.post.tpl
 func (l *PongoTemplateLoader) Get(path string) (io.Reader, error) {
-
-	// blog:foo/blog.post.tpl => module=blog templates/foo/blog.post.tpl
-
 	sections := strings.Split(path, ":")
 
 	if len(sections) != 2 {

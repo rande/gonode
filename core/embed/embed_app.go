@@ -22,10 +22,18 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 	l.Register(func(app *goapp.App) error {
 		app.Set("gonode.pongo", func(app *goapp.App) interface{} {
 
-			return pongo2.NewSet("gonode.embeds", &PongoTemplateLoader{
+			engine := pongo2.NewSet("gonode.embeds", &PongoTemplateLoader{
 				Embeds:   app.Get("gonode.embeds").(*Embeds),
 				BasePath: "",
 			})
+
+			engine.Options = &pongo2.Options{
+				TrimBlocks:   true,
+				LStripBlocks: true,
+			}
+
+			return engine
+
 		})
 
 		return nil
