@@ -6,7 +6,7 @@
 package form
 
 import (
-	"reflect"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,15 +23,14 @@ func Test_Max_Validator(t *testing.T) {
 	field := &FormField{
 		Name:    "Name",
 		Touched: true,
-		reflect: reflect.ValueOf(v),
 	}
 
 	form := &Form{}
 
-	field.SubmitedValue = int32(8)
+	field.SubmittedValue = int32(8)
 	assert.Nil(t, validator.Validate(field, form))
 
-	field.SubmitedValue = int32(12)
+	field.SubmittedValue = int32(12)
 	assert.NotNil(t, validator.Validate(field, form))
 }
 
@@ -43,18 +42,17 @@ func Test_Min_Validator(t *testing.T) {
 	field := &FormField{
 		Name:    "Name",
 		Touched: true,
-		reflect: reflect.ValueOf(int64(0)),
 	}
 
 	form := &Form{}
 
-	field.SubmitedValue = int64(10)
+	field.SubmittedValue = int64(10)
 	assert.Nil(t, validator.Validate(field, form))
 
-	field.SubmitedValue = int64(10000)
+	field.SubmittedValue = int64(10000)
 	assert.Nil(t, validator.Validate(field, form))
 
-	field.SubmitedValue = int64(9)
+	field.SubmittedValue = int64(9)
 	assert.NotNil(t, validator.Validate(field, form))
 }
 
@@ -66,17 +64,90 @@ func Test_Min_Validator_Float(t *testing.T) {
 	field := &FormField{
 		Name:    "Name",
 		Touched: true,
-		reflect: reflect.ValueOf(int64(0)),
 	}
 
 	form := &Form{}
 
-	field.SubmitedValue = float32(10.12312)
+	field.SubmittedValue = float32(10.12312)
 	assert.Nil(t, validator.Validate(field, form))
 
-	field.SubmitedValue = float32(145.12312)
+	field.SubmittedValue = float32(145.12312)
 	assert.Nil(t, validator.Validate(field, form))
 
-	field.SubmitedValue = float32(9.12312)
+	field.SubmittedValue = float32(9.12312)
 	assert.NotNil(t, validator.Validate(field, form))
+}
+
+func Test_MaxLength(t *testing.T) {
+	msg := "abc"
+	fmt.Printf("size: %d\n", len(msg))
+	fmt.Printf("size: %d\n", len([]rune(msg)))
+	fmt.Printf("size: %d\n", uint32(len([]rune(msg))))
+
+	field := &FormField{
+		Name:    "Name",
+		Touched: true,
+	}
+
+	form := &Form{}
+
+	field.SubmittedValue = "🇫🇷"
+	validator := MaxLengthValidator(1, "bytes")
+	assert.Equal(t, "max_length", validator.Code())
+	assert.NotNil(t, validator.Validate(field, form))
+
+	field.SubmittedValue = "🇫🇷🇫🇷"
+	validator = MaxLengthValidator(10, "bytes")
+	assert.NotNil(t, validator.Validate(field, form))
+
+	field.SubmittedValue = "🇫🇷🇫🇷"
+	validator = MaxLengthValidator(16, "bytes")
+	assert.Nil(t, validator.Validate(field, form))
+
+	field.SubmittedValue = "🇫🇷🇫🇷"
+	validator = MaxLengthValidator(10, "rune")
+	assert.Nil(t, validator.Validate(field, form))
+
+	field.SubmittedValue = "🇫🇷"
+	validator = MaxLengthValidator(1, "rune")
+	assert.NotNil(t, validator.Validate(field, form))
+
+	field.SubmittedValue = "abc"
+	validator = MaxLengthValidator(10, "bytes")
+	assert.Nil(t, validator.Validate(field, form))
+}
+
+func Test_MinLength(t *testing.T) {
+	msg := "🇫🇷🇫🇷"
+	fmt.Printf("size: %d\n", len(msg))
+	fmt.Printf("size: %d\n", len([]rune(msg)))
+	fmt.Printf("size: %d\n", uint32(len([]rune(msg))))
+
+	field := &FormField{
+		Name:    "Name",
+		Touched: true,
+	}
+
+	form := &Form{}
+
+	field.SubmittedValue = "🇫🇷"
+	validator := MinLengthValidator(1, "bytes")
+	assert.Equal(t, "min_length", validator.Code())
+	assert.Nil(t, validator.Validate(field, form))
+
+	field.SubmittedValue = "🇫🇷🇫🇷"
+	validator = MinLengthValidator(10, "bytes")
+	assert.Nil(t, validator.Validate(field, form))
+
+	field.SubmittedValue = "🇫🇷🇫🇷"
+	validator = MinLengthValidator(16, "bytes")
+	assert.NotNil(t, validator.Validate(field, form))
+
+	field.SubmittedValue = "🇫🇷🇫🇷"
+	validator = MinLengthValidator(10, "rune")
+	assert.NotNil(t, validator.Validate(field, form))
+
+	field.SubmittedValue = "🇫🇷"
+	validator = MinLengthValidator(1, "rune")
+	assert.Nil(t, validator.Validate(field, form))
 }

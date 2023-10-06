@@ -29,16 +29,14 @@ type FieldCollectionOptions struct {
 	Configure func(value interface{}) *Form
 }
 
-type CheckboxOption struct {
+type FieldOption struct {
 	Label   string
+	Value   interface{}
+	Id      string
 	Checked bool
 }
 
-type FieldOption struct {
-	Label string
-}
-
-type CheckboxOptions map[string]*CheckboxOption
+type FieldOptions []*FieldOption
 
 type Attributes map[string]string
 
@@ -60,14 +58,15 @@ type Input struct {
 	Required     bool
 	Autofocus    bool
 	Novalidate   bool
-	Size         int
-	MinLength    int
-	MaxLength    int
+	Size         uint16
+	MinLength    uint32
+	MaxLength    uint32
 	Min          interface{}
 	Max          interface{}
-	Step         int
-	Height       int
-	Width        int
+	Step         uint32
+	Height       uint16
+	Width        uint16
+	Options      FieldOptions
 }
 
 type Label struct {
@@ -77,29 +76,43 @@ type Label struct {
 	Value    string
 }
 
+type Error struct {
+	Template string
+	Class    string
+	Style    string
+	Value    string
+}
+
+type Marshaller func(field *FormField, form *Form) error
+
+type Unmarshaller func(field *FormField, form *Form, values url.Values) error
+
 type FormField struct {
-	Prefix        string // used for nested forms
-	Name          string
-	Module        string
-	Help          string
-	Attributes    Attributes
-	Label         Label
-	Input         Input
-	Mandatory     bool
-	InitialValue  interface{}
-	SubmitedValue interface{}
-	Children      []*FormField
-	Touched       bool
-	Submitted     bool
-	Errors        []string
-	HasErrors     bool
-	Validators    []Validator
+	Prefix         string // used for nested forms
+	Name           string
+	Module         string
+	Help           string
+	Attributes     Attributes
+	Label          Label
+	Input          Input
+	Error          Error
+	Mandatory      bool
+	InitialValue   interface{}
+	SubmittedValue interface{}
+	Children       []*FormField
+	Touched        bool
+	Submitted      bool
+	Errors         []string
+	HasErrors      bool
+	Validators     []Validator
 	// from go to serialized
-	Marshal func(field *FormField, form *Form) error
+	Marshaller Marshaller
 	// from serialized to go
-	Unmarshal func(field *FormField, form *Form, values url.Values) error
+	Unmarshaller Unmarshaller
 	// Validator
-	reflect reflect.Value
+	reflectValue reflect.Value
+	reflectField reflect.Value
+	Options      interface{}
 }
 
 func (f *FormField) Get(name string) *FormField {
@@ -115,21 +128,15 @@ func (f *FormField) Get(name string) *FormField {
 func (f *FormField) Value(name string) interface{} {
 	for _, field := range f.Children {
 		if field.Name == name {
-			return field.SubmitedValue
+			return field.SubmittedValue
 		}
 	}
 
 	return nil
 }
 
-func (f *FormField) Add(name string, fieldType string, options ...interface{}) *FormField {
-	var value interface{} = nil
-
-	if len(options) > 0 {
-		value = options[0]
-	}
-
-	field := create(name, fieldType, value)
+func (f *FormField) Add(name string, options ...interface{}) *FormField {
+	field := create(name, options...)
 
 	f.Children = append(f.Children, field)
 
@@ -165,7 +172,7 @@ func Val[T FormTypes](form *Form, name string) T {
 
 	for _, field := range form.Fields {
 		if field.Name == name {
-			value = field.SubmitedValue.(T)
+			value = field.SubmittedValue.(T)
 			break
 		}
 	}
@@ -176,63 +183,80 @@ func Val[T FormTypes](form *Form, name string) T {
 func (f *Form) Value(name string) interface{} {
 	for _, field := range f.Fields {
 		if field.Name == name {
-			return field.SubmitedValue
+			return field.SubmittedValue
 		}
 	}
 
 	return nil
 }
 
-func create(name string, fieldType string, value interface{}) *FormField {
+func create(name string, options ...interface{}) *FormField {
 	field := CreateFormField()
+
 	field.Name = name
-	field.Input.Type = fieldType
 	field.Label.Value = name
-	field.InitialValue = value
+
+	if len(options) > 0 {
+		field.Input.Type = options[0].(string)
+	}
+
+	if len(options) > 1 {
+		field.InitialValue = options[1]
+		// try to read those cases from a registry, hardcoded for now.
+		// if v, ok := options[1].(FieldOptions); ok {
+		// 	field.Options = v
+		// } else {
+		// 	field.InitialValue = options[1]
+		// }
+	}
+
+	if len(options) > 2 {
+		field.InitialValue = options[1]
+		field.Options = options[2]
+	}
 
 	field.Input.Class = "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
 	field.Label.Class = "block text-gray-700 text-sm font-bold mb-2"
 
-	if fieldType == "color" {
+	if field.Input.Type == "color" {
 		field.Input.Class = ""
 	}
 
-	if fieldType == "range" {
+	if field.Input.Type == "range" {
 		field.Input.Class = ""
-		field.Marshal = numberMarshal
 	}
 
-	if fieldType == "checkbox" {
-		field.Marshal = checkboxMarshal
-		field.Unmarshal = checkboxUnmarshal
+	if field.Input.Type == "checkbox" {
+		field.Marshaller = checkboxMarshal
+		field.Unmarshaller = checkboxUnmarshal
 	}
 
-	if fieldType == "form" {
-		field.Marshal = formMarshal
-		field.Unmarshal = formUnmarshal
-	}
+	// if fieldType == "form" {
+	// 	field.Marshaller = formMarshal
+	// 	field.Unmarshaller = formUnmarshal
+	// }
 
-	if fieldType == "collection" {
-		field.Marshal = collectionMarshal
-		field.Unmarshal = collectionUnmarshal
-	}
+	// if fieldType == "collection" {
+	// 	field.Marshaller = collectionMarshal
+	// 	field.Unmarshaller = collectionUnmarshal
+	// }
 
-	if fieldType == "bool" {
-		field.Marshal = booleanMarshal
-		field.Unmarshal = booleanUnmarshal
+	if field.Input.Type == "boolean" {
+		// field.Marshaller = booleanMarshal
+		// field.Unmarshaller = booleanUnmarshal
 		field.Input.Type = "checkbox"
 		field.Input.Class = ""
 	}
 
-	if fieldType == "number" {
-		field.Marshal = numberMarshal
-		field.Unmarshal = numberUnmarshal
-	}
+	// if fieldType == "number" {
+	// 	field.Marshaller = numberMarshal
+	// 	field.Unmarshaller = numberUnmarshal
+	// }
 
-	if fieldType == "date" {
-		field.Marshal = dateMarshal
-		field.Unmarshal = dateUnmarshal
-	}
+	// if fieldType == "date" {
+	// 	field.Marshaller = dateMarshal
+	// 	field.Unmarshaller = dateUnmarshal
+	// }
 
 	return field
 }
@@ -266,19 +290,17 @@ func CreateFormField() *FormField {
 			Template:    "form:fields/input.text.tpl",
 			Readonly:    false,
 		},
-		Module:        "form",
-		Help:          "",
-		InitialValue:  nil,
-		Mandatory:     true,
-		SubmitedValue: nil,
-		Children:      []*FormField{},
-		Touched:       false,
-		Submitted:     false,
-		Errors:        []string{},
-		Marshal:       defaultMarshal,
-		Unmarshal:     defaultUnmarshal,
-		Attributes:    Attributes{},
-		Validators:    []Validator{},
+		Module:         "form",
+		Help:           "",
+		InitialValue:   nil,
+		Mandatory:      true,
+		SubmittedValue: nil,
+		Children:       []*FormField{},
+		Touched:        false,
+		Submitted:      false,
+		Errors:         []string{},
+		Attributes:     Attributes{},
+		Validators:     []Validator{},
 	}
 }
 
@@ -404,32 +426,38 @@ func (f *FormField) SetMax(max interface{}) *FormField {
 	return f
 }
 
-func (f *FormField) SetStep(value int) *FormField {
+func (f *FormField) SetStep(value uint32) *FormField {
 	f.Input.Step = value
 	return f
 }
 
-func (f *FormField) SetMaxLength(value int) *FormField {
+func (f *FormField) SetMaxLength(value uint32) *FormField {
 	f.Input.MaxLength = value
+
+	f.RemoveValidator("max_length").AddValidator(MaxLengthValidator(value, "bytes"))
+
 	return f
 }
 
-func (f *FormField) SetMinLength(value int) *FormField {
+func (f *FormField) SetMinLength(value uint32) *FormField {
 	f.Input.MinLength = value
+
+	f.RemoveValidator("min_length").AddValidator(MinLengthValidator(value, "bytes"))
+
 	return f
 }
 
-func (f *FormField) SetSize(value int) *FormField {
+func (f *FormField) SetSize(value uint16) *FormField {
 	f.Input.Size = value
 	return f
 }
 
-func (f *FormField) SetHeight(value int) *FormField {
+func (f *FormField) SetHeight(value uint16) *FormField {
 	f.Input.Height = value
 	return f
 }
 
-func (f *FormField) SetWidth(value int) *FormField {
+func (f *FormField) SetWidth(value uint16) *FormField {
 	f.Input.Width = value
 	return f
 }
@@ -493,14 +521,18 @@ func (f *FormField) SetAutocomplete(value string) *FormField {
 	return f
 }
 
-func (f *Form) Add(name string, fieldType string, options ...interface{}) *FormField {
-	var value interface{} = nil
+func (f *FormField) SetMarshaller(marshaller Marshaller) *FormField {
+	f.Marshaller = marshaller
+	return f
+}
 
-	if len(options) > 0 {
-		value = options[0]
-	}
+func (f *FormField) SetUnmarshaller(unmarshaller Unmarshaller) *FormField {
+	f.Unmarshaller = unmarshaller
+	return f
+}
 
-	field := create(name, fieldType, value)
+func (f *Form) Add(name string, options ...interface{}) *FormField {
+	field := create(name, options...)
 
 	f.Fields = append(f.Fields, field)
 
@@ -541,15 +573,14 @@ func getValue(field *FormField, values url.Values) (string, error) {
 }
 
 func attachValues(fields []*FormField) {
-	// fmt.Println("Attach Value")
+	// fmt.Println("attachValues > Attach Value")
 
 	for _, field := range fields {
-		// fmt.Printf("Field name: %s\n", field.Name)
-
+		// fmt.Printf("attachValues > Field name: %s\n", field.Name)
 		if v, ok := field.InitialValue.(*Form); ok {
-			// fmt.Printf("Sub form: %s\n", field.Name)
+			// fmt.Printf("attachValues > Sub form: %s\n", field.Name)
 			if v.Data == nil {
-				// fmt.Printf("skipping no data attached: %s\n", field.Name)
+				// fmt.Printf("attachValues > skipping no data attached: %s\n", field.Name)
 				continue
 			}
 
@@ -558,25 +589,21 @@ func attachValues(fields []*FormField) {
 		}
 
 		if !field.Touched {
-			// fmt.Printf("Field not touched: %s, skipping\n", field.Name)
+			// fmt.Printf("attachValues > Field not touched: %s, skipping\n", field.Name)
 			continue
 		}
 
-		if field.reflect.Kind() == reflect.Invalid {
-			// fmt.Printf("Invalid type: %s\n", field.Name)
+		if field.reflectField.Kind() == reflect.Invalid {
+			// fmt.Printf("attachValues > Invalid type: %s\n", field.Name)
 			continue
 		}
 
-		newValue := reflect.ValueOf(field.SubmitedValue)
+		newValue := reflect.ValueOf(field.SubmittedValue)
 
-		if newValue.CanConvert(field.reflect.Type()) {
-			field.reflect.Set(newValue.Convert(field.reflect.Type()))
+		if newValue.CanConvert(field.reflectField.Type()) {
+			field.reflectField.Set(newValue.Convert(field.reflectField.Type()))
 		} else {
-			fmt.Printf("Unable to convert type: Type, field: %s (kind: %s) submitted: %s, value: %s\n", field.Name, field.reflect.Kind(), newValue.Kind(), newValue.Interface())
+			// fmt.Printf("attachValues > Unable to convert type: Type, field: %s (kind: %s) submitted: %s, value: %s\n", field.Name, field.reflectField.Kind(), newValue.Kind(), newValue.Interface())
 		}
 	}
-}
-
-func yes(value string) bool {
-	return value == "checked" || value == "true" || value == "1" || value == "on" || value == "yes"
 }

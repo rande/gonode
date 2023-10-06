@@ -51,6 +51,10 @@ func validateForm(fields []*FormField, form *Form) bool {
 				field.Errors = append(field.Errors, err.Error())
 			}
 		}
+
+		if field.HasErrors {
+			field.Error.Class = "text-red-500 text-xs italic"
+		}
 	}
 
 	return isValid
@@ -82,7 +86,7 @@ func RequiredValidator() Validator {
 				return ErrRequiredValidator
 			}
 
-			if field.SubmitedValue == nil {
+			if field.SubmittedValue == nil {
 				return ErrRequiredValidator
 			}
 
@@ -95,11 +99,11 @@ func EmailValidator() Validator {
 	return &ValidatorFunc{
 		code: "email",
 		validator: func(field *FormField, form *Form) error {
-			if field.SubmitedValue == nil {
+			if field.SubmittedValue == nil {
 				return ErrEmailValidator
 			}
 
-			if _, err := mail.ParseAddress(field.SubmitedValue.(string)); err != nil {
+			if _, err := mail.ParseAddress(field.SubmittedValue.(string)); err != nil {
 				return ErrEmailValidator
 			}
 
@@ -116,11 +120,11 @@ func UrlValidator() Validator {
 				return ErrUrlValidator
 			}
 
-			if field.SubmitedValue == nil {
+			if field.SubmittedValue == nil {
 				return ErrUrlValidator
 			}
 
-			if _, err := url.Parse(field.SubmitedValue.(string)); err != nil {
+			if _, err := url.Parse(field.SubmittedValue.(string)); err != nil {
 				return ErrUrlValidator
 			}
 
@@ -133,11 +137,11 @@ func MinValidator[T number](min T) Validator {
 	return &ValidatorFunc{
 		code: "min",
 		validator: func(field *FormField, form *Form) error {
-			if field.SubmitedValue == nil {
+			if field.SubmittedValue == nil {
 				return ErrMinValidator
 			}
 
-			if field.SubmitedValue.(T) < min {
+			if field.SubmittedValue.(T) < min {
 				return ErrMinValidator
 			}
 
@@ -150,12 +154,62 @@ func MaxValidator[T number](max T) Validator {
 	return &ValidatorFunc{
 		code: "max",
 		validator: func(field *FormField, form *Form) error {
-			if field.SubmitedValue == nil {
+			if field.SubmittedValue == nil {
 				return ErrMaxValidator
 			}
 
-			if field.SubmitedValue.(T) > max {
+			if field.SubmittedValue.(T) > max {
 				return ErrMaxValidator
+			}
+
+			return nil
+		},
+	}
+}
+
+func MaxLengthValidator(max uint32, mode string) Validator {
+	return &ValidatorFunc{
+		code: "max_length",
+		validator: func(field *FormField, form *Form) error {
+			if field.SubmittedValue == nil {
+				return ErrMaxValidator
+			}
+
+			if mode == "bytes" {
+				if uint32(len(field.SubmittedValue.(string))) > max {
+					return ErrMaxValidator
+				}
+			} else if mode == "rune" {
+				if uint32(len([]rune(field.SubmittedValue.(string)))) > max {
+					return ErrMaxValidator
+				}
+			} else {
+				panic("Invalid mode")
+			}
+
+			return nil
+		},
+	}
+}
+
+func MinLengthValidator(min uint32, mode string) Validator {
+	return &ValidatorFunc{
+		code: "min_length",
+		validator: func(field *FormField, form *Form) error {
+			if field.SubmittedValue == nil {
+				return ErrMaxValidator
+			}
+
+			if mode == "bytes" {
+				if uint32(len(field.SubmittedValue.(string))) <= min {
+					return ErrMaxValidator
+				}
+			} else if mode == "rune" {
+				if uint32(len([]rune(field.SubmittedValue.(string)))) <= min {
+					return ErrMaxValidator
+				}
+			} else {
+				panic("Invalid mode")
 			}
 
 			return nil

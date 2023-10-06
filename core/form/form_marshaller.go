@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
-	"strconv"
 	"time"
 )
 
@@ -21,23 +20,90 @@ var (
 func iterateFields(form *Form, fields []*FormField) {
 	for _, field := range fields {
 		field.Input.Name = field.Name
+		configure(field, form)
 		marshal(field, form)
 		field.Input.Id = replacers.Replace(field.Input.Name)
 	}
 }
 
-func marshal(field *FormField, form *Form) {
-	// we do not try to get the value, if the value is already set
-	// and if form.Data is not set.
-	if form.Data != nil || field.InitialValue == nil {
-		field.reflect = form.reflect.FieldByName(field.Name)
+func configure(field *FormField, form *Form) {
+	var rv reflect.Value
 
-		if field.reflect.Kind() != reflect.Invalid {
-			field.InitialValue = field.reflect.Interface()
+	if form.Data != nil && field.InitialValue == nil {
+		field.reflectField = form.reflect.FieldByName(field.Name)
+		rv = field.reflectField
+	} else if field.InitialValue != nil {
+		field.reflectValue = reflect.ValueOf(field.InitialValue)
+		rv = field.reflectValue
+	} else {
+		panic(fmt.Sprintf("Unable to find the field type: %s, %v", field.Name, field.InitialValue))
+	}
+
+	if rv.Kind() != reflect.Invalid {
+		field.InitialValue = rv.Interface()
+	}
+
+	var marshaller Marshaller = defaultMarshal
+	var unmarshaller Unmarshaller = defaultUnmarshal
+	kind := "text"
+
+	if rv.Kind() == reflect.String {
+		marshaller = defaultMarshal
+		unmarshaller = defaultUnmarshal
+		kind = "text"
+	} else if rv.Kind() == reflect.Int ||
+		rv.Kind() == reflect.Int8 ||
+		rv.Kind() == reflect.Int16 ||
+		rv.Kind() == reflect.Int32 ||
+		rv.Kind() == reflect.Int64 ||
+		rv.Kind() == reflect.Uint ||
+		rv.Kind() == reflect.Uint8 ||
+		rv.Kind() == reflect.Uint16 ||
+		rv.Kind() == reflect.Uint32 ||
+		rv.Kind() == reflect.Uint64 ||
+		rv.Kind() == reflect.Float32 ||
+		rv.Kind() == reflect.Float64 {
+		marshaller = numberMarshal
+		unmarshaller = numberUnmarshal
+		kind = "number"
+	} else if rv.Kind() == reflect.Bool {
+		marshaller = booleanMarshal
+		unmarshaller = booleanUnmarshal
+		kind = "boolean"
+
+	} else if rv.Kind() == reflect.Struct {
+		if rv.Type() == reflect.TypeOf(time.Time{}) {
+			marshaller = dateMarshal
+			unmarshaller = dateUnmarshal
+			kind = "date"
+		}
+	} else if rv.Kind() == reflect.Ptr {
+		if rv.Type() == reflect.TypeOf(&Form{}) {
+			marshaller = formMarshal
+			unmarshaller = formUnmarshal
+			kind = "form"
+		} else if rv.Type() == reflect.TypeOf(&FieldCollectionOptions{}) {
+			marshaller = collectionMarshal
+			unmarshaller = collectionUnmarshal
+			kind = "collection"
 		}
 	}
 
-	field.Marshal(field, form)
+	if field.Input.Type == "" {
+		field.Input.Type = kind
+	}
+
+	if field.Marshaller == nil {
+		field.Marshaller = marshaller
+	}
+
+	if field.Unmarshaller == nil {
+		field.Unmarshaller = unmarshaller
+	}
+}
+
+func marshal(field *FormField, form *Form) {
+	field.Marshaller(field, form)
 }
 
 func unmarshal(field *FormField, form *Form, values url.Values) {
@@ -47,7 +113,7 @@ func unmarshal(field *FormField, form *Form, values url.Values) {
 		field.Input.Value = values.Get(field.Input.Name)
 	}
 
-	field.Unmarshal(field, form, values)
+	field.Unmarshaller(field, form, values)
 
 	field.HasErrors = len(field.Errors) > 0
 }
@@ -71,7 +137,7 @@ func defaultUnmarshal(field *FormField, form *Form, values url.Values) error {
 	}
 
 	// to do, add a validator call
-	field.SubmitedValue = value
+	field.SubmittedValue = value
 	field.Touched = true
 
 	return nil
@@ -80,12 +146,8 @@ func defaultUnmarshal(field *FormField, form *Form, values url.Values) error {
 func booleanMarshal(field *FormField, form *Form) error {
 	defaultMarshal(field, form)
 
-	if v, ok := field.InitialValue.(bool); ok {
-		if v {
-			field.Input.Value = "yes"
-		} else {
-			field.Input.Value = "no"
-		}
+	if v, ok := BoolToStr(field.InitialValue); ok && !field.HasErrors {
+		field.Input.Value = v
 	}
 
 	return nil
@@ -94,16 +156,8 @@ func booleanMarshal(field *FormField, form *Form) error {
 func booleanUnmarshal(field *FormField, form *Form, values url.Values) error {
 	defaultUnmarshal(field, form, values)
 
-	if field.HasErrors {
-		return nil
-	}
-
-	if v, ok := field.SubmitedValue.(string); ok {
-		if yes(v) {
-			field.SubmitedValue = true
-		} else {
-			field.SubmitedValue = false
-		}
+	if v, ok := StrToBool(field.SubmittedValue); ok && !field.HasErrors {
+		field.SubmittedValue = v
 	}
 
 	return nil
@@ -113,7 +167,8 @@ func numberMarshal(field *FormField, form *Form) error {
 	defaultMarshal(field, form)
 
 	if field.InitialValue != nil {
-		field.Input.Value = fmt.Sprintf("%d", field.InitialValue)
+		v, _ := NumberToStr(field.InitialValue)
+		field.Input.Value = v
 	} else {
 		field.Input.Value = "0"
 	}
@@ -128,78 +183,24 @@ func numberUnmarshal(field *FormField, form *Form, values url.Values) error {
 		return nil
 	}
 
+	var rv reflect.Value
 	var v string
 	var ok bool
-	hasError := true
 
-	if v, ok = field.SubmitedValue.(string); !ok {
+	if field.reflectValue.IsValid() {
+		rv = field.reflectValue
+	} else {
+		rv = field.reflectField
+	}
+
+	if v, ok = field.SubmittedValue.(string); !ok {
 		field.Errors = append(field.Errors, ErrInvalidType.Error())
 		return nil
 	}
 
-	if field.reflect.Kind() == reflect.Int {
-		if i, err := strconv.ParseInt(v, 10, 0); err == nil {
-			field.SubmitedValue = int(i)
-			hasError = false
-		}
-	} else if field.reflect.Kind() == reflect.Int8 {
-		if i, err := strconv.ParseInt(v, 10, 8); err == nil {
-			field.SubmitedValue = int8(i)
-			hasError = false
-		}
-	} else if field.reflect.Kind() == reflect.Int16 {
-		if i, err := strconv.ParseInt(v, 10, 16); err == nil {
-			field.SubmitedValue = int16(i)
-			hasError = false
-		}
-	} else if field.reflect.Kind() == reflect.Int32 {
-		if i, err := strconv.ParseInt(v, 10, 32); err == nil {
-			field.SubmitedValue = int32(i)
-			hasError = false
-		}
-	} else if field.reflect.Kind() == reflect.Int64 {
-		if i, err := strconv.ParseInt(v, 10, 64); err == nil {
-			field.SubmitedValue = int64(i)
-			hasError = false
-		}
-	} else if field.reflect.Kind() == reflect.Uint {
-		if i, err := strconv.ParseUint(v, 10, 0); err == nil {
-			field.SubmitedValue = uint(i)
-			hasError = false
-		}
-	} else if field.reflect.Kind() == reflect.Uint8 {
-		if i, err := strconv.ParseUint(v, 10, 8); err == nil {
-			field.SubmitedValue = uint8(i)
-			hasError = false
-		}
-	} else if field.reflect.Kind() == reflect.Uint16 {
-		if i, err := strconv.ParseUint(v, 10, 16); err == nil {
-			field.SubmitedValue = uint16(i)
-			hasError = false
-		}
-	} else if field.reflect.Kind() == reflect.Uint32 {
-		if i, err := strconv.ParseUint(v, 10, 32); err == nil {
-			field.SubmitedValue = uint32(i)
-			hasError = false
-		}
-	} else if field.reflect.Kind() == reflect.Uint64 {
-		if i, err := strconv.ParseUint(v, 10, 64); err == nil {
-			field.SubmitedValue = uint64(i)
-			hasError = false
-		}
-	} else if field.reflect.Kind() == reflect.Float32 {
-		if i, err := strconv.ParseFloat(v, 32); err == nil {
-			field.SubmitedValue = float32(i)
-			hasError = false
-		}
-	} else if field.reflect.Kind() == reflect.Float64 {
-		if i, err := strconv.ParseFloat(v, 64); err == nil {
-			field.SubmitedValue = float64(i)
-			hasError = false
-		}
-	}
-
-	if hasError {
+	if value, ok := StrToNumber(v, rv.Kind()); ok {
+		field.SubmittedValue = value
+	} else {
 		field.Errors = append(field.Errors, ErrInvalidType.Error())
 	}
 
@@ -225,11 +226,11 @@ func dateMarshal(field *FormField, form *Form) error {
 func dateUnmarshal(field *FormField, form *Form, values url.Values) error {
 	defaultUnmarshal(field, form, values)
 
-	if v, ok := field.SubmitedValue.(string); ok {
+	if v, ok := field.SubmittedValue.(string); ok {
 		if t, err := time.ParseInLocation("2006-01-02", v, time.UTC); err != nil {
 			field.Errors = append(field.Errors, err.Error())
 		} else {
-			field.SubmitedValue = t
+			field.SubmittedValue = t
 		}
 	}
 
@@ -247,7 +248,7 @@ func formMarshal(field *FormField, form *Form) error {
 		subField.Input.Name = fmt.Sprintf("%s.%s", field.Name, subField.Name)
 		subField.Input.Id = replacers.Replace(subField.Input.Name)
 		subField.Prefix = field.Input.Name + "."
-
+		configure(subField, subForm)
 		marshal(subField, subForm)
 	}
 
@@ -278,6 +279,7 @@ func collectionMarshal(field *FormField, form *Form) error {
 
 		field.Children = append(field.Children, subField)
 
+		configure(subField, form)
 		marshal(subField, form)
 	}
 
@@ -300,11 +302,11 @@ func checkboxMarshal(field *FormField, form *Form) error {
 	field.Input.Name = fmt.Sprintf("%s%s", field.Prefix, field.Name)
 	field.Input.Id = replacers.Replace(field.Input.Name)
 
-	for name, option := range field.InitialValue.(CheckboxOptions) {
+	for i, option := range field.InitialValue.(FieldOptions) {
 		// find a nice way to generate the name
 		subField := CreateFormField()
-		subField.Name = name
-		subField.Input.Name = fmt.Sprintf("%s[%s]", field.Input.Name, name)
+		subField.Name = fmt.Sprintf("%d", i)
+		subField.Input.Name = fmt.Sprintf("%s[%s]", field.Input.Name, subField.Name)
 		subField.Input.Id = replacers.Replace(subField.Input.Name)
 		subField.Label.Value = option.Label
 		subField.Input.Type = "checkbox"
@@ -318,8 +320,9 @@ func checkboxMarshal(field *FormField, form *Form) error {
 
 func checkboxUnmarshal(field *FormField, form *Form, values url.Values) error {
 	// we need to check for extra values!
-	submitedValue := CheckboxOptions{}
-	for name, option := range field.InitialValue.(CheckboxOptions) {
+	submitedValues := FieldOptions{}
+	for i, option := range field.InitialValue.(FieldOptions) {
+		name := fmt.Sprintf("%d", i)
 		value, err := getValue(field.Get(name), values)
 
 		if err != nil {
@@ -329,13 +332,15 @@ func checkboxUnmarshal(field *FormField, form *Form, values url.Values) error {
 			return err
 		}
 
-		submitedValue[name] = &CheckboxOption{
+		submitedValues = append(submitedValues, &FieldOption{
 			Label:   option.Label,
 			Checked: yes(value),
-		}
+			Id:      option.Id,
+			Value:   option.Value, // should not be set
+		})
 	}
 
-	field.SubmitedValue = submitedValue
+	field.SubmittedValue = submitedValues
 	field.Touched = true
 
 	return nil

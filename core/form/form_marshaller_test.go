@@ -41,5 +41,5 @@ func Test_Date_Unmarshalling(t *testing.T) {
 
 	expectedDate := time.Date(2022, time.April, 1, 0, 0, 0, 0, time.UTC)
 
-	assert.Equal(t, expectedDate, field.SubmitedValue)
+	assert.Equal(t, expectedDate, field.SubmittedValue)
 }
