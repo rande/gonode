@@ -15,12 +15,16 @@ func yes(value string) bool {
 	return value == "checked" || value == "true" || value == "1" || value == "on" || value == "yes"
 }
 
+func no(value string) bool {
+	return value == "false" || value == "0" || value == "off" || value == "no"
+}
+
 func BoolToStr(v interface{}) (string, bool) {
 	if v, ok := v.(bool); ok {
 		if v {
-			return "yes", true
+			return "true", true
 		} else {
-			return "no", true
+			return "false", true
 		}
 	}
 
@@ -28,9 +32,9 @@ func BoolToStr(v interface{}) (string, bool) {
 }
 
 func StrToBool(value interface{}) (bool, bool) {
-	if value == "yes" {
+	if yes(value.(string)) {
 		return true, true
-	} else if value == "no" {
+	} else if no(value.(string)) {
 		return false, true
 	}
 

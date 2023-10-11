@@ -110,9 +110,8 @@ type FormField struct {
 	// from serialized to go
 	Unmarshaller Unmarshaller
 	// Validator
-	reflectValue reflect.Value
-	reflectField reflect.Value
-	Options      interface{}
+	reflect reflect.Value
+	Options interface{}
 }
 
 func (f *FormField) Get(name string) *FormField {
@@ -202,16 +201,9 @@ func create(name string, options ...interface{}) *FormField {
 
 	if len(options) > 1 {
 		field.InitialValue = options[1]
-		// try to read those cases from a registry, hardcoded for now.
-		// if v, ok := options[1].(FieldOptions); ok {
-		// 	field.Options = v
-		// } else {
-		// 	field.InitialValue = options[1]
-		// }
 	}
 
 	if len(options) > 2 {
-		field.InitialValue = options[1]
 		field.Options = options[2]
 	}
 
@@ -231,15 +223,20 @@ func create(name string, options ...interface{}) *FormField {
 		field.Unmarshaller = checkboxUnmarshal
 	}
 
+	if field.Input.Type == "select" {
+		field.Marshaller = selectMarshal
+		field.Unmarshaller = selectUnmarshal
+	}
+
 	// if fieldType == "form" {
 	// 	field.Marshaller = formMarshal
 	// 	field.Unmarshaller = formUnmarshal
 	// }
 
-	// if fieldType == "collection" {
-	// 	field.Marshaller = collectionMarshal
-	// 	field.Unmarshaller = collectionUnmarshal
-	// }
+	if field.Input.Type == "collection" {
+		field.Marshaller = collectionMarshal
+		field.Unmarshaller = collectionUnmarshal
+	}
 
 	if field.Input.Type == "boolean" {
 		// field.Marshaller = booleanMarshal
@@ -593,17 +590,17 @@ func attachValues(fields []*FormField) {
 			continue
 		}
 
-		if field.reflectField.Kind() == reflect.Invalid {
+		if field.reflect.Kind() == reflect.Invalid {
 			// fmt.Printf("attachValues > Invalid type: %s\n", field.Name)
 			continue
 		}
 
 		newValue := reflect.ValueOf(field.SubmittedValue)
 
-		if newValue.CanConvert(field.reflectField.Type()) {
-			field.reflectField.Set(newValue.Convert(field.reflectField.Type()))
+		if newValue.CanConvert(field.reflect.Type()) {
+			field.reflect.Set(newValue.Convert(field.reflect.Type()))
 		} else {
-			// fmt.Printf("attachValues > Unable to convert type: Type, field: %s (kind: %s) submitted: %s, value: %s\n", field.Name, field.reflectField.Kind(), newValue.Kind(), newValue.Interface())
+			// fmt.Printf("attachValues > Unable to convert type: Type, field: %s (kind: %s) submitted: %s, value: %s\n", field.Name, field.reflect.Kind(), newValue.Kind(), newValue.Interface())
 		}
 	}
 }

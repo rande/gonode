@@ -19,7 +19,7 @@ type TestUser struct {
 	Enabled  bool
 	Hidden   bool
 	Email    string
-	Position int8
+	Position int32
 	Ratio    float32
 	DOB      time.Time
 }
@@ -234,7 +234,7 @@ func Test_Reflect(t *testing.T) {
 func Test_Bind_Form_Nested_Basic(t *testing.T) {
 	form := CreateForm(nil)
 	form.Add("name", "text", "John Doe")
-	form.Add("options", "checkbox", FieldOptions{
+	form.Add("options", "checkbox", nil, FieldOptions{
 		{Label: "Enabled", Checked: true, Value: "enabled"},
 		{Label: "Hidden", Checked: false, Value: "hidden"},
 	})
@@ -242,7 +242,7 @@ func Test_Bind_Form_Nested_Basic(t *testing.T) {
 	subForm := CreateForm(nil)
 	subForm.Add("title", "text", "The title")
 	subForm.Add("Body", "text", "The body")
-	subForm.Add("options", "checkbox", FieldOptions{
+	subForm.Add("options", "checkbox", nil, FieldOptions{
 		{Label: "Is Validated", Checked: true, Value: "validated"},
 	})
 
@@ -311,7 +311,7 @@ func Test_Bind_Form_Nested_Basic_Struct(t *testing.T) {
 	subForm.Add("Title", "text")
 	subForm.Add("Body", "text")
 	subForm.Add("IsValidated", "boolean")
-	subForm.Add("options", "checkbox", FieldOptions{
+	subForm.Add("options", "checkbox", nil, FieldOptions{
 		{Label: "Enabled", Checked: true, Value: "enabled"},
 		{Label: "Hidden", Checked: false, Value: "hidden"},
 	})
@@ -366,7 +366,7 @@ func Test_Bind_Form_Nested_Basic_Struct(t *testing.T) {
 	assert.Equal(t, "Thomas", user.Name)
 	assert.Equal(t, false, user.Enabled)
 	assert.Equal(t, float32(1.2), user.Ratio)
-	assert.Equal(t, int8(12), user.Position)
+	assert.Equal(t, int32(12), user.Position)
 	assert.Equal(t, "New title", blog.Title)
 	assert.Equal(t, true, blog.IsValidated) // not submitted
 }
@@ -377,15 +377,15 @@ func Test_Bind_Form_Collection(t *testing.T) {
 		{Key: "1", Value: &TestTag{Id: 1, Name: "tag2", Enabled: true}},
 	}
 
-	form := &Form{}
-	form.Add("tags", "collection", &FieldCollectionOptions{
+	form := CreateForm(nil)
+	form.Add("tags", "collection", nil, &FieldCollectionOptions{
 		Items: values,
 		Configure: func(value interface{}) *Form {
 			tag := value.(*TestTag)
 
-			tagForm := &Form{}
+			tagForm := CreateForm(nil)
 			tagForm.Add("name", "text", tag.Name)
-			tagForm.Add("options", "checkbox", FieldOptions{
+			tagForm.Add("options", "checkbox", nil, FieldOptions{
 				{Label: "Is Enabled", Checked: tag.Enabled, Value: "enabled"},
 			})
 
@@ -415,27 +415,33 @@ func Test_Bind_Form_Select(t *testing.T) {
 		Name:     "John Doe",
 		Enabled:  true,
 		Hidden:   false,
-		Position: 1,
+		Position: int32(1),
 	}
 
 	form := CreateForm(user)
-	form.Add("Enabled", "select", FieldOptions{
-		{Label: "Yes", Value: true},
+	form.Add("Enabled", "select", nil, FieldOptions{
 		{Label: "No", Value: false},
+		{Label: "Yes", Value: true},
 	})
 
-	form.Add("Position", "select", FieldOptions{
-		{Label: "1", Value: 1},
-		{Label: "2", Value: 2},
-		{Label: "3", Value: 3},
-		{Label: "4", Value: 4},
+	form.Add("Position", "select", nil, FieldOptions{
+		{Label: "1", Value: int32(1)},
+		{Label: "2", Value: int32(2)},
+		{Label: "3", Value: int32(3)},
+		{Label: "4", Value: int32(4)},
 	})
 
 	PrepareForm(form)
 
-	// .SetOptions(FieldOptions{
-	// 	{Label: "Yes", Value: true},
-	// 	{Label: "No", Value: false},
-	// })
+	v := url.Values{
+		"Enabled":  []string{"0"},
+		"Position": []string{"3"},
+	}
 
+	BindUrlValues(form, v)
+
+	AttachValues(form)
+
+	assert.Equal(t, false, user.Enabled)
+	assert.Equal(t, int32(3), user.Position)
 }

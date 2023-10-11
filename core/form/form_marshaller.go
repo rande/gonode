@@ -26,82 +26,6 @@ func iterateFields(form *Form, fields []*FormField) {
 	}
 }
 
-func configure(field *FormField, form *Form) {
-	var rv reflect.Value
-
-	if form.Data != nil && field.InitialValue == nil {
-		field.reflectField = form.reflect.FieldByName(field.Name)
-		rv = field.reflectField
-	} else if field.InitialValue != nil {
-		field.reflectValue = reflect.ValueOf(field.InitialValue)
-		rv = field.reflectValue
-	} else {
-		panic(fmt.Sprintf("Unable to find the field type: %s, %v", field.Name, field.InitialValue))
-	}
-
-	if rv.Kind() != reflect.Invalid {
-		field.InitialValue = rv.Interface()
-	}
-
-	var marshaller Marshaller = defaultMarshal
-	var unmarshaller Unmarshaller = defaultUnmarshal
-	kind := "text"
-
-	if rv.Kind() == reflect.String {
-		marshaller = defaultMarshal
-		unmarshaller = defaultUnmarshal
-		kind = "text"
-	} else if rv.Kind() == reflect.Int ||
-		rv.Kind() == reflect.Int8 ||
-		rv.Kind() == reflect.Int16 ||
-		rv.Kind() == reflect.Int32 ||
-		rv.Kind() == reflect.Int64 ||
-		rv.Kind() == reflect.Uint ||
-		rv.Kind() == reflect.Uint8 ||
-		rv.Kind() == reflect.Uint16 ||
-		rv.Kind() == reflect.Uint32 ||
-		rv.Kind() == reflect.Uint64 ||
-		rv.Kind() == reflect.Float32 ||
-		rv.Kind() == reflect.Float64 {
-		marshaller = numberMarshal
-		unmarshaller = numberUnmarshal
-		kind = "number"
-	} else if rv.Kind() == reflect.Bool {
-		marshaller = booleanMarshal
-		unmarshaller = booleanUnmarshal
-		kind = "boolean"
-
-	} else if rv.Kind() == reflect.Struct {
-		if rv.Type() == reflect.TypeOf(time.Time{}) {
-			marshaller = dateMarshal
-			unmarshaller = dateUnmarshal
-			kind = "date"
-		}
-	} else if rv.Kind() == reflect.Ptr {
-		if rv.Type() == reflect.TypeOf(&Form{}) {
-			marshaller = formMarshal
-			unmarshaller = formUnmarshal
-			kind = "form"
-		} else if rv.Type() == reflect.TypeOf(&FieldCollectionOptions{}) {
-			marshaller = collectionMarshal
-			unmarshaller = collectionUnmarshal
-			kind = "collection"
-		}
-	}
-
-	if field.Input.Type == "" {
-		field.Input.Type = kind
-	}
-
-	if field.Marshaller == nil {
-		field.Marshaller = marshaller
-	}
-
-	if field.Unmarshaller == nil {
-		field.Unmarshaller = unmarshaller
-	}
-}
-
 func marshal(field *FormField, form *Form) {
 	field.Marshaller(field, form)
 }
@@ -116,6 +40,114 @@ func unmarshal(field *FormField, form *Form, values url.Values) {
 	field.Unmarshaller(field, form, values)
 
 	field.HasErrors = len(field.Errors) > 0
+}
+
+type MarshallerResult struct {
+	Marshaller   Marshaller
+	Unmarshaller Unmarshaller
+	Type         string
+}
+
+func findMarshaller(rv reflect.Value) *MarshallerResult {
+	if rv.Kind() == reflect.String {
+		return &MarshallerResult{
+			Marshaller:   defaultMarshal,
+			Unmarshaller: defaultUnmarshal,
+			Type:         "text",
+		}
+	}
+
+	if rv.Kind() == reflect.Int ||
+		rv.Kind() == reflect.Int8 ||
+		rv.Kind() == reflect.Int16 ||
+		rv.Kind() == reflect.Int32 ||
+		rv.Kind() == reflect.Int64 ||
+		rv.Kind() == reflect.Uint ||
+		rv.Kind() == reflect.Uint8 ||
+		rv.Kind() == reflect.Uint16 ||
+		rv.Kind() == reflect.Uint32 ||
+		rv.Kind() == reflect.Uint64 ||
+		rv.Kind() == reflect.Float32 ||
+		rv.Kind() == reflect.Float64 {
+
+		return &MarshallerResult{
+			Marshaller:   numberMarshal,
+			Unmarshaller: numberUnmarshal,
+			Type:         "number",
+		}
+	}
+
+	if rv.Kind() == reflect.Bool {
+		return &MarshallerResult{
+			Marshaller:   booleanMarshal,
+			Unmarshaller: booleanUnmarshal,
+			Type:         "boolean",
+		}
+	}
+
+	if rv.Kind() == reflect.Struct {
+		if rv.Type() == reflect.TypeOf(time.Time{}) {
+			return &MarshallerResult{
+				Marshaller:   dateMarshal,
+				Unmarshaller: dateUnmarshal,
+				Type:         "date",
+			}
+		}
+	}
+
+	if rv.Kind() == reflect.Ptr {
+		if rv.Type() == reflect.TypeOf(&Form{}) {
+			return &MarshallerResult{
+				Marshaller:   formMarshal,
+				Unmarshaller: formUnmarshal,
+				Type:         "form",
+			}
+		}
+
+		if rv.Type() == reflect.TypeOf(&FieldCollectionOptions{}) {
+			return &MarshallerResult{
+				Marshaller:   collectionMarshal,
+				Unmarshaller: collectionUnmarshal,
+				Type:         "collection",
+			}
+		}
+	}
+
+	return &MarshallerResult{
+		Marshaller:   defaultMarshal,
+		Unmarshaller: defaultUnmarshal,
+		Type:         "text",
+	}
+}
+
+func configure(field *FormField, form *Form) {
+
+	if form.Data != nil && field.InitialValue == nil {
+		field.reflect = form.reflect.FieldByName(field.Name)
+	}
+
+	if field.reflect.Kind() == reflect.Invalid && field.InitialValue != nil {
+
+		field.reflect = reflect.ValueOf(field.InitialValue)
+	}
+
+	if field.reflect.Kind() != reflect.Invalid {
+		field.InitialValue = field.reflect.Interface()
+	}
+
+	result := findMarshaller(field.reflect)
+
+	if field.Input.Type == "" {
+		field.Input.Type = result.Type
+	}
+
+	if field.Marshaller == nil {
+		field.Marshaller = result.Marshaller
+	}
+
+	if field.Unmarshaller == nil {
+		field.Unmarshaller = result.Unmarshaller
+	}
 }
 
 func defaultMarshal(field *FormField, form *Form) error {
@@ -144,7 +176,9 @@ func defaultUnmarshal(field *FormField, form *Form, values url.Values) error {
 }
 
 func booleanMarshal(field *FormField, form *Form) error {
-	defaultMarshal(field, form)
+	if err := defaultMarshal(field, form); err != nil {
+		return err
+	}
 
 	if v, ok := BoolToStr(field.InitialValue); ok && !field.HasErrors {
 		field.Input.Value = v
@@ -154,7 +188,9 @@ func booleanMarshal(field *FormField, form *Form) error {
 }
 
 func booleanUnmarshal(field *FormField, form *Form, values url.Values) error {
-	defaultUnmarshal(field, form, values)
+	if err := defaultUnmarshal(field, form, values); err != nil {
+		return err
+	}
 
 	if v, ok := StrToBool(field.SubmittedValue); ok && !field.HasErrors {
 		field.SubmittedValue = v
@@ -164,7 +200,9 @@ func booleanUnmarshal(field *FormField, form *Form, values url.Values) error {
 }
 
 func numberMarshal(field *FormField, form *Form) error {
-	defaultMarshal(field, form)
+	if err := defaultMarshal(field, form); err != nil {
+		return err
+	}
 
 	if field.InitialValue != nil {
 		v, _ := NumberToStr(field.InitialValue)
@@ -177,28 +215,23 @@ func numberMarshal(field *FormField, form *Form) error {
 }
 
 func numberUnmarshal(field *FormField, form *Form, values url.Values) error {
-	defaultUnmarshal(field, form, values)
+	if err := defaultUnmarshal(field, form, values); err != nil {
+		return err
+	}
 
 	if field.HasErrors {
 		return nil
 	}
 
-	var rv reflect.Value
 	var v string
 	var ok bool
-
-	if field.reflectValue.IsValid() {
-		rv = field.reflectValue
-	} else {
-		rv = field.reflectField
-	}
 
 	if v, ok = field.SubmittedValue.(string); !ok {
 		field.Errors = append(field.Errors, ErrInvalidType.Error())
 		return nil
 	}
 
-	if value, ok := StrToNumber(v, rv.Kind()); ok {
+	if value, ok := StrToNumber(v, field.reflect.Kind()); ok {
 		field.SubmittedValue = value
 	} else {
 		field.Errors = append(field.Errors, ErrInvalidType.Error())
@@ -212,7 +245,9 @@ func numberUnmarshal(field *FormField, form *Form, values url.Values) error {
 // but the parsed value is always formatted yyyy-mm-dd.
 // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date
 func dateMarshal(field *FormField, form *Form) error {
-	defaultMarshal(field, form)
+	if err := defaultMarshal(field, form); err != nil {
+		return err
+	}
 
 	if v, ok := field.InitialValue.(time.Time); ok {
 		field.Input.Value = v.Format("2006-01-02")
@@ -224,7 +259,9 @@ func dateMarshal(field *FormField, form *Form) error {
 }
 
 func dateUnmarshal(field *FormField, form *Form, values url.Values) error {
-	defaultUnmarshal(field, form, values)
+	if err := defaultUnmarshal(field, form, values); err != nil {
+		return err
+	}
 
 	if v, ok := field.SubmittedValue.(string); ok {
 		if t, err := time.ParseInLocation("2006-01-02", v, time.UTC); err != nil {
@@ -264,7 +301,7 @@ func formUnmarshal(field *FormField, form *Form, values url.Values) error {
 }
 
 func collectionMarshal(field *FormField, form *Form) error {
-	options := field.InitialValue.(*FieldCollectionOptions)
+	options := field.Options.(*FieldCollectionOptions)
 
 	field.Input.Name = fmt.Sprintf("%s%s", field.Prefix, field.Name)
 	field.Input.Id = replacers.Replace(field.Input.Name)
@@ -274,6 +311,7 @@ func collectionMarshal(field *FormField, form *Form) error {
 
 		subField := create(value.Key, "form", subForm)
 		subField.Input.Name = fmt.Sprintf("%s[%s]", field.Input.Name, value.Key)
+
 		subField.Input.Id = replacers.Replace(subField.Input.Name)
 		subField.Prefix = field.Input.Name + "."
 
@@ -287,7 +325,7 @@ func collectionMarshal(field *FormField, form *Form) error {
 }
 
 func collectionUnmarshal(field *FormField, form *Form, values url.Values) error {
-	options := field.InitialValue.(*FieldCollectionOptions)
+	options := field.Options.(*FieldCollectionOptions)
 
 	for _, value := range options.Items {
 		subField := field.Get(value.Key)
@@ -302,7 +340,7 @@ func checkboxMarshal(field *FormField, form *Form) error {
 	field.Input.Name = fmt.Sprintf("%s%s", field.Prefix, field.Name)
 	field.Input.Id = replacers.Replace(field.Input.Name)
 
-	for i, option := range field.InitialValue.(FieldOptions) {
+	for i, option := range field.Options.(FieldOptions) {
 		// find a nice way to generate the name
 		subField := CreateFormField()
 		subField.Name = fmt.Sprintf("%d", i)
@@ -321,7 +359,7 @@ func checkboxMarshal(field *FormField, form *Form) error {
 func checkboxUnmarshal(field *FormField, form *Form, values url.Values) error {
 	// we need to check for extra values!
 	submitedValues := FieldOptions{}
-	for i, option := range field.InitialValue.(FieldOptions) {
+	for i, option := range field.Options.(FieldOptions) {
 		name := fmt.Sprintf("%d", i)
 		value, err := getValue(field.Get(name), values)
 
@@ -342,6 +380,43 @@ func checkboxUnmarshal(field *FormField, form *Form, values url.Values) error {
 
 	field.SubmittedValue = submitedValues
 	field.Touched = true
+
+	return nil
+}
+
+func selectMarshal(field *FormField, form *Form) error {
+	field.Input.Name = fmt.Sprintf("%s%s", field.Prefix, field.Name)
+	field.Input.Id = replacers.Replace(field.Input.Name)
+
+	for i, option := range field.Options.(FieldOptions) {
+		marshallers := findMarshaller(reflect.ValueOf(option.Value))
+
+		// find a nice way to generate the name
+		subField := CreateFormField()
+		subField.Name = fmt.Sprintf("%d", i)
+		subField.Input.Name = fmt.Sprintf("%s[%s]", field.Input.Name, subField.Name)
+		subField.Input.Id = replacers.Replace(subField.Input.Name)
+		subField.Label.Value = option.Label
+		subField.Input.Type = "option"
+		subField.Marshaller = marshallers.Marshaller
+		subField.Unmarshaller = marshallers.Unmarshaller
+
+		marshal(subField, form)
+
+		field.Children = append(field.Children, subField)
+	}
+
+	return nil
+}
+
+func selectUnmarshal(field *FormField, form *Form, values url.Values) error {
+
+	if len(field.Children) == 0 {
+		field.Errors = append(field.Errors, "Unable to find any options")
+		field.HasErrors = true
+	}
+
+	field.Children[0].Unmarshaller(field, form, values)
 
 	return nil
 }
