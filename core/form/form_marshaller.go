@@ -40,6 +40,9 @@ func unmarshal(field *FormField, form *Form, values url.Values) {
 	field.Unmarshaller(field, form, values)
 
 	field.HasErrors = len(field.Errors) > 0
+	if field.HasErrors {
+		form.HasErrors = true
+	}
 }
 
 type MarshallerResult struct {
@@ -416,7 +419,24 @@ func selectUnmarshal(field *FormField, form *Form, values url.Values) error {
 		field.HasErrors = true
 	}
 
-	field.Children[0].Unmarshaller(field, form, values)
+	if !field.Input.Multiple {
+		field.Children[0].Unmarshaller(field, form, values)
+	} else {
+		slice := reflect.MakeSlice(reflect.SliceOf(field.reflect.Type().Elem()), 0, 0)
+
+		for _, valueStr := range values[field.Input.Id] {
+			if value, ok := convert(valueStr, field.reflect.Type().Elem().Kind()); ok {
+				slice = reflect.Append(slice, reflect.ValueOf(value))
+			} else {
+				// fmt.Printf("Unable to convert %s to %s\n", valueStr, field.reflect.Type().Elem())
+				field.Errors = append(field.Errors, "Unable to convert value to the correct type")
+				field.HasErrors = true
+			}
+		}
+
+		field.SubmittedValue = slice.Interface()
+		field.Touched = true
+	}
 
 	return nil
 }

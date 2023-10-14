@@ -14,7 +14,8 @@ import (
 )
 
 var (
-	ErrNoValue = errors.New("unable to find the value")
+	ErrNoValue              = errors.New("unable to find the value")
+	ErrInvalidSubmittedData = errors.New("invalid submitted data")
 )
 
 var replacers = strings.NewReplacer(".", "_", "[", "_", "]", "")
@@ -536,24 +537,42 @@ func (f *Form) Add(name string, options ...interface{}) *FormField {
 	return field
 }
 
+// Iterate over all fields and call the marshaller function to transform the Go value into
+// a serialized value used in the HTML form. This also setup the different attribures required
+// by the HTML form.
 func PrepareForm(form *Form) error {
 	iterateFields(form, form.Fields)
 
 	return nil
 }
 
+// Iterate over all fields and bind the submitted values to the SubmittedValue field
+// in the form. This will not attach the value to the underlying data structure, use AttachValues
+// for this.
+//
+// This will call all unmarshallers defined on each form field.
 func BindUrlValues(form *Form, values url.Values) error {
 	for _, field := range form.Fields {
 		unmarshal(field, form, values)
 	}
 
+	if form.HasErrors {
+		return ErrInvalidSubmittedData
+	}
+
 	return nil
 }
 
+// Iterate over all submitted values and assign them to the related data structure
+// if possible. This will not work work if the form has some errors.
 func AttachValues(form *Form) error {
 	// cannot attach value if no entity is linked
 	if form.Data == nil {
 		return nil
+	}
+
+	if form.HasErrors {
+		return ErrInvalidSubmittedData
 	}
 
 	attachValues(form.Fields)
@@ -588,6 +607,8 @@ func attachValues(fields []*FormField) {
 		if !field.Touched {
 			// fmt.Printf("attachValues > Field not touched: %s, skipping\n", field.Name)
 			continue
+		} else {
+			// fmt.Printf("attachValues > Field touched: %s, updating\n", field.Name)
 		}
 
 		if field.reflect.Kind() == reflect.Invalid {
@@ -596,7 +617,7 @@ func attachValues(fields []*FormField) {
 		}
 
 		newValue := reflect.ValueOf(field.SubmittedValue)
-
+		// fmt.Printf("attachValues > Field name: %s, value: %s\n", field.Name, newValue)
 		if newValue.CanConvert(field.reflect.Type()) {
 			field.reflect.Set(newValue.Convert(field.reflect.Type()))
 		} else {

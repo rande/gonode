@@ -11,6 +11,25 @@ import (
 	"strconv"
 )
 
+func convert(value interface{}, kind reflect.Kind) (interface{}, bool) {
+	if value == nil {
+		return nil, false
+	}
+
+	switch kind {
+	case reflect.Bool:
+		return StrToBool(value)
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Float32, reflect.Float64:
+		return StrToNumber(value.(string), kind)
+	case reflect.String:
+		return value, true
+	}
+
+	return nil, false
+}
+
 func yes(value string) bool {
 	return value == "checked" || value == "true" || value == "1" || value == "on" || value == "yes"
 }
@@ -46,7 +65,6 @@ func NumberToStr(v interface{}) (string, bool) {
 }
 
 func StrToNumber(value string, kind reflect.Kind) (interface{}, bool) {
-
 	if kind == reflect.Int {
 		if i, err := strconv.ParseInt(value, 10, 0); err == nil {
 			return int(i), true
