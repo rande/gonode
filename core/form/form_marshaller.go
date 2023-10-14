@@ -26,6 +26,14 @@ func iterateFields(form *Form, fields []*FormField) {
 	}
 }
 
+func getValue(field *FormField, values url.Values) (string, error) {
+	if !values.Has(field.Input.Name) {
+		return "", ErrNoValue
+	}
+
+	return values.Get(field.Input.Name), nil
+}
+
 func marshal(field *FormField, form *Form) {
 	field.Marshaller(field, form)
 }
