@@ -146,10 +146,13 @@ func (f *FormField) Add(name string, options ...interface{}) *FormField {
 type Form struct {
 	Data      interface{}
 	Fields    []*FormField
-	State     string
 	HasErrors bool
 	reflect   reflect.Value
 	Locale    string
+	EncType   string
+	Method    string
+	Action    string
+	State     int
 }
 
 func (f *Form) Get(name string) *FormField {
@@ -267,6 +270,10 @@ func CreateForm(data interface{}) *Form {
 	return &Form{
 		Data:    data,
 		reflect: reflect.ValueOf(data).Elem(),
+		EncType: "application/x-www-form-urlencoded",
+		Action:  "",
+		Method:  "POST",
+		State:   Initialized,
 	}
 }
 

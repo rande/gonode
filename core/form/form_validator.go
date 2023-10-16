@@ -24,10 +24,6 @@ type number interface {
 	int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64
 }
 
-func ValidateForm(form *Form) error {
-	return validateForm(form.Fields, form)
-}
-
 func validateForm(fields []*FormField, form *Form) error {
 	for _, field := range fields {
 		if field.HasErrors {

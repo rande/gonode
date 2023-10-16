@@ -66,16 +66,18 @@ func Test_Form_Init(t *testing.T) {
 
 func Test_Bind_Form_Basic(t *testing.T) {
 
-	form := &Form{}
+	form := CreateForm(nil)
 	form.Add("name", "text", "John Doe")
 
-	PrepareForm(form)
+	err := PrepareForm(form)
+	assert.Nil(t, err)
 
 	v := url.Values{
 		"name": []string{"Thomas"},
 	}
 
-	BindUrlValues(form, v)
+	err = BindUrlValues(form, v)
+	assert.Nil(t, err)
 
 	assert.Equal(t, "John Doe", form.Get("name").InitialValue)
 	assert.Equal(t, "Thomas", form.Get("name").SubmittedValue)
@@ -83,7 +85,7 @@ func Test_Bind_Form_Basic(t *testing.T) {
 
 func Test_Bind_Form_Basic_Errors(t *testing.T) {
 
-	form := &Form{}
+	form := CreateForm(nil)
 	form.Add("name", "text", "John Doe")
 
 	PrepareForm(form)
@@ -180,6 +182,7 @@ func Test_Bind_Form_Basic_Struct(t *testing.T) {
 	assert.Equal(t, "John Doe", form.Get("Name").InitialValue)
 	assert.Equal(t, "Thomas", form.Get("Name").SubmittedValue)
 
+	ValidateForm(form)
 	AttachValues(form)
 
 	assert.Equal(t, "Thomas", user.Name)
@@ -362,6 +365,7 @@ func Test_Bind_Form_Nested_Basic_Struct(t *testing.T) {
 		t.Error("options is not a FieldOptions")
 	}
 
+	ValidateForm(form)
 	err := AttachValues(form)
 
 	assert.Nil(t, err)
@@ -450,9 +454,13 @@ func Test_Bind_Form_Select(t *testing.T) {
 		"Items":    []string{"1", "3"},
 	}
 
-	BindUrlValues(form, v)
+	err := BindUrlValues(form, v)
+	assert.Nil(t, err)
 
-	AttachValues(form)
+	ValidateForm(form)
+
+	err = AttachValues(form)
+	assert.Nil(t, err)
 
 	// assert.Equal(t, false, user.Enabled)
 	// assert.Equal(t, int32(3), user.Position)
@@ -488,6 +496,8 @@ func Test_Bind_Form_Select_Invalid_Multiple_Type(t *testing.T) {
 	assert.Equal(t, 1, len(form.Get("Items").Errors))
 	assert.Equal(t, "Unable to convert value to the correct type", form.Get("Items").Errors[0])
 
+	ValidateForm(form)
+
 	err = AttachValues(form)
 
 	assert.NotNil(t, err)
@@ -520,6 +530,8 @@ func Test_Bind_Form_Select_Invalid_Type(t *testing.T) {
 	assert.Equal(t, 1, len(form.Get("Position").Errors))
 	assert.Equal(t, int32(1), user.Position)
 	assert.Equal(t, "value does not match the expected type", form.Get("Position").Errors[0])
+
+	ValidateForm(form)
 
 	err := AttachValues(form)
 
