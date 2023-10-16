@@ -109,14 +109,14 @@ func Test_FormField_Validate(t *testing.T) {
 
 	result := validateForm(form.Fields, form)
 
-	assert.True(t, result)
+	assert.Nil(t, result)
 
 	field.Touched = false
 	field.SubmittedValue = nil
 
 	result = validateForm(form.Fields, form)
 
-	assert.False(t, result)
+	assert.NotNil(t, result)
 
 	assert.Equal(t, 2, len(field.Errors))
 	assert.Equal(t, ErrRequiredValidator.Error(), field.Errors[0])
@@ -131,11 +131,11 @@ func Test_FormField_Validate_MinMax(t *testing.T) {
 	field.SubmittedValue = 22
 
 	result := validateForm(form.Fields, form)
-	assert.True(t, result)
+	assert.Nil(t, result)
 
 	field.SubmittedValue = 19
 	result = validateForm(form.Fields, form)
-	assert.False(t, result)
+	assert.NotNil(t, result)
 }
 
 func Test_FormField_Validate_TypeMismatch(t *testing.T) {
@@ -152,7 +152,7 @@ func Test_FormField_Validate_TypeMismatch(t *testing.T) {
 
 	result := ValidateForm(form)
 
-	assert.False(t, result)
+	assert.NotNil(t, result)
 
 	assert.Equal(t, 2, len(field.Errors))
 	assert.Equal(t, ErrInvalidType.Error(), field.Errors[0])
@@ -362,7 +362,9 @@ func Test_Bind_Form_Nested_Basic_Struct(t *testing.T) {
 		t.Error("options is not a FieldOptions")
 	}
 
-	AttachValues(form)
+	err := AttachValues(form)
+
+	assert.Nil(t, err)
 
 	assert.Equal(t, "Thomas", user.Name)
 	assert.Equal(t, false, user.Enabled)

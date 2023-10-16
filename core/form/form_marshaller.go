@@ -43,6 +43,7 @@ func unmarshal(field *FormField, form *Form, values url.Values) {
 
 	if values.Has(field.Input.Name) {
 		field.Input.Value = values.Get(field.Input.Name)
+		field.Touched = true
 	}
 
 	field.Unmarshaller(field, form, values)
@@ -171,6 +172,10 @@ func defaultMarshal(field *FormField, form *Form) error {
 
 func defaultUnmarshal(field *FormField, form *Form, values url.Values) error {
 	value, err := getValue(field, values)
+
+	if err == ErrNoValue { // value not sent
+		return nil
+	}
 
 	if err != nil {
 		field.Errors = append(field.Errors, err.Error())
@@ -373,6 +378,10 @@ func checkboxUnmarshal(field *FormField, form *Form, values url.Values) error {
 	for i, option := range field.Options.(FieldOptions) {
 		name := fmt.Sprintf("%d", i)
 		value, err := getValue(field.Get(name), values)
+
+		if err == ErrNoValue { // value not sent
+			continue
+		}
 
 		if err != nil {
 			field.Errors = append(field.Errors, err.Error())

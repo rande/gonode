@@ -51,6 +51,10 @@ func BoolToStr(v interface{}) (string, bool) {
 }
 
 func StrToBool(value interface{}) (bool, bool) {
+	if value == nil {
+		return false, false
+	}
+
 	if yes(value.(string)) {
 		return true, true
 	} else if no(value.(string)) {

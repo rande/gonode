@@ -48,6 +48,7 @@ func GetPongo() *pongo2.TemplateSet {
 
 	return pongo
 }
+
 func Test_Form_Rendering(t *testing.T) {
 
 	now := time.Date(2022, time.April, 1, 1, 1, 1, 1, time.UTC)
@@ -121,7 +122,7 @@ func Test_Form_Rendering_Error(t *testing.T) {
 	// -- validate form
 	result := ValidateForm(form)
 
-	assert.False(t, result)
+	assert.NotNil(t, result)
 
 	// -- render form with errors
 	html, _ = template.Execute(pongo2.Context{

@@ -12,6 +12,7 @@ import (
 )
 
 var (
+	ErrValidationError   = errors.New("the form is not valid")
 	ErrRequiredValidator = errors.New("the value is required")
 	ErrEmailValidator    = errors.New("the value is not a valid email")
 	ErrUrlValidator      = errors.New("the value is not a valid url")
@@ -23,31 +24,30 @@ type number interface {
 	int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64
 }
 
-func ValidateForm(form *Form) bool {
+func ValidateForm(form *Form) error {
 	return validateForm(form.Fields, form)
 }
 
-func validateForm(fields []*FormField, form *Form) bool {
-	isValid := true
-
+func validateForm(fields []*FormField, form *Form) error {
 	for _, field := range fields {
 		if field.HasErrors {
-			isValid = false
+			form.HasErrors = true
 		}
 
 		for _, validator := range field.Validators {
 			if v, ok := field.InitialValue.(*Form); ok {
-				if !validateForm(v.Fields, v) {
-					isValid = false
+				if err := validateForm(v.Fields, v); err != nil {
+					v.HasErrors = true
 					field.HasErrors = true
+					form.HasErrors = true
 				}
 
 				continue
 			}
 
 			if err := validator.Validate(field, form); err != nil {
-				isValid = false
 				field.HasErrors = true
+				form.HasErrors = true
 				field.Errors = append(field.Errors, err.Error())
 			}
 		}
@@ -57,7 +57,11 @@ func validateForm(fields []*FormField, form *Form) bool {
 		}
 	}
 
-	return isValid
+	if !form.HasErrors {
+		return nil
+	}
+
+	return ErrValidationError
 }
 
 type Validator interface {
