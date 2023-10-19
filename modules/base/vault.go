@@ -8,7 +8,7 @@ func GetVaultMetadata(node *Node) (meta vault.VaultMetadata) {
 
 	// @todo: see if we can add more information here.
 	meta = vault.NewVaultMetadata()
-	meta["uuid"] = node.Uuid.CleanString()
+	meta["nid"] = node.Nid
 	meta["type"] = node.Type
 	meta["name"] = node.Name
 	meta["created_at"] = node.CreatedAt
@@ -16,11 +16,11 @@ func GetVaultMetadata(node *Node) (meta vault.VaultMetadata) {
 	meta["meta"] = node.Meta
 	meta["data"] = node.Data
 	meta["revision"] = node.Revision
-	meta["updated_by"] = node.UpdatedBy.CleanString()
-	meta["created_by"] = node.CreatedBy.CleanString()
-	meta["source"] = node.Source.CleanString()
-	meta["set_uuid"] = node.SetUuid.CleanString()
-	meta["parent_uuid"] = node.ParentUuid.CleanString()
+	meta["updated_by"] = node.UpdatedBy
+	meta["created_by"] = node.CreatedBy
+	meta["source"] = node.Source
+	meta["set_nid"] = node.SetNid
+	meta["parent_nid"] = node.ParentNid
 
 	return
 }

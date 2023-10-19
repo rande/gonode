@@ -40,9 +40,9 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 			helper.PanicOnError(err)
 			_, err = manager.Db.Exec(fmt.Sprintf(`DROP TABLE IF EXISTS "%s_nodes_audit"`, prefix))
 			helper.PanicOnError(err)
-			_, err = manager.Db.Exec(fmt.Sprintf(`DROP INDEX IF EXISTS "%s_uuid_idx"`, prefix))
+			_, err = manager.Db.Exec(fmt.Sprintf(`DROP INDEX IF EXISTS "%s_nid_idx"`, prefix))
 			helper.PanicOnError(err)
-			_, err = manager.Db.Exec(fmt.Sprintf(`DROP INDEX IF EXISTS "%s_uuid_current_idx"`, prefix))
+			_, err = manager.Db.Exec(fmt.Sprintf(`DROP INDEX IF EXISTS "%s_nid_current_idx"`, prefix))
 			helper.PanicOnError(err)
 			_, err = manager.Db.Exec(fmt.Sprintf(`DROP SEQUENCE IF EXISTS "%s_nodes_id_seq" CASCADE`, prefix))
 			helper.PanicOnError(err)
@@ -66,7 +66,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
 			_, err = manager.Db.Exec(fmt.Sprintf(`CREATE TABLE "%s_nodes" (
 				"id" INTEGER DEFAULT nextval('%s_nodes_id_seq'::regclass) NOT NULL UNIQUE,
-				"uuid" UUid NOT NULL,
+				"nid" CHARACTER VARYING( 16 ) NOT NULL,
 				"type" CHARACTER VARYING( 64 ) COLLATE "pg_catalog"."default" NOT NULL,
 				"name" CHARACTER VARYING( 2044 ) COLLATE "pg_catalog"."default" DEFAULT ''::CHARACTER VARYING NOT NULL,
 				"enabled" BOOLEAN DEFAULT 'true' NOT NULL,
@@ -81,25 +81,25 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 				"access" text[] DEFAULT '{}' NOT NULL,
 				"slug" CHARACTER VARYING( 256 ) COLLATE "default" NOT NULL,
 				"path" CHARACTER VARYING( 2000 ) COLLATE "default" NOT NULL,
-				"source" UUid,
-				"set_uuid" UUid,
-				"parent_uuid" UUid,
-				"parents" UUid[],
+				"source" CHARACTER VARYING( 16 ),
+				"set_nid" CHARACTER VARYING( 16 ),
+				"parent_nid" CHARACTER VARYING( 16 ),
+				"parents" CHARACTER VARYING( 16 )[],
 				"created_at" TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-				"created_by" UUid NOT NULL,
+				"created_by" CHARACTER VARYING( 16 ) NOT NULL,
 				"updated_at" TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-				"updated_by" UUid NOT NULL,
+				"updated_by" CHARACTER VARYING( 16 ) NOT NULL,
 				"weight" INTEGER DEFAULT '0' NOT NULL,
 				PRIMARY KEY ( "id" ),
-				CONSTRAINT "%s_slug" UNIQUE( "parent_uuid","slug","revision" ),
-				CONSTRAINT "%s_uuid" UNIQUE( "revision","uuid" )
+				CONSTRAINT "%s_slug" UNIQUE( "parent_nid","slug","revision" ),
+				CONSTRAINT "%s_nid" UNIQUE( "revision","nid" )
 			)`, prefix, prefix, prefix, prefix))
 			helper.PanicOnError(err)
 
-			_, err = manager.Db.Exec(fmt.Sprintf(`CREATE INDEX "%s_uuid_idx" ON "%s_nodes" USING btree( "uuid" ASC NULLS LAST )`, prefix, prefix))
+			_, err = manager.Db.Exec(fmt.Sprintf(`CREATE INDEX "%s_nid_idx" ON "%s_nodes" USING btree( "nid" ASC NULLS LAST )`, prefix, prefix))
 			helper.PanicOnError(err)
 
-			_, err = manager.Db.Exec(fmt.Sprintf(`CREATE INDEX "%s_uuid_current_idx" ON "%s_nodes" USING btree( "uuid" ASC NULLS LAST, "current" ASC NULLS LAST )`, prefix, prefix))
+			_, err = manager.Db.Exec(fmt.Sprintf(`CREATE INDEX "%s_nid_current_idx" ON "%s_nodes" USING btree( "nid" ASC NULLS LAST, "current" ASC NULLS LAST )`, prefix, prefix))
 			helper.PanicOnError(err)
 
 			_, err = manager.Db.Exec(fmt.Sprintf(`CREATE INDEX "%s_access_idx" ON "%s_nodes" USING GIN("access")`, prefix, prefix))
@@ -110,7 +110,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 			helper.PanicOnError(err)
 			_, err = manager.Db.Exec(fmt.Sprintf(`CREATE TABLE "%s_nodes_audit" (
 				"id" INTEGER DEFAULT nextval('%s_nodes_audit_id_seq'::regclass) NOT NULL UNIQUE,
-				"uuid" UUid NOT NULL,
+				"nid" CHARACTER VARYING( 16 ) NOT NULL,
 				"type" CHARACTER VARYING( 64 ) COLLATE "pg_catalog"."default" NOT NULL,
 				"name" CHARACTER VARYING( 2044 ) COLLATE "pg_catalog"."default" DEFAULT ''::CHARACTER VARYING NOT NULL,
 				"enabled" BOOLEAN DEFAULT 'true' NOT NULL,
@@ -125,14 +125,14 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 				"access" text[] DEFAULT '{}' NOT NULL,
 				"slug" CHARACTER VARYING( 256 ) COLLATE "default" NOT NULL,
 				"path" CHARACTER VARYING( 2000 ) COLLATE "default" NOT NULL,
-				"source" UUid,
-				"set_uuid" UUid,
-				"parent_uuid" UUid,
-				"parents" UUid[],
+				"source" CHARACTER VARYING( 16 ),
+				"set_nid" CHARACTER VARYING( 16 ),
+				"parent_nid" CHARACTER VARYING( 16 ),
+				"parents" CHARACTER VARYING( 16 )[],
 				"created_at" TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-				"created_by" UUid NOT NULL,
+				"created_by" CHARACTER VARYING( 16 ) NOT NULL,
 				"updated_at" TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-				"updated_by" UUid NOT NULL,
+				"updated_by" CHARACTER VARYING( 16 ) NOT NULL,
 				"weight" INTEGER DEFAULT '0' NOT NULL,
 				PRIMARY KEY ( "id" )
 			)`, prefix, prefix))

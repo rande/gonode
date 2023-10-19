@@ -62,7 +62,7 @@ func (h *YoutubeHandler) PreUpdate(node *base.Node, m base.NodeManager) error {
 
 func (h *YoutubeHandler) PostInsert(node *base.Node, m base.NodeManager) error {
 	if node.Data.(*Youtube).Vid != "" && node.Data.(*Youtube).Status == base.ProcessStatusUpdate {
-		m.Notify("media_youtube_update", node.Uuid.String())
+		m.Notify("media_youtube_update", node.Nid)
 	}
 
 	return nil
@@ -70,7 +70,7 @@ func (h *YoutubeHandler) PostInsert(node *base.Node, m base.NodeManager) error {
 
 func (h *YoutubeHandler) PostUpdate(node *base.Node, m base.NodeManager) error {
 	if node.Data.(*Youtube).Vid != "" && node.Data.(*Youtube).Status == base.ProcessStatusUpdate {
-		m.Notify("media_youtube_update", node.Uuid.String())
+		m.Notify("media_youtube_update", node.Nid)
 	}
 
 	return nil
@@ -81,13 +81,7 @@ type YoutubeListener struct {
 }
 
 func (l *YoutubeListener) Handle(notification *pq.Notification, m base.NodeManager) (int, error) {
-	reference, err := base.GetReferenceFromString(notification.Extra)
-
-	if err != nil { // unable to parse the reference
-		return base.PubSubListenContinue, nil
-	}
-
-	node := m.Find(reference)
+	node := m.Find(notification.Extra)
 
 	if node == nil {
 		return base.PubSubListenContinue, nil
@@ -126,7 +120,7 @@ func (l *YoutubeListener) Handle(notification *pq.Notification, m base.NodeManag
 	if node.Meta.(*YoutubeMeta).ThumbnailUrl != "" {
 		image := m.NewNode("media.image")
 		image.Data.(*Image).SourceUrl = node.Meta.(*YoutubeMeta).ThumbnailUrl
-		image.Source = node.Uuid
+		image.Source = node.Nid
 		image.CreatedBy = node.CreatedBy
 		image.UpdatedBy = node.UpdatedBy
 		image.Access = node.Access

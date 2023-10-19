@@ -22,7 +22,7 @@ var (
 	ErrNoStreamHandler        = errors.New("no stream handler defined")
 	ErrAccessForbidden        = errors.New("access forbidden")
 	ErrInvalidVersion         = errors.New("wrong node version")
-	ErrInvalidUuidLength      = errors.New("invalid UUID length")
+	ErrInvalidNidLength       = errors.New("invalid UUID length")
 )
 
 type validationError struct {

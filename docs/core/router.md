@@ -1,25 +1,23 @@
-Router
-======
+# Router
 
 This modules allows to created named routes for goji handlers. There are 3 types of routes:
 
-- ``ABSOLUTE_URL``: this will generate a string like ``http://myserver.com/hello/world``  
-- ``ABSOLUTE_PATH``: this will generate a string like ``/hello/world``
-- ``NETWORK_PATH``: this will generate a string like ``//hello/world``
+-   `ABSOLUTE_URL`: this will generate a string like `http://myserver.com/hello/world`
+-   `ABSOLUTE_PATH`: this will generate a string like `/hello/world`
+-   `NETWORK_PATH`: this will generate a string like `//hello/world`
 
-The ``ABSOLUTE_URL`` option generates links depends on the current request's information available as a RequestContext object.
+The `ABSOLUTE_URL` option generates links depends on the current request's information available as a RequestContext object.
 The request context provides resolved information about how to generate a valid url depends on reverse proxy information.
 The context is created by a middleware.
 
-Usage
------
+## Usage
 
 Template's helpers:
 
 ```jinja
-{{ path("prism", url_values("uuid", elm.Uuid )) }} => "/prism/21779d51-122c-4ea9-a09e-9685610adc5c"
-{{ url("prism", url_values("uuid", elm.Uuid ), request_context) }} => "http://localhost:2508/prism/21779d51-122c-4ea9-a09e-9685610adc5c"
-{{ net("prism", url_values("uuid", elm.Uuid )) }}  => "//prism/21779d51-122c-4ea9-a09e-9685610adc5c"
+{{ path("prism", url_values("nid", elm.Nid )) }} => "/prism/21779d51-122c-4ea9-a09e-9685610adc5c"
+{{ url("prism", url_values("nid", elm.Nid ), request_context) }} => "http://localhost:2508/prism/21779d51-122c-4ea9-a09e-9685610adc5c"
+{{ net("prism", url_values("nid", elm.Nid )) }}  => "//prism/21779d51-122c-4ea9-a09e-9685610adc5c"
 ```
 
 Handler usage:
@@ -36,7 +34,7 @@ import (
 
 func MyHandler(c web.C, res http.ResponseWriter, req *http.Request) {
     context = &pongo2.Context{}
-    
+
     if _, ok :=  c.Env["request_context"]; ok {
         context["request_context"] = c.Env["request_context"]
     } else {
@@ -63,10 +61,10 @@ And the related template:
         {% for elm in pager.Elements %}
             <item>
                  <title>{{ node_data(node, "name") }}</title>
-                 <link>{{ url("prism", url_values("uuid", elm.Uuid), request_context) }}</link>
+                 <link>{{ url("prism", url_values("nid", elm.Nid), request_context) }}</link>
                  <description><![CDATA[{{ node_data(node, "description") }}]]></description>
                  <pubDate>{{ node_data(node, "publication_date") }}</pubDate>
-                 <gui>{{ path("prism", url_values("uuid", elm.Uuid)) }}</gui>
+                 <gui>{{ path("prism", url_values("nid", elm.Nid)) }}</gui>
             </item>
         {% endfor %}
     </channel>
@@ -91,7 +89,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 	l.Prepare(func(app *goapp.App) error {
 		r := app.Get("gonode.router").(*router.Router)
 
-		r.Handle("prism", "/prism/:uuid", MyHandler)
+		r.Handle("prism", "/prism/:nid", MyHandler)
 
 		return nil
 	})

@@ -55,15 +55,8 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 		}
 
 		format := "html"
-		if uuid, ok := c.URLParams["uuid"]; ok {
-			reference, err := base.GetReferenceFromString(uuid)
-
-			if err != nil {
-				base.HandleError(req, res, err)
-				return
-			}
-
-			node = manager.Find(reference)
+		if nid, ok := c.URLParams["nid"]; ok {
+			node = manager.Find(nid)
 
 			if _, ok := c.URLParams["format"]; ok {
 				format = c.URLParams["format"]
@@ -164,7 +157,7 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 				if logger != nil {
 					logger.WithFields(log.Fields{
 						"module":         "prism.view",
-						"node_uuid":      node.Uuid.String(),
+						"node_nid":       node.Nid,
 						"request_format": request.Format,
 					}).Debug("ViewHandler does not support current request")
 				}
@@ -175,7 +168,7 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 					if logger != nil {
 						logger.WithFields(log.Fields{
 							"module":          "prism.view",
-							"node_uuid":       node.Uuid.String(),
+							"node_nid":        node.Nid,
 							"node_type":       node.Type,
 							"request_format":  request.Format,
 							"view_template":   response.Template,
@@ -254,7 +247,7 @@ func PrismPath(router *router.Router) func(nv *pongo2.Value, vparams ...*pongo2.
 				route = "prism_path"
 			}
 		} else {
-			params.Set("uuid", node.Uuid.String())
+			params.Set("nid", node.Nid)
 
 			if len(params.Get("format")) > 0 {
 				route = "prism_format"
@@ -278,8 +271,8 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		r := app.Get("gonode.router").(*router.Router)
 		prefix := ""
 
-		r.Handle("prism_format", prefix+"/prism/:uuid.:format", RenderPrism(app))
-		r.Handle("prism", prefix+"/prism/:uuid", RenderPrism(app))
+		r.Handle("prism_format", prefix+"/prism/:nid.:format", RenderPrism(app))
+		r.Handle("prism", prefix+"/prism/:nid", RenderPrism(app))
 		r.Handle("prism_path_catch_all", prefix+"/*", RenderPrism(app))
 
 		// this should be never call, only there for route generation

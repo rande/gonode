@@ -32,15 +32,15 @@ func GetDriver() vault.VaultDriver {
 
 	driver := &vault.MockedDriver{}
 	driver.
-		// default string for 111...111 uuid
-		On("GetReader", "eb/60/6938046e0b96477b491c35ab8ce174ce96cfef588c827508a14822e16939.bin.vault").
+		// default string for 111...111 nid
+		On("GetReader", "81/bc/97c60b89515e9ace81c6aa83a4bbc908089c4ae401c2a6d0aeb84c84728b.bin.vault").
 		Return(fv, nil)
 
 	f, err := os.Open("../../test/fixtures/photo.jpg")
 	helper.PanicOnError(err)
 	driver.
-		// default string for 111...111 uuid
-		On("GetReader", "eb/60/6938046e0b96477b491c35ab8ce174ce96cfef588c827508a14822e16939.bin").
+		// default string for 111...111 nid
+		On("GetReader", "81/bc/97c60b89515e9ace81c6aa83a4bbc908089c4ae401c2a6d0aeb84c84728b.bin").
 		Return(f, nil)
 
 	return driver
@@ -81,8 +81,8 @@ func Test_MediaViewHandler_NoError_And_NoParam(t *testing.T) {
 func Test_MediaViewHandler_VaultError(t *testing.T) {
 	driver := &vault.MockedDriver{}
 	driver.
-		// default string for 111...111 uuid
-		On("GetReader", "eb/60/6938046e0b96477b491c35ab8ce174ce96cfef588c827508a14822e16939.bin.vault").
+		// default string for 111...111 nid
+		On("GetReader", "81/bc/97c60b89515e9ace81c6aa83a4bbc908089c4ae401c2a6d0aeb84c84728b.bin.vault").
 		Return(nil, errors.New("error"))
 
 	n := base.NewNode()

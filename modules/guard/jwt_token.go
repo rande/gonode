@@ -16,9 +16,9 @@ type JwtTokenMeta struct {
 }
 
 type JwtToken struct {
-	User  *base.Reference `json:"user"`
-	Key   []byte          `json:"key"`
-	Roles []string        `json:"roles"`
+	User  *string  `json:"user"`
+	Key   []byte   `json:"key"`
+	Roles []string `json:"roles"`
 }
 
 type JwtTokenHandler struct {

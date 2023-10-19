@@ -83,7 +83,7 @@ func Test_ImageHandler_PostUpdate(t *testing.T) {
 
 	handler := &ImageHandler{}
 	manager := &base.MockedManager{}
-	manager.On("Notify", "media_file_download", node.Uuid.String()).Return()
+	manager.On("Notify", "media_file_download", node.Nid).Return()
 
 	node.Data, node.Meta = handler.GetStruct()
 
@@ -97,7 +97,7 @@ func Test_ImageHandler_PostUpdate(t *testing.T) {
 
 	handler.PostUpdate(node, manager)
 
-	manager.AssertCalled(t, "Notify", "media_file_download", node.Uuid.String())
+	manager.AssertCalled(t, "Notify", "media_file_download", node.Nid)
 
 	a.Equal(node.Meta.(*ImageMeta).SourceStatus, base.ProcessStatusUpdate)
 }
@@ -109,7 +109,7 @@ func Test_ImageHandler_PostInsert(t *testing.T) {
 
 	handler := &ImageHandler{}
 	manager := &base.MockedManager{}
-	manager.On("Notify", "media_file_download", node.Uuid.String()).Return()
+	manager.On("Notify", "media_file_download", node.Nid).Return()
 
 	node.Data, node.Meta = handler.GetStruct()
 
@@ -123,7 +123,7 @@ func Test_ImageHandler_PostInsert(t *testing.T) {
 
 	handler.PostInsert(node, manager)
 
-	manager.AssertCalled(t, "Notify", "media_file_download", node.Uuid.String())
+	manager.AssertCalled(t, "Notify", "media_file_download", node.Nid)
 
 	a.Equal(node.Meta.(*ImageMeta).SourceStatus, base.ProcessStatusUpdate)
 }

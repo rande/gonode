@@ -62,15 +62,15 @@ func Test_Create_Media_With_Binary_Upload(t *testing.T) {
 
 		file, _ = os.Open("../fixtures/photo.jpg")
 
-		res, _ = test.RunRequest("PUT", ts.URL+"/api/v1.0/nodes/"+node.Uuid.CleanString()+"?raw", file, auth)
+		res, _ = test.RunRequest("PUT", ts.URL+"/api/v1.0/nodes/"+node.Nid+"?raw", file, auth)
 
 		assert.Equal(t, 200, res.StatusCode)
 
-		res, _ = test.RunRequest("GET", ts.URL+"/api/v1.0/nodes/"+node.Uuid.CleanString()+"?raw", nil, auth)
+		res, _ = test.RunRequest("GET", ts.URL+"/api/v1.0/nodes/"+node.Nid+"?raw", nil, auth)
 		assert.Equal(t, 200, res.StatusCode)
 		assert.Equal(t, "image/jpeg", res.Header.Get("Content-Type"))
 
-		res, _ = test.RunRequest("GET", ts.URL+"/api/v1.0/nodes/"+node.Uuid.CleanString(), nil, auth)
+		res, _ = test.RunRequest("GET", ts.URL+"/api/v1.0/nodes/"+node.Nid, nil, auth)
 		assert.Equal(t, 200, res.StatusCode)
 		assert.Equal(t, "application/json", res.Header.Get("Content-Type"))
 
@@ -111,10 +111,10 @@ func Test_Media_Resize_With_Orientation(t *testing.T) {
 
 			file, _ = os.Open(fmt.Sprintf("../fixtures/exif_orientation/f%d-exif.jpg", i))
 
-			res, _ = test.RunRequest("PUT", ts.URL+"/api/v1.0/nodes/"+node.Uuid.CleanString()+"?raw", file, auth)
+			res, _ = test.RunRequest("PUT", ts.URL+"/api/v1.0/nodes/"+node.Nid+"?raw", file, auth)
 			assert.Equal(t, http.StatusOK, res.StatusCode, message)
 
-			res, _ = test.RunRequest("GET", ts.URL+"/prism/"+node.Uuid.CleanString()+".jpg?mr=20", nil, auth)
+			res, _ = test.RunRequest("GET", ts.URL+"/prism/"+node.Nid+".jpg?mr=20", nil, auth)
 			assert.Equal(t, 200, res.StatusCode, message)
 			assert.Equal(t, "image/jpeg", res.Header.Get("Content-Type"), message)
 

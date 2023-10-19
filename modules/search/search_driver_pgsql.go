@@ -31,8 +31,8 @@ func GetJsonQuery(left string, sep string) string {
 }
 
 func GetJsonSearchQuery(query sq.SelectBuilder, params []*Param, field string) sq.SelectBuilder {
-	//-- SELECT uuid, "data" #> '{tags,1}' as tags FROM nodes WHERE  "data" @> '{"tags": ["sport"]}'
-	//-- SELECT uuid, "data" #> '{tags}' AS tags FROM nodes WHERE  "data" -> 'tags' ?| array['sport'];
+	//-- SELECT nid, "data" #> '{tags,1}' as tags FROM nodes WHERE  "data" @> '{"tags": ["sport"]}'
+	//-- SELECT nid, "data" #> '{tags}' AS tags FROM nodes WHERE  "data" -> 'tags' ?| array['sport'];
 	for _, param := range params {
 		value := param.Value.([]string)
 
@@ -69,8 +69,8 @@ func (s *SearchPGSQL) BuildQuery(searchForm *SearchForm, query sq.SelectBuilder)
 		query = query.OrderBy(GetJsonQuery(order.SubField, "->") + " " + order.Operation)
 	}
 
-	if searchForm.Uuid != nil {
-		query = query.Where(sq.Eq{"uuid": searchForm.Uuid.Value})
+	if searchForm.Nid != nil {
+		query = query.Where(sq.Eq{"nid": searchForm.Nid.Value})
 	}
 
 	if searchForm.Type != nil {
@@ -120,12 +120,12 @@ func (s *SearchPGSQL) BuildQuery(searchForm *SearchForm, query sq.SelectBuilder)
 		query = query.Where(sq.Eq{"created_by": searchForm.CreatedBy.Value})
 	}
 
-	if searchForm.ParentUuid != nil {
-		query = query.Where(sq.Eq{"parent_uuid": searchForm.ParentUuid.Value})
+	if searchForm.ParentNid != nil {
+		query = query.Where(sq.Eq{"parent_nid": searchForm.ParentNid.Value})
 	}
 
-	if searchForm.SetUuid != nil {
-		query = query.Where(sq.Eq{"set_uuid": searchForm.SetUuid.Value})
+	if searchForm.SetNid != nil {
+		query = query.Where(sq.Eq{"set_nid": searchForm.SetNid.Value})
 	}
 
 	if searchForm.Source != nil {

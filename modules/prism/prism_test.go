@@ -49,8 +49,8 @@ func Test_PrimPath_Node_With_Path(t *testing.T) {
 func Test_PrimPath_Node_Without_Path(t *testing.T) {
 
 	r := router.NewRouter(nil)
-	r.Handle("prism", "/prism/:uuid", func(c web.C, res http.ResponseWriter, req *http.Request) {})
-	r.Handle("prism_format", "/prism/:uuid.:format", func(c web.C, res http.ResponseWriter, req *http.Request) {})
+	r.Handle("prism", "/prism/:nid", func(c web.C, res http.ResponseWriter, req *http.Request) {})
+	r.Handle("prism_format", "/prism/:nid.:format", func(c web.C, res http.ResponseWriter, req *http.Request) {})
 
 	node := base.NewNode()
 
@@ -59,9 +59,9 @@ func Test_PrimPath_Node_Without_Path(t *testing.T) {
 		params url.Values
 		url    string
 	}{
-		{node, url.Values{}, "/prism/11111111-1111-1111-1111-111111111111"},
-		{node, url.Values{"name": []string{"foobar"}}, "/prism/11111111-1111-1111-1111-111111111111?name=foobar"},
-		{node, url.Values{"name": []string{"foobar"}, "format": []string{"html"}}, "/prism/11111111-1111-1111-1111-111111111111.html?name=foobar"},
+		{node, url.Values{}, "/prism/1111111111111111"},
+		{node, url.Values{"name": []string{"foobar"}}, "/prism/1111111111111111?name=foobar"},
+		{node, url.Values{"name": []string{"foobar"}, "format": []string{"html"}}, "/prism/1111111111111111.html?name=foobar"},
 	}
 
 	f := PrismPath(r)

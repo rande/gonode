@@ -68,9 +68,9 @@ func HandleImageReader(node *base.Node, v *vault.Vault, r io.Reader, logger *log
 
 	if logger != nil {
 		logger.WithFields(log.Fields{
-			"module":    "media.handle_image_reader",
-			"node_uuid": node.Uuid.String(),
-			"path":      path,
+			"module":   "media.handle_image_reader",
+			"node_nid": node.Nid,
+			"path":     path,
 		}).Debug("Start handling io.Reader to store image")
 	}
 
@@ -80,10 +80,10 @@ func HandleImageReader(node *base.Node, v *vault.Vault, r io.Reader, logger *log
 		if err != nil {
 			if logger != nil {
 				logger.WithFields(log.Fields{
-					"module":    "media.downloader",
-					"node_uuid": node.Uuid.String(),
-					"error":     err.Error(),
-					"path":      path,
+					"module":   "media.downloader",
+					"node_nid": node.Nid,
+					"error":    err.Error(),
+					"path":     path,
 				}).Warn("Unable to close temporary file")
 			}
 		}
@@ -93,10 +93,10 @@ func HandleImageReader(node *base.Node, v *vault.Vault, r io.Reader, logger *log
 		if err != nil {
 			if logger != nil {
 				logger.WithFields(log.Fields{
-					"module":    "media.downloader",
-					"node_uuid": node.Uuid.String(),
-					"error":     err.Error(),
-					"path":      path,
+					"module":   "media.downloader",
+					"node_nid": node.Nid,
+					"error":    err.Error(),
+					"path":     path,
 				}).Warn("Unable to delete temporary file")
 			}
 		}
@@ -106,10 +106,10 @@ func HandleImageReader(node *base.Node, v *vault.Vault, r io.Reader, logger *log
 	if err != nil {
 		if logger != nil {
 			logger.WithFields(log.Fields{
-				"module":    "media.downloader",
-				"node_uuid": node.Uuid.String(),
-				"error":     err.Error(),
-				"path":      path,
+				"module":   "media.downloader",
+				"node_nid": node.Nid,
+				"error":    err.Error(),
+				"path":     path,
 			}).Warn("Unable to copy io.Reader's buffer to temporary file")
 		}
 
@@ -123,10 +123,10 @@ func HandleImageReader(node *base.Node, v *vault.Vault, r io.Reader, logger *log
 	if err != nil {
 		if logger != nil {
 			logger.WithFields(log.Fields{
-				"module":    "media.downloader",
-				"node_uuid": node.Uuid.String(),
-				"error":     err.Error(),
-				"path":      path,
+				"module":   "media.downloader",
+				"node_nid": node.Nid,
+				"error":    err.Error(),
+				"path":     path,
 			}).Warn("Unable to put the file into the vault")
 		}
 
@@ -148,10 +148,10 @@ func HandleImageReader(node *base.Node, v *vault.Vault, r io.Reader, logger *log
 		if err != nil {
 			if err != nil {
 				logger.WithFields(log.Fields{
-					"module":    "media.downloader",
-					"node_uuid": node.Uuid.String(),
-					"error":     err.Error(),
-					"path":      path,
+					"module":   "media.downloader",
+					"node_nid": node.Nid,
+					"error":    err.Error(),
+					"path":     path,
 				}).Info("Unable to decode exif data")
 			}
 
@@ -175,9 +175,9 @@ func HandleImageReader(node *base.Node, v *vault.Vault, r io.Reader, logger *log
 
 	if logger != nil {
 		logger.WithFields(log.Fields{
-			"module":    "media.handle_image_reader",
-			"node_uuid": node.Uuid.String(),
-			"path":      path,
+			"module":   "media.handle_image_reader",
+			"node_nid": node.Nid,
+			"path":     path,
 		}).Debug("End handling io.Reader to store image")
 	}
 

@@ -10,13 +10,12 @@ import (
 	"encoding/json"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/google/uuid"
 	"github.com/rande/gonode/core/helper"
 )
 
 var (
-	emptyUuid = GetReference(uuid.MustParse("11111111-1111-1111-1111-111111111111"))
-	rootUuid  = GetReference(uuid.MustParse("00000000-0000-0000-0000-000000000000"))
+	emptyUuid = "1111111111111111"
+	rootUuid  = "0000000000000000"
 )
 
 func InterfaceToJsonMessage(ntype string, data interface{}) json.RawMessage {
@@ -27,11 +26,11 @@ func InterfaceToJsonMessage(ntype string, data interface{}) json.RawMessage {
 	return v
 }
 
-func GetEmptyReference() Reference {
+func GetEmptyReference() string {
 	return emptyUuid
 }
 
-func GetRootReference() Reference {
+func GetRootReference() string {
 	return rootUuid
 }
 
@@ -39,12 +38,12 @@ type NodeManager interface {
 	SelectBuilder(option *SelectOptions) sq.SelectBuilder
 	FindBy(query sq.SelectBuilder, offset uint64, limit uint64) *list.List
 	FindOneBy(query sq.SelectBuilder) *Node
-	Find(uuid Reference) *Node
+	Find(uuid string) *Node
 	Remove(query sq.SelectBuilder) error
 	RemoveOne(node *Node) (*Node, error)
 	Save(node *Node, revision bool) (*Node, error)
 	Notify(channel string, payload string)
 	NewNode(t string) *Node
 	Validate(node *Node) (bool, Errors)
-	Move(uuid, parent Reference) (int64, error)
+	Move(uuid, parent string) (int64, error)
 }

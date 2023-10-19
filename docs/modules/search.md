@@ -18,7 +18,7 @@ plugin to filter results.
 -   `page`: current page
 -   `per_page`: number of result per page
 -   `order_by`: field to order
--   `uuid`: array of uuid
+-   `nid`: array of nid
 -   `type`: array of type
 -   `name`: name to filter
 -   `slug`: slug to filter
@@ -30,11 +30,11 @@ plugin to filter results.
 -   `enabled`: boolean (f/0/false or t/1/true)
 -   `deleted`: boolean (f/0/false or t/1/true)
 -   `current`: boolean (f/0/false or t/1/true)
--   `updated_by`: array of uuid
--   `created_by`: array of uuid
--   `parent_uuid`: array of uuid
--   `set_uuid`: array of uuid
--   `source`: array of uuid
+-   `updated_by`: array of nid
+-   `created_by`: array of nid
+-   `parent_nid`: array of nid
+-   `set_nid`: array of nid
+-   `source`: array of nid
 
 ## search.index node
 

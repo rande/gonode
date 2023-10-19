@@ -83,13 +83,13 @@ func (a *Api) Find(query sq.SelectBuilder, page uint64, perPage uint64, options 
 
 func (a *Api) Save(node *base.Node, options *base.AccessOptions) (*base.Node, base.Errors, error) {
 	if a.Logger != nil {
-		a.Logger.Printf("trying to save node.uuid=%s, node.type=%s", node.Uuid, node.Type)
+		a.Logger.Printf("trying to save node.nid=%s, node.type=%s", node.Nid, node.Type)
 	}
 
-	saved := a.Manager.Find(node.Uuid)
+	saved := a.Manager.Find(node.Nid)
 
 	if saved != nil {
-		a.Logger.Printf("find uuid: %s", node.Uuid)
+		a.Logger.Printf("find nid: %s", node.Nid)
 
 		helper.PanicUnless(node.Type == saved.Type, "Type mismatch")
 
@@ -111,16 +111,16 @@ func (a *Api) Save(node *base.Node, options *base.AccessOptions) (*base.Node, ba
 
 		node.Id = saved.Id
 
-		// we cannot overwrite the Parents, Or the ParentUuid, need to use the http API
+		// we cannot overwrite the Parents, Or the ParentNid, need to use the http API
 		node.Parents = saved.Parents
-		node.ParentUuid = saved.ParentUuid
+		node.ParentNid = saved.ParentNid
 
 	} else if a.Logger != nil {
-		a.Logger.Printf("cannot find uuid: %s, create a new one", node.Uuid)
+		a.Logger.Printf("cannot find nid: %s, create a new one", node.Nid)
 	}
 
 	if a.Logger != nil {
-		a.Logger.Printf("saving node.id=%d, node.uuid=%s", node.Id, node.Uuid)
+		a.Logger.Printf("saving node.id=%d, node.nid=%s", node.Id, node.Nid)
 	}
 
 	if ok, errors := a.Manager.Validate(node); !ok {
@@ -132,35 +132,22 @@ func (a *Api) Save(node *base.Node, options *base.AccessOptions) (*base.Node, ba
 	return node, nil, err
 }
 
-func (a *Api) Move(nodeUuid, parentUuid string, options *base.AccessOptions) (*ApiOperation, error) {
+func (a *Api) Move(nodeNid, parentNid string, options *base.AccessOptions) (*ApiOperation, error) {
 	// handle node
-	nodeReference, err := base.GetReferenceFromString(nodeUuid)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if node := a.Manager.Find(nodeReference); node == nil {
+	if node := a.Manager.Find(nodeNid); node == nil {
 		return nil, base.ErrNotFound
 	} else if result, _ := a.Authorizer.IsGranted(options.Token, nil, node); !result {
 		return nil, base.ErrAccessForbidden
 	}
 
-	// parent node
-	parentReference, err := base.GetReferenceFromString(parentUuid)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if parent := a.Manager.Find(parentReference); parent == nil {
+	if parent := a.Manager.Find(parentNid); parent == nil {
 		return nil, base.ErrNotFound
 	} else if result, _ := a.Authorizer.IsGranted(options.Token, nil, parent); !result {
 		return nil, base.ErrAccessForbidden
 	}
 
 	// move node
-	if affectedNodes, err := a.Manager.Move(nodeReference, parentReference); err != nil {
+	if affectedNodes, err := a.Manager.Move(nodeNid, parentNid); err != nil {
 		return nil, err
 	} else {
 		return &ApiOperation{
@@ -170,14 +157,8 @@ func (a *Api) Move(nodeUuid, parentUuid string, options *base.AccessOptions) (*A
 	}
 }
 
-func (a *Api) FindOne(uuid string, options *base.AccessOptions) (*base.Node, error) {
-	reference, err := base.GetReferenceFromString(uuid)
-
-	if err != nil {
-		return nil, base.ErrNotFound
-	}
-
-	query := a.Manager.SelectBuilder(base.NewSelectOptions()).Where(sq.Eq{"uuid": reference.String()})
+func (a *Api) FindOne(nid string, options *base.AccessOptions) (*base.Node, error) {
+	query := a.Manager.SelectBuilder(base.NewSelectOptions()).Where(sq.Eq{"nid": nid})
 
 	return a.FindOneBy(query, options)
 }
@@ -200,14 +181,8 @@ func (a *Api) FindOneBy(query sq.SelectBuilder, options *base.AccessOptions) (*b
 	return node, nil
 }
 
-func (a *Api) RemoveOne(uuid string, options *base.AccessOptions) (*base.Node, error) {
-	reference, err := base.GetReferenceFromString(uuid)
-
-	if err != nil {
-		return nil, err
-	}
-
-	node := a.Manager.Find(reference)
+func (a *Api) RemoveOne(nid string, options *base.AccessOptions) (*base.Node, error) {
+	node := a.Manager.Find(nid)
 
 	if node == nil {
 		return nil, base.ErrNotFound

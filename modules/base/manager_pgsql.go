@@ -15,7 +15,6 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/core/security"
@@ -39,7 +38,7 @@ type SelectOptions struct {
 func NewSelectOptions() *SelectOptions {
 	return &SelectOptions{
 		TableSuffix:  "nodes",
-		SelectClause: "id, uuid, type, name, revision, version, created_at, updated_at, set_uuid, parent_uuid, parents, slug, path, created_by, updated_by, data, meta, modules, access, deleted, enabled, source, status, weight",
+		SelectClause: "id, nid, type, name, revision, version, created_at, updated_at, set_nid, parent_nid, parents, slug, path, created_by, updated_by, data, meta, modules, access, deleted, enabled, source, status, weight",
 	}
 }
 
@@ -120,8 +119,8 @@ func (m *PgNodeManager) FindOneBy(query sq.SelectBuilder) *Node {
 	return nil
 }
 
-func (m *PgNodeManager) Find(uuid Reference) *Node {
-	return m.FindOneBy(m.SelectBuilder(NewSelectOptions()).Where(sq.Eq{"uuid": uuid.String()}))
+func (m *PgNodeManager) Find(nid string) *Node {
+	return m.FindOneBy(m.SelectBuilder(NewSelectOptions()).Where(sq.Eq{"nid": nid}))
 }
 
 func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
@@ -131,9 +130,9 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 	meta := json.RawMessage{}
 	modules := json.RawMessage{}
 
-	Uuid := ""
-	SetUuid := ""
-	ParentUuid := ""
+	Nid := ""
+	SetNid := ""
+	ParentNid := ""
 	CreatedBy := ""
 	UpdatedBy := ""
 	Source := ""
@@ -142,15 +141,15 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 
 	err := rows.Scan(
 		&node.Id,
-		&Uuid,
+		&Nid,
 		&node.Type,
 		&node.Name,
 		&node.Revision,
 		&node.Version,
 		&node.CreatedAt,
 		&node.UpdatedAt,
-		&SetUuid,
-		&ParentUuid,
+		&SetNid,
+		&ParentNid,
 		&Parents,
 		&node.Slug,
 		&node.Path,
@@ -169,30 +168,20 @@ func (m *PgNodeManager) hydrate(rows *sql.Rows) *Node {
 
 	helper.PanicOnError(err)
 
-	var tmpUuid uuid.UUID
+	node.Nid = Nid
+	node.SetNid = SetNid
+	node.ParentNid = ParentNid
+	node.CreatedBy = CreatedBy
+	node.UpdatedBy = UpdatedBy
+	node.Source = Source
 
-	// transform UUID
-	tmpUuid, _ = uuid.Parse(Uuid)
-	node.Uuid = GetReference(tmpUuid)
-	tmpUuid, _ = uuid.Parse(SetUuid)
-	node.SetUuid = GetReference(tmpUuid)
-	tmpUuid, _ = uuid.Parse(ParentUuid)
-	node.ParentUuid = GetReference(tmpUuid)
-	tmpUuid, _ = uuid.Parse(CreatedBy)
-	node.CreatedBy = GetReference(tmpUuid)
-	tmpUuid, _ = uuid.Parse(UpdatedBy)
-	node.UpdatedBy = GetReference(tmpUuid)
-	tmpUuid, _ = uuid.Parse(Source)
-	node.Source = GetReference(tmpUuid)
+	pNids := make([]string, 0)
 
-	pUuids := make([]Reference, 0)
-
-	for _, ref := range Parents {
-		pUuid, _ := uuid.Parse(ref)
-		pUuids = append(pUuids, GetReference(pUuid))
+	for _, pNid := range Parents {
+		pNids = append(pNids, GetReference(pNid))
 	}
 
-	node.Parents = pUuids
+	node.Parents = pNids
 
 	for _, access := range Access {
 		node.Access = append(node.Access, access)
@@ -234,7 +223,7 @@ func (m *PgNodeManager) Remove(query sq.SelectBuilder) error {
 				Type:     node.Type,
 				Name:     node.Name,
 				Action:   "SoftDelete",
-				Subject:  node.Uuid.CleanString(),
+				Subject:  node.Nid,
 				Revision: node.Revision,
 				Date:     node.UpdatedAt,
 			})
@@ -242,7 +231,7 @@ func (m *PgNodeManager) Remove(query sq.SelectBuilder) error {
 			if m.Logger != nil {
 				m.Logger.WithFields(log.Fields{
 					"type":   node.Type,
-					"uuid":   node.Uuid,
+					"nid":    node.Nid,
 					"module": "node.manager",
 				}).Warn("soft delete many")
 			}
@@ -257,7 +246,7 @@ func (m *PgNodeManager) RemoveOne(node *Node) (*Node, error) {
 	if m.Logger != nil {
 		m.Logger.WithFields(log.Fields{
 			"type":   node.Type,
-			"uuid":   node.Uuid,
+			"nid":    node.Nid,
 			"module": "node.manager",
 		}).Warn("soft delete one")
 	}
@@ -265,7 +254,7 @@ func (m *PgNodeManager) RemoveOne(node *Node) (*Node, error) {
 	m.sendNotification(m.Prefix+"_manager_action", &ModelEvent{
 		Type:     node.Type,
 		Action:   "SoftDelete",
-		Subject:  node.Uuid.CleanString(),
+		Subject:  node.Nid,
 		Revision: node.Revision,
 		Date:     node.UpdatedAt,
 		Name:     node.Name,
@@ -275,17 +264,17 @@ func (m *PgNodeManager) RemoveOne(node *Node) (*Node, error) {
 }
 
 func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
-	if node.Uuid.String() == GetEmptyReference().String() {
-		node.Uuid = GetReference(uuid.New())
+	if node.Nid == GetEmptyReference() {
+		node.Nid = NewId()
 	}
 
 	if node.Slug == "" {
-		node.Slug = node.Uuid.String()
+		node.Slug = node.Nid
 	}
 
 	Parents := make(squirrel.StringSlice, 0)
 	for _, p := range node.Parents {
-		Parents = append(Parents, p.CleanString())
+		Parents = append(Parents, p)
 	}
 
 	node.Access = security.EnsureRoles(node.Access, "node:api:master")
@@ -297,31 +286,31 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 
 	query := sq.Insert(table).
 		Columns(
-			"uuid", "type", "revision", "version", "name", "created_at", "updated_at", "set_uuid",
-			"parent_uuid", "parents", "slug", "path", "created_by", "updated_by", "data", "meta", "modules",
+			"nid", "type", "revision", "version", "name", "created_at", "updated_at", "set_nid",
+			"parent_nid", "parents", "slug", "path", "created_by", "updated_by", "data", "meta", "modules",
 			"access", "deleted", "enabled", "source", "status", "weight").
 		Values(
-			node.Uuid.CleanString(),
+			node.Nid,
 			node.Type,
 			node.Revision,
 			node.Version,
 			node.Name,
 			node.CreatedAt,
 			node.UpdatedAt,
-			node.SetUuid.CleanString(),
-			node.ParentUuid.CleanString(),
+			node.SetNid,
+			node.ParentNid,
 			Parents,
 			node.Slug,
 			node.Path,
-			node.CreatedBy.CleanString(),
-			node.UpdatedBy.CleanString(),
+			node.CreatedBy,
+			node.UpdatedBy,
 			string(InterfaceToJsonMessage(node.Type, node.Data)[:]),
 			string(InterfaceToJsonMessage(node.Type, node.Meta)[:]),
 			string(InterfaceToJsonMessage(node.Type, node.Modules)[:]),
 			Access,
 			node.Deleted,
 			node.Enabled,
-			node.Source.CleanString(),
+			node.Source,
 			node.Status,
 			node.Weight,
 		).
@@ -334,19 +323,19 @@ func (m *PgNodeManager) insertNode(node *Node, table string) (*Node, error) {
 	return node, err
 }
 
-func (m *PgNodeManager) Move(uuid, parentUuid Reference) (int64, error) {
+func (m *PgNodeManager) Move(nid, parentNid string) (int64, error) {
 	tx, err := m.Db.Begin()
 
 	if err != nil {
 		return 0, err
 	}
 
-	r, err := tx.Exec(fmt.Sprintf(`UPDATE %s SET parent_uuid = $1 WHERE uuid = $2 AND EXISTS(SELECT uuid FROM %s WHERE uuid = $3 and $4 <> ALL(parents))`,
+	r, err := tx.Exec(fmt.Sprintf(`UPDATE %s SET parent_nid = $1 WHERE nid = $2 AND EXISTS(SELECT nid FROM %s WHERE nid = $3 and $4 <> ALL(parents))`,
 		m.Prefix+"_nodes", m.Prefix+"_nodes"),
-		parentUuid.CleanString(),
-		uuid.CleanString(),
-		parentUuid.CleanString(),
-		uuid.CleanString())
+		parentNid,
+		nid,
+		parentNid,
+		nid)
 
 	if err != nil {
 		tx.Rollback()
@@ -366,23 +355,23 @@ func (m *PgNodeManager) Move(uuid, parentUuid Reference) (int64, error) {
 		// @todo: optimize to only use the 2 tree's branches: source and target
 		//        to avoid rebuilding the full tree
 		tx.Exec(fmt.Sprintf(`WITH RECURSIVE  r AS (
-					SELECT uuid, parent_uuid, parents,
+					SELECT nid, parent_nid, parents,
 						CASE	WHEN type = 'core.root' THEN ''
 							WHEN array_length(parents, 1)>0 THEN path
 							ELSE '/' || slug::varchar(2000)
 						END as path
 					FROM %s r
-					WHERE uuid = $1::uuid
+					WHERE nid = $1::nid
 				UNION ALL
-					SELECT c.uuid, c.parent_uuid, array_append(r.parents, c.parent_uuid) AS parents, r.path || '/' || c.slug as path
+					SELECT c.nid, c.parent_nid, array_append(r.parents, c.parent_nid) AS parents, r.path || '/' || c.slug as path
 					FROM %s c
-					JOIN r ON c.parent_uuid = r.uuid
+					JOIN r ON c.parent_nid = r.nid
 			)
-			UPDATE %s n SET parents = r.parents, path = r.path FROM r WHERE r.uuid = n.uuid`,
+			UPDATE %s n SET parents = r.parents, path = r.path FROM r WHERE r.nid = n.nid`,
 			m.Prefix+"_nodes",
 			m.Prefix+"_nodes",
 			m.Prefix+"_nodes"),
-			parentUuid.CleanString())
+			parentNid)
 	}
 
 	err = tx.Commit()
@@ -407,25 +396,25 @@ func (m *PgNodeManager) updateNode(node *Node, table string) (*Node, error) {
 	}
 
 	query := sq.Update(m.Prefix+"_nodes").RunWith(m.Db).PlaceholderFormat(sq.Dollar).
-		Set("uuid", node.Uuid.CleanString()).
+		Set("nid", node.Nid).
 		Set("type", node.Type).
 		Set("revision", node.Revision).
 		Set("version", node.Version).
 		Set("name", node.Name).
 		Set("created_at", node.CreatedAt).
 		Set("updated_at", node.UpdatedAt).
-		Set("set_uuid", node.SetUuid.CleanString()).
+		Set("set_nid", node.SetNid).
 		Set("slug", node.Slug).
 		Set("path", node.Path).
-		Set("created_by", node.CreatedBy.CleanString()).
-		Set("updated_by", node.UpdatedBy.CleanString()).
+		Set("created_by", node.CreatedBy).
+		Set("updated_by", node.UpdatedBy).
 		Set("deleted", node.Deleted).
 		Set("enabled", node.Enabled).
 		Set("data", string(InterfaceToJsonMessage(node.Type, node.Data)[:])).
 		Set("meta", string(InterfaceToJsonMessage(node.Type, node.Meta)[:])).
 		Set("modules", string(InterfaceToJsonMessage(node.Type, node.Modules)[:])).
 		Set("access", Access).
-		Set("source", node.Source.CleanString()).
+		Set("source", node.Source).
 		Set("status", node.Status).
 		Set("weight", node.Weight).
 		Where("id = ?", node.Id)
@@ -451,7 +440,7 @@ func (m *PgNodeManager) Save(node *Node, newRevision bool) (*Node, error) {
 
 	if m.Logger != nil {
 		contextLogger = m.Logger.WithFields(log.Fields{
-			"uuid":     node.Uuid,
+			"nid":      node.Nid,
 			"id":       node.Id,
 			"type":     node.Type,
 			"revision": node.Revision,
@@ -492,7 +481,7 @@ func (m *PgNodeManager) Save(node *Node, newRevision bool) (*Node, error) {
 		m.sendNotification(m.Prefix+"_manager_action", &ModelEvent{
 			Type:        node.Type,
 			Action:      "Create",
-			Subject:     node.Uuid.CleanString(),
+			Subject:     node.Nid,
 			Date:        node.CreatedAt,
 			Name:        node.Name,
 			Revision:    node.Revision,
@@ -507,14 +496,14 @@ func (m *PgNodeManager) Save(node *Node, newRevision bool) (*Node, error) {
 	}
 
 	// 1. check if the one in the datastore is older
-	saved := m.FindOneBy(m.SelectBuilder(NewSelectOptions()).Where(sq.Eq{"uuid": node.Uuid.String()}))
+	saved := m.FindOneBy(m.SelectBuilder(NewSelectOptions()).Where(sq.Eq{"nid": node.Nid}))
 
 	if saved != nil && node.Revision != saved.Revision {
 		if contextLogger != nil {
 			contextLogger.Info("invalid revision for node")
 		}
 
-		return node, NewRevisionError(fmt.Sprintf("Invalid revision for node: %s, saved rev: %d, current rev: %d", node.Uuid, saved.Revision, node.Revision))
+		return node, NewRevisionError(fmt.Sprintf("Invalid revision for node: %s, saved rev: %d, current rev: %d", node.Nid, saved.Revision, node.Revision))
 	}
 
 	if contextLogger != nil {
@@ -556,7 +545,7 @@ func (m *PgNodeManager) Save(node *Node, newRevision bool) (*Node, error) {
 	m.sendNotification(m.Prefix+"_manager_action", &ModelEvent{
 		Type:        node.Type,
 		Action:      "Update",
-		Subject:     node.Uuid.CleanString(),
+		Subject:     node.Nid,
 		Revision:    node.Revision,
 		Date:        node.UpdatedAt,
 		Name:        node.Name,

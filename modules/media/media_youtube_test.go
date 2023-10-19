@@ -86,7 +86,7 @@ func Test_YoutubeHandler_PostUpdate(t *testing.T) {
 
 	handler := &YoutubeHandler{}
 	manager := &base.MockedManager{}
-	manager.On("Notify", "media_youtube_update", node.Uuid.String()).Return()
+	manager.On("Notify", "media_youtube_update", node.Nid).Return()
 
 	node.Data, node.Meta = handler.GetStruct()
 
@@ -100,7 +100,7 @@ func Test_YoutubeHandler_PostUpdate(t *testing.T) {
 
 	handler.PostUpdate(node, manager)
 
-	manager.AssertCalled(t, "Notify", "media_youtube_update", node.Uuid.String())
+	manager.AssertCalled(t, "Notify", "media_youtube_update", node.Nid)
 
 	a.Equal(node.Data.(*Youtube).Status, base.ProcessStatusUpdate)
 }
@@ -112,7 +112,7 @@ func Test_YoutubeHandler_PostInsert(t *testing.T) {
 
 	handler := &YoutubeHandler{}
 	manager := &base.MockedManager{}
-	manager.On("Notify", "media_youtube_update", node.Uuid.String()).Return()
+	manager.On("Notify", "media_youtube_update", node.Nid).Return()
 
 	node.Data, node.Meta = handler.GetStruct()
 
@@ -126,7 +126,7 @@ func Test_YoutubeHandler_PostInsert(t *testing.T) {
 
 	handler.PostInsert(node, manager)
 
-	manager.AssertCalled(t, "Notify", "media_youtube_update", node.Uuid.String())
+	manager.AssertCalled(t, "Notify", "media_youtube_update", node.Nid)
 
 	a.Equal(node.Data.(*Youtube).Status, base.ProcessStatusUpdate)
 }
@@ -142,7 +142,7 @@ func Test_YoutubeListener_NodeNotFound(t *testing.T) {
 	manager.On("Find", base.GetEmptyReference()).Return(nil)
 
 	notification := &pq.Notification{
-		Extra: "11111111-1111-1111-1111-111111111111",
+		Extra: "1111111111111111",
 	}
 
 	l.Handle(notification, manager)
@@ -198,7 +198,7 @@ func Test_YoutubeListener_Found(t *testing.T) {
 	manager.On("NewNode", "media.image").Return(nodeImage, nil)
 
 	notification := &pq.Notification{
-		Extra: "11111111-1111-1111-1111-111111111111",
+		Extra: "1111111111111111",
 	}
 
 	l.Handle(notification, manager)

@@ -36,26 +36,26 @@ func NewParam(v interface{}, options ...string) *Param {
 }
 
 type SearchForm struct {
-	Page       uint64   `json:"page"`
-	PerPage    uint64   `json:"per_page"`
-	OrderBy    []*Param `json:"order_by"`
-	Uuid       *Param   `json:"uuid"`
-	Type       *Param   `json:"type"`
-	Name       *Param   `json:"name"`
-	Slug       *Param   `json:"slug"`
-	Data       []*Param `json:"data"`
-	Meta       []*Param `json:"meta"`
-	Status     *Param   `json:"status"`
-	Weight     *Param   `json:"weight"`
-	Revision   *Param   `json:"revision"`
-	Enabled    *Param   `json:"enabled"`
-	Deleted    *Param   `json:"deleted"`
-	Current    *Param   `json:"current"`
-	UpdatedBy  *Param   `json:"updated_by"`
-	CreatedBy  *Param   `json:"created_by"`
-	ParentUuid *Param   `json:"parent_uuid"`
-	SetUuid    *Param   `json:"set_uuid"`
-	Source     *Param   `json:"source"`
+	Page      uint64   `json:"page"`
+	PerPage   uint64   `json:"per_page"`
+	OrderBy   []*Param `json:"order_by"`
+	Nid       *Param   `json:"nid"`
+	Type      *Param   `json:"type"`
+	Name      *Param   `json:"name"`
+	Slug      *Param   `json:"slug"`
+	Data      []*Param `json:"data"`
+	Meta      []*Param `json:"meta"`
+	Status    *Param   `json:"status"`
+	Weight    *Param   `json:"weight"`
+	Revision  *Param   `json:"revision"`
+	Enabled   *Param   `json:"enabled"`
+	Deleted   *Param   `json:"deleted"`
+	Current   *Param   `json:"current"`
+	UpdatedBy *Param   `json:"updated_by"`
+	CreatedBy *Param   `json:"created_by"`
+	ParentNid *Param   `json:"parent_nid"`
+	SetNid    *Param   `json:"set_nid"`
+	Source    *Param   `json:"source"`
 }
 
 func NewSearchForm() *SearchForm {
@@ -71,7 +71,7 @@ func NewSearchFormFromIndex(index *Index) *SearchForm {
 	// we just copy over node to create search form
 	search := NewSearchForm()
 	search.OrderBy = index.OrderBy
-	search.Uuid = index.Uuid
+	search.Nid = index.Nid
 	search.Type = index.Type
 	search.Name = index.Name
 	search.Slug = index.Slug
@@ -85,8 +85,8 @@ func NewSearchFormFromIndex(index *Index) *SearchForm {
 	search.Current = index.Current
 	search.UpdatedBy = index.UpdatedBy
 	search.CreatedBy = index.CreatedBy
-	search.ParentUuid = index.ParentUuid
-	search.SetUuid = index.SetUuid
+	search.ParentNid = index.ParentNid
+	search.SetNid = index.SetNid
 	search.Source = index.Source
 
 	return search

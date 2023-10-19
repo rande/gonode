@@ -42,7 +42,7 @@ func Setup_Feed_Data(app *goapp.App) *base.Node {
 	post.Access = []string{"node:prism:render", "IS_AUTHENTICATED_ANONYMOUSLY"}
 
 	manager.Save(post, false)
-	manager.Move(post.Uuid, home.Uuid)
+	manager.Move(post.Nid, home.Nid)
 
 	post2 := app.Get("gonode.handler_collection").(base.HandlerCollection).NewNode("blog.post")
 	post2.Name = "Article 2"
@@ -50,7 +50,7 @@ func Setup_Feed_Data(app *goapp.App) *base.Node {
 	post2.Access = []string{"node:prism:render", "IS_AUTHENTICATED_ANONYMOUSLY"}
 
 	manager.Save(post2, false)
-	manager.Move(post2.Uuid, home.Uuid)
+	manager.Move(post2.Nid, home.Nid)
 
 	index := app.Get("gonode.handler_collection").(base.HandlerCollection).NewNode("feed.index")
 	index.Name = "Feed"
@@ -64,7 +64,7 @@ func Setup_Feed_Data(app *goapp.App) *base.Node {
 	data.Index.Type = search.NewParam("blog.post")
 
 	manager.Save(index, false)
-	manager.Move(index.Uuid, home.Uuid)
+	manager.Move(index.Nid, home.Nid)
 
 	return index
 }
@@ -76,7 +76,7 @@ func Test_Feed_RSS(t *testing.T) {
 
 		// WHEN
 		fp := gofeed.NewParser()
-		f, err := fp.ParseURL(fmt.Sprintf("%s/prism/%s.rss", ts.URL, index.Uuid))
+		f, err := fp.ParseURL(fmt.Sprintf("%s/prism/%s.rss", ts.URL, index.Nid))
 
 		assert.NoError(t, err)
 
@@ -93,7 +93,7 @@ func Test_Feed_Atom(t *testing.T) {
 
 		// WHEN
 		fp := gofeed.NewParser()
-		f, err := fp.ParseURL(fmt.Sprintf("%s/prism/%s.atom", ts.URL, index.Uuid))
+		f, err := fp.ParseURL(fmt.Sprintf("%s/prism/%s.atom", ts.URL, index.Nid))
 
 		assert.NoError(t, err)
 

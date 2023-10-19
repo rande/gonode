@@ -72,7 +72,7 @@ func (h *ImageHandler) PostInsert(node *base.Node, m base.NodeManager) error {
 	meta := node.Meta.(*ImageMeta)
 
 	if meta.SourceStatus == base.ProcessStatusUpdate {
-		m.Notify("media_file_download", node.Uuid.String())
+		m.Notify("media_file_download", node.Nid)
 	}
 
 	return nil
@@ -82,7 +82,7 @@ func (h *ImageHandler) PostUpdate(node *base.Node, m base.NodeManager) error {
 	meta := node.Meta.(*ImageMeta)
 
 	if meta.SourceStatus == base.ProcessStatusUpdate {
-		m.Notify("media_file_download", node.Uuid.String())
+		m.Notify("media_file_download", node.Nid)
 	}
 
 	return nil
@@ -113,23 +113,13 @@ type ImageDownloadListener struct {
 }
 
 func (l *ImageDownloadListener) Handle(notification *pq.Notification, m base.NodeManager) (int, error) {
-	reference, err := base.GetReferenceFromString(notification.Extra)
-
-	if err != nil {
-		l.Logger.WithFields(log.Fields{
-			"module":    "media.downloader",
-			"node_uuid": notification.Extra,
-		}).Debug("Unable to parse reference")
-
-		// unable to parse the reference
-		return base.PubSubListenContinue, nil
-	}
+	reference := notification.Extra
 
 	if l.Logger != nil {
 		l.Logger.WithFields(log.Fields{
-			"module":    "media.downloader",
-			"node_uuid": notification.Extra,
-		}).Debug("Download binary from uuid")
+			"module":   "media.downloader",
+			"node_nid": notification.Extra,
+		}).Debug("Download binary from nid")
 	}
 
 	node := m.Find(reference)
@@ -137,9 +127,9 @@ func (l *ImageDownloadListener) Handle(notification *pq.Notification, m base.Nod
 	if node == nil {
 		if l.Logger != nil {
 			l.Logger.WithFields(log.Fields{
-				"module":    "media.downloader",
-				"node_uuid": notification.Extra,
-			}).Info("Unable to download file, uuid does not exist")
+				"module":   "media.downloader",
+				"node_nid": notification.Extra,
+			}).Info("Unable to download file, nid does not exist")
 		}
 
 		return base.PubSubListenContinue, nil
@@ -152,7 +142,7 @@ func (l *ImageDownloadListener) Handle(notification *pq.Notification, m base.Nod
 		if l.Logger != nil {
 			l.Logger.WithFields(log.Fields{
 				"module":             "media.downloader",
-				"node_uuid":          notification.Extra,
+				"node_nid":           notification.Extra,
 				"meta_source_status": base.ProcessStatusDone,
 			}).Warn("Stop downloading process, already done! (race condition ?)")
 		}
@@ -169,7 +159,7 @@ func (l *ImageDownloadListener) Handle(notification *pq.Notification, m base.Nod
 		if l.Logger != nil {
 			l.Logger.WithFields(log.Fields{
 				"module":             "media.downloader",
-				"node_uuid":          notification.Extra,
+				"node_nid":           notification.Extra,
 				"error":              err.Error(),
 				"meta_source_status": base.ProcessStatusError,
 			}).Warn("Unable to retrieve the remote file")
@@ -197,8 +187,8 @@ func (l *ImageDownloadListener) Handle(notification *pq.Notification, m base.Nod
 
 	if l.Logger != nil {
 		l.Logger.WithFields(log.Fields{
-			"module":    "media.downloader",
-			"node_uuid": notification.Extra,
+			"module":   "media.downloader",
+			"node_nid": notification.Extra,
 		}).Debug("File downloaded!")
 	}
 

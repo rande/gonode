@@ -20,26 +20,26 @@ var (
 )
 
 type HttpSearchForm struct {
-	Page       int64               `schema:"page"`
-	PerPage    int64               `schema:"per_page"`
-	OrderBy    []string            `schema:"order_by"`
-	Uuid       []string            `schema:"uuid"`
-	Type       []string            `schema:"type"`
-	Name       string              `schema:"name"`
-	Slug       string              `schema:"slug"`
-	Data       map[string][]string `schema:"data"`
-	Meta       map[string][]string `schema:"meta"`
-	Status     []string            `schema:"status"`
-	Weight     []string            `schema:"weight"`
-	Revision   string              `schema:"revision"`
-	Enabled    string              `schema:"enabled"`
-	Deleted    string              `schema:"deleted"`
-	Current    string              `schema:"current"`
-	UpdatedBy  []string            `schema:"updated_by"`
-	CreatedBy  []string            `schema:"created_by"`
-	ParentUuid []string            `schema:"parent_uuid"`
-	SetUuid    []string            `schema:"set_uuid"`
-	Source     []string            `schema:"source"`
+	Page      int64               `schema:"page"`
+	PerPage   int64               `schema:"per_page"`
+	OrderBy   []string            `schema:"order_by"`
+	Nid       []string            `schema:"nid"`
+	Type      []string            `schema:"type"`
+	Name      string              `schema:"name"`
+	Slug      string              `schema:"slug"`
+	Data      map[string][]string `schema:"data"`
+	Meta      map[string][]string `schema:"meta"`
+	Status    []string            `schema:"status"`
+	Weight    []string            `schema:"weight"`
+	Revision  string              `schema:"revision"`
+	Enabled   string              `schema:"enabled"`
+	Deleted   string              `schema:"deleted"`
+	Current   string              `schema:"current"`
+	UpdatedBy []string            `schema:"updated_by"`
+	CreatedBy []string            `schema:"created_by"`
+	ParentNid []string            `schema:"parent_nid"`
+	SetNid    []string            `schema:"set_nid"`
+	Source    []string            `schema:"source"`
 }
 
 func GetHttpSearchForm() *HttpSearchForm {
@@ -92,8 +92,8 @@ func (h *HttpSearchParser) HandleSearch(res http.ResponseWriter, req *http.Reque
 		searchForm.OrderBy = append(searchForm.OrderBy, NewParam(nil, r[0][2], r[0][1]))
 	}
 
-	if len(httpSearchForm.Uuid) > 0 {
-		searchForm.Uuid = NewParam(httpSearchForm.Uuid, "=")
+	if len(httpSearchForm.Nid) > 0 {
+		searchForm.Nid = NewParam(httpSearchForm.Nid, "=")
 	}
 
 	if len(httpSearchForm.Type) > 0 {
@@ -177,12 +177,12 @@ func (h *HttpSearchParser) HandleSearch(res http.ResponseWriter, req *http.Reque
 		searchForm.CreatedBy = NewParam(httpSearchForm.CreatedBy, "=")
 	}
 
-	if len(httpSearchForm.ParentUuid) > 0 {
-		searchForm.ParentUuid = NewParam(httpSearchForm.ParentUuid, "=")
+	if len(httpSearchForm.ParentNid) > 0 {
+		searchForm.ParentNid = NewParam(httpSearchForm.ParentNid, "=")
 	}
 
-	if len(httpSearchForm.SetUuid) > 0 {
-		searchForm.SetUuid = NewParam(httpSearchForm.SetUuid, "=")
+	if len(httpSearchForm.SetNid) > 0 {
+		searchForm.SetNid = NewParam(httpSearchForm.SetNid, "=")
 	}
 
 	if len(httpSearchForm.Source) > 0 {

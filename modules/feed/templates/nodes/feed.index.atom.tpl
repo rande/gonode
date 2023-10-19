@@ -6,8 +6,8 @@
     {% for elm in pager.Elements %}
         <entry>
             <title>{{ node_data(elm, "Title") }}</title>
-            <link rel="alternate" type="text/html" href="{{ url("prism", url_values("uuid", elm.Uuid), request_context) }}"/>
-            <id>{{ elm.Uuid }}</id>
+            <link rel="alternate" type="text/html" href="{{ url("prism", url_values("nid", elm.Nid), request_context) }}"/>
+            <id>{{ elm.Nid }}</id>
             <summary><![CDATA[{{ node_data(elm, "Content") }}]]></summary>
         </entry>
     {% endfor %}

@@ -48,7 +48,7 @@ func Test_Access_FindOne_NoResult(t *testing.T) {
 
 		auth := test.GetAuthHeaderFromCredentials("dummy", "dummy", ts)
 
-		res, _ := test.RunRequest("GET", fmt.Sprintf("%s/api/v1.0/nodes/%s", ts.URL, node.Uuid.String()), nil, auth)
+		res, _ := test.RunRequest("GET", fmt.Sprintf("%s/api/v1.0/nodes/%s", ts.URL, node.Nid), nil, auth)
 
 		fmt.Print(res.GetBodyAsString())
 
@@ -68,7 +68,7 @@ func Test_Access_FindOne_Result(t *testing.T) {
 
 		auth := test.GetDefaultAuthHeader(ts)
 
-		res, _ := test.RunRequest("GET", fmt.Sprintf("%s/api/v1.0/nodes/%s", ts.URL, node.Uuid.String()), nil, auth)
+		res, _ := test.RunRequest("GET", fmt.Sprintf("%s/api/v1.0/nodes/%s", ts.URL, node.Nid), nil, auth)
 
 		assert.Equal(t, 200, res.StatusCode, "Should find a node as roles match")
 	})
@@ -103,7 +103,7 @@ func Test_Access_RemoveOne_NoResult(t *testing.T) {
 
 		auth := test.GetAuthHeaderFromCredentials("dummy", "dummy", ts)
 
-		res, _ := test.RunRequest("DELETE", fmt.Sprintf("%s/api/v1.0/nodes/%s", ts.URL, node.Uuid.String()), nil, auth)
+		res, _ := test.RunRequest("DELETE", fmt.Sprintf("%s/api/v1.0/nodes/%s", ts.URL, node.Nid), nil, auth)
 
 		assert.Equal(t, 403, res.StatusCode)
 	})
@@ -121,7 +121,7 @@ func Test_Access_RemoveOne_Result(t *testing.T) {
 
 		auth := test.GetDefaultAuthHeader(ts)
 
-		res, _ := test.RunRequest("DELETE", fmt.Sprintf("%s/api/v1.0/nodes/%s", ts.URL, node.Uuid.String()), nil, auth)
+		res, _ := test.RunRequest("DELETE", fmt.Sprintf("%s/api/v1.0/nodes/%s", ts.URL, node.Nid), nil, auth)
 
 		assert.Equal(t, 200, res.StatusCode)
 	})

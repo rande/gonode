@@ -165,13 +165,7 @@ func Api_GET_Node(app *goapp.App) func(c web.C, res http.ResponseWriter, req *ht
 
 		if _, raw := values["raw"]; raw {
 			// ask for binary content
-			reference, err := base.GetReferenceFromString(c.URLParams["uuid"])
-
-			if err != nil {
-				base.HandleError(req, res, err)
-
-				return
-			}
+			reference := c.URLParams["nid"]
 
 			node := manager.Find(reference)
 
@@ -208,7 +202,7 @@ func Api_GET_Node(app *goapp.App) func(c web.C, res http.ResponseWriter, req *ht
 
 			options := base.NewAccessOptionsFromToken(token)
 
-			if node, err := apiHandler.FindOne(c.URLParams["uuid"], options); err != nil {
+			if node, err := apiHandler.FindOne(c.URLParams["nid"], options); err != nil {
 				base.HandleError(req, res, err)
 			} else {
 				serializer.Serialize(res, node)
@@ -240,7 +234,7 @@ func Api_GET_Node_Revisions(app *goapp.App) func(c web.C, res http.ResponseWrite
 		selectOptions.TableSuffix = "nodes_audit"
 
 		query := apiHandler.SelectBuilder(selectOptions).
-			Where("uuid = ?", c.URLParams["uuid"])
+			Where("nid = ?", c.URLParams["nid"])
 
 		options := base.NewAccessOptionsFromToken(token)
 
@@ -281,7 +275,7 @@ func Api_GET_Node_Revision(app *goapp.App) func(c web.C, res http.ResponseWriter
 		selectOptions.TableSuffix = "nodes_audit"
 
 		query := apiHandler.SelectBuilder(selectOptions).
-			Where("uuid = ?", c.URLParams["uuid"]).
+			Where("nid = ?", c.URLParams["nid"]).
 			Where("revision = ?", c.URLParams["rev"])
 
 		options := base.NewAccessOptionsFromToken(token)
@@ -341,6 +335,8 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 		token := security.GetTokenFromContext(c)
 		attrs := security.Attributes{"node:api:master", "node:api:update"}
 
+		var err error
+
 		if !Check(c, res, req, attrs, authorizer) {
 			return
 		}
@@ -351,12 +347,7 @@ func Api_PUT_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req *h
 
 		if _, raw := values["raw"]; raw {
 			// send binary data
-			reference, err := base.GetReferenceFromString(c.URLParams["uuid"])
-
-			if err != nil {
-				base.HandleError(req, res, err)
-				return
-			}
+			reference := c.URLParams["nid"]
 
 			node := manager.Find(reference)
 
@@ -429,7 +420,7 @@ func Api_PUT_Nodes_Move(app *goapp.App) func(c web.C, res http.ResponseWriter, r
 
 		options := base.NewAccessOptionsFromToken(token)
 
-		if result, err := apiHandler.Move(c.URLParams["uuid"], c.URLParams["parentUuid"], options); err != nil {
+		if result, err := apiHandler.Move(c.URLParams["nid"], c.URLParams["parentNid"], options); err != nil {
 			base.HandleError(req, res, err)
 		} else {
 			serializer.Serialize(res, result)
@@ -452,7 +443,7 @@ func Api_DELETE_Nodes(app *goapp.App) func(c web.C, res http.ResponseWriter, req
 
 		options := base.NewAccessOptionsFromToken(token)
 
-		if node, err := apiHandler.RemoveOne(c.URLParams["uuid"], options); err != nil {
+		if node, err := apiHandler.RemoveOne(c.URLParams["nid"], options); err != nil {
 			base.HandleError(req, res, err)
 		} else {
 			serializer.Serialize(res, node)

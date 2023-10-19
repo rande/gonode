@@ -37,7 +37,7 @@ func Test_Prism_Blog_Archive(t *testing.T) {
 		manager.Save(archive, false)
 
 		// WHEN
-		res, _ := test.RunRequest("GET", fmt.Sprintf("%s/prism/%s", ts.URL, archive.Uuid))
+		res, _ := test.RunRequest("GET", fmt.Sprintf("%s/prism/%s", ts.URL, archive.Nid))
 
 		// THEN
 		assert.Equal(t, http.StatusOK, res.StatusCode)
@@ -57,7 +57,7 @@ func Test_Prism_Bad_Request(t *testing.T) {
 
 		manager.Save(node, false)
 
-		res, _ := test.RunRequest("GET", fmt.Sprintf("%s/prism/%s.json", ts.URL, node.Uuid))
+		res, _ := test.RunRequest("GET", fmt.Sprintf("%s/prism/%s.json", ts.URL, node.Nid))
 
 		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
@@ -79,7 +79,7 @@ func Test_Prism_Format(t *testing.T) {
 		raw.Access = []string{"node:prism:render", "IS_AUTHENTICATED_ANONYMOUSLY"}
 
 		manager.Save(raw, false)
-		manager.Move(raw.Uuid, home.Uuid)
+		manager.Move(raw.Nid, home.Nid)
 
 		raw2 := app.Get("gonode.handler_collection").(base.HandlerCollection).NewNode("core.raw")
 		raw2.Name = "Humans"
@@ -87,7 +87,7 @@ func Test_Prism_Format(t *testing.T) {
 		raw2.Access = []string{"node:prism:render", "IS_AUTHENTICATED_ANONYMOUSLY"}
 
 		manager.Save(raw2, false)
-		manager.Move(raw2.Uuid, home.Uuid)
+		manager.Move(raw2.Nid, home.Nid)
 
 		res, _ := test.RunRequest("GET", fmt.Sprintf("%s/humans", ts.URL))
 
@@ -115,7 +115,7 @@ func Test_Prism_Forbidden(t *testing.T) {
 		raw.Access = []string{}
 
 		manager.Save(raw, false)
-		manager.Move(raw.Uuid, home.Uuid)
+		manager.Move(raw.Nid, home.Nid)
 
 		res, _ := test.RunRequest("GET", fmt.Sprintf("%s/humans.txt", ts.URL))
 

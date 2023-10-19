@@ -27,7 +27,7 @@ import (
 logger := app.Get("logger").(*log.Logger)
 logger.WithFields(log.Fields{
     "type":   node.Type,
-    "uuid":   node.Uuid,
+    "nid":   node.Nid,
     "module": "core.manager",
 }).Warn("soft delete one")
 

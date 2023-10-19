@@ -8,10 +8,10 @@
         {% for elm in pager.Elements %}
             <item>
                  <title>{{ node_data(elm, "Title") }}</title>
-                 <link>{{ url("prism", url_values("uuid", elm.Uuid), request_context) }}</link>
+                 <link>{{ url("prism", url_values("nid", elm.Nid), request_context) }}</link>
                  <description><![CDATA[{{ node_data(elm, "Content") }}]]></description>
                  <pubDate>{{ node_data(elm, "PublicationDate") }}</pubDate>
-                 <gui>{{ elm.Uuid }}</gui>
+                 <gui>{{ elm.Nid }}</gui>
             </item>
         {% endfor %}
     </channel>

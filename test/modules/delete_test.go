@@ -42,7 +42,7 @@ func Test_Delete_Existant_Node(t *testing.T) {
 
 		assert.Equal(t, "core.user", node.Type)
 
-		res, _ = test.RunRequest("DELETE", ts.URL+"/api/v1.0/nodes/"+node.Uuid.CleanString(), nil, auth)
+		res, _ = test.RunRequest("DELETE", ts.URL+"/api/v1.0/nodes/"+node.Nid, nil, auth)
 		assert.Equal(t, 200, res.StatusCode)
 
 		serializer.Deserialize(res.Body, node)
@@ -50,7 +50,7 @@ func Test_Delete_Existant_Node(t *testing.T) {
 		assert.Equal(t, node.Deleted, true)
 
 		// test if we can delete a deleted node ...
-		res, _ = test.RunRequest("DELETE", ts.URL+"/api/v1.0/nodes/"+node.Uuid.CleanString(), nil, auth)
+		res, _ = test.RunRequest("DELETE", ts.URL+"/api/v1.0/nodes/"+node.Nid, nil, auth)
 		assert.Equal(t, 410, res.StatusCode)
 	})
 }
@@ -65,7 +65,7 @@ func Test_Delete_Find_Filter(t *testing.T) {
 
 		assert.Equal(t, 4, len(p.Elements))
 
-		res, _ = test.RunRequest("DELETE", ts.URL+"/api/v1.0/nodes/"+nodes[0].Uuid.CleanString(), nil, auth)
+		res, _ = test.RunRequest("DELETE", ts.URL+"/api/v1.0/nodes/"+nodes[0].Nid, nil, auth)
 		assert.Equal(t, 200, res.StatusCode)
 
 		res, _ = test.RunRequest("GET", ts.URL+"/api/v1.0/nodes", nil, auth)

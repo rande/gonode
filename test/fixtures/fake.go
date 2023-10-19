@@ -73,7 +73,7 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 	// create user
 	admin := base.NewNode()
 
-	admin.Uuid = base.GetRootReference()
+	admin.Nid = base.GetRootReference()
 	admin.Type = "core.user"
 	admin.Name = "The admin user"
 	admin.Slug = "the-admin-user"
@@ -92,8 +92,8 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 
 	for i := 1; i < max; i++ {
 		node := GetFakeUserNode(i)
-		node.UpdatedBy = admin.Uuid
-		node.CreatedBy = admin.Uuid
+		node.UpdatedBy = admin.Nid
+		node.CreatedBy = admin.Nid
 		node.Access = []string{"node:api:master", "node:api:read", "node:owner:XXXXXX", "node:prism:render"}
 
 		_, err = m.Save(node, false)
@@ -103,8 +103,8 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 
 	for i := 1; i < max; i++ {
 		node := GetFakeMediaNode(i)
-		node.UpdatedBy = admin.Uuid
-		node.CreatedBy = admin.Uuid
+		node.UpdatedBy = admin.Nid
+		node.CreatedBy = admin.Nid
 		node.Access = []string{"node:api:master", "node:api:read", "node:owner:XXXXXX", "node:prism:render"}
 
 		_, err = m.Save(node, false)
@@ -132,24 +132,29 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 		Type: search.NewParam([]string{"blog.post"}),
 	}
 	archive.Meta = &search.IndexMeta{}
-	archive.Access = []string{"node:api:master", "node:api:read", "node:owner:XXXXXX", "node:prism:render"}
+	archive.Access = []string{
+		"node:api:master",
+		"node:api:read",
+		"node:owner:XXXXXX",
+		"node:prism:render",
+	}
 
 	_, err = m.Save(archive, false)
 	helper.PanicOnError(err)
 
-	_, err = m.Move(archive.Uuid, root.Uuid)
+	_, err = m.Move(archive.Nid, root.Nid)
 	helper.PanicOnError(err)
 
 	for i := 1; i < max; i++ {
 		node := GetFakePostNode(i)
-		node.UpdatedBy = admin.Uuid
-		node.CreatedBy = admin.Uuid
+		node.UpdatedBy = admin.Nid
+		node.CreatedBy = admin.Nid
 		node.Access = []string{"node:api:master", "node:api:read", "node:owner:XXXXXX", "node:prism:render"}
 
 		_, err = m.Save(node, false)
 		helper.PanicOnError(err)
 
-		_, err = m.Move(node.Uuid, archive.Uuid)
+		_, err = m.Move(node.Nid, archive.Nid)
 		helper.PanicOnError(err)
 	}
 
@@ -171,7 +176,7 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 	_, err = m.Save(f, false)
 	helper.PanicOnError(err)
 
-	_, err = m.Move(f.Uuid, root.Uuid)
+	_, err = m.Move(f.Nid, root.Nid)
 	helper.PanicOnError(err)
 
 	// create human.txt
@@ -190,7 +195,7 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 	_, err = m.Save(h, false)
 	helper.PanicOnError(err)
 
-	_, err = m.Move(h.Uuid, root.Uuid)
+	_, err = m.Move(h.Nid, root.Nid)
 	helper.PanicOnError(err)
 
 	// create real image

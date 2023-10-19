@@ -40,31 +40,31 @@ func Test_Create_Parents_With_Manager(t *testing.T) {
 		manager.Save(node4, false)
 
 		// WHEN
-		affectedRows, err := manager.Move(node2.Uuid, node1.Uuid)
+		affectedRows, err := manager.Move(node2.Nid, node1.Nid)
 		assert.Nil(t, err)
 		assert.Equal(t, affectedRows, int64(1))
 
-		affectedRows, err = manager.Move(node3.Uuid, node2.Uuid)
+		affectedRows, err = manager.Move(node3.Nid, node2.Nid)
 		assert.Nil(t, err)
 		assert.Equal(t, affectedRows, int64(1))
 
-		affectedRows, err = manager.Move(node4.Uuid, node3.Uuid)
+		affectedRows, err = manager.Move(node4.Nid, node3.Nid)
 		assert.Nil(t, err)
 		assert.Equal(t, affectedRows, int64(1))
 
 		// cannot move a parent node into its child
-		affectedRows, err = manager.Move(node1.Uuid, node4.Uuid)
+		affectedRows, err = manager.Move(node1.Nid, node4.Nid)
 		assert.Nil(t, err)
 		assert.Equal(t, affectedRows, int64(0))
 
 		// retrieve a saved node
-		node := manager.Find(node4.Uuid)
+		node := manager.Find(node4.Nid)
 
 		assert.Equal(t, 3, len(node.Parents))
-		assert.Contains(t, node.Parents, node1.Uuid)
-		assert.Contains(t, node.Parents, node2.Uuid)
-		assert.Contains(t, node.Parents, node3.Uuid)
-		assert.NotContains(t, node.Parents, node4.Uuid)
+		assert.Contains(t, node.Parents, node1.Nid)
+		assert.Contains(t, node.Parents, node2.Nid)
+		assert.Contains(t, node.Parents, node3.Nid)
+		assert.NotContains(t, node.Parents, node4.Nid)
 
 		assert.Equal(t, node.Path, "/the/path/to/node")
 	})
@@ -95,17 +95,17 @@ func Test_Create_Parents_With_Api(t *testing.T) {
 		node4.Access = []string{"node:api:master"}
 		manager.Save(node4, false)
 
-		res, _ := test.RunRequest("PUT", fmt.Sprintf("%s/api/v1.0/nodes/move/%s/%s", ts.URL, node2.Uuid, node1.Uuid), nil, auth)
-		assert.Equal(t, 200, res.StatusCode, "Move node2.Uuid to node1.Uuid")
+		res, _ := test.RunRequest("PUT", fmt.Sprintf("%s/api/v1.0/nodes/move/%s/%s", ts.URL, node2.Nid, node1.Nid), nil, auth)
+		assert.Equal(t, 200, res.StatusCode, "Move node2.Nid to node1.Nid")
 
-		res, _ = test.RunRequest("PUT", fmt.Sprintf("%s/api/v1.0/nodes/move/%s/%s", ts.URL, node3.Uuid, node2.Uuid), nil, auth)
-		assert.Equal(t, 200, res.StatusCode, "Move node3.Uuid to node2.Uuid")
+		res, _ = test.RunRequest("PUT", fmt.Sprintf("%s/api/v1.0/nodes/move/%s/%s", ts.URL, node3.Nid, node2.Nid), nil, auth)
+		assert.Equal(t, 200, res.StatusCode, "Move node3.Nid to node2.Nid")
 
-		res, _ = test.RunRequest("PUT", fmt.Sprintf("%s/api/v1.0/nodes/move/%s/%s", ts.URL, node4.Uuid, node3.Uuid), nil, auth)
-		assert.Equal(t, 200, res.StatusCode, "Move node4.Uuid to node3.Uuid")
+		res, _ = test.RunRequest("PUT", fmt.Sprintf("%s/api/v1.0/nodes/move/%s/%s", ts.URL, node4.Nid, node3.Nid), nil, auth)
+		assert.Equal(t, 200, res.StatusCode, "Move node4.Nid to node3.Nid")
 
-		res, _ = test.RunRequest("PUT", fmt.Sprintf("%s/api/v1.0/nodes/move/%s/%s", ts.URL, node1.Uuid, node4.Uuid), nil, auth)
-		assert.Equal(t, 200, res.StatusCode, "Move node1.Uuid to node4.Uuid")
+		res, _ = test.RunRequest("PUT", fmt.Sprintf("%s/api/v1.0/nodes/move/%s/%s", ts.URL, node1.Nid, node4.Nid), nil, auth)
+		assert.Equal(t, 200, res.StatusCode, "Move node1.Nid to node4.Nid")
 
 		serializer := app.Get("gonode.node.serializer").(*base.Serializer)
 		op := &api.ApiOperation{}
