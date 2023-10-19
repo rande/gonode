@@ -23,15 +23,14 @@ var (
 )
 
 const (
-	Initialized int = 0
-	Prepared        = 1
-	Submitted       = 2
-	Validated       = 3
-	Processed       = 4
+	Initialized = iota
+	Prepared
+	Submitted
+	Validated
+	Processed
 )
 
 func Process(form *Form, request *http.Request) error {
-
 	if err := PrepareForm(form); err != nil {
 		return err
 	}
@@ -47,7 +46,7 @@ func Process(form *Form, request *http.Request) error {
 	}
 
 	if form.EncType == ENC_TYPE_MULTIPART {
-		if err := request.ParseMultipartForm(32 << 20); err != nil {
+		if err := request.ParseMultipartForm(32 << 24); err != nil {
 			return err
 		}
 	}
