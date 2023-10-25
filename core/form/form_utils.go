@@ -7,7 +7,6 @@ package form
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -74,8 +73,6 @@ func Process(form *Form, request *http.Request) error {
 // a serialized value used in the HTML form. This also setup the different attribures required
 // by the HTML form.
 func PrepareForm(form *Form) error {
-	fmt.Printf("PrepareForm > State: %d, expected: %d\n", form.State, Initialized)
-
 	if form.State != Initialized {
 		return ErrInvalidState
 	}

@@ -1,4 +1,3 @@
-{{input.Value}}
 {%if true %}<input name="{{ input.Name}}" type="{{ input.Type }}" value="{{input.Value}}" id="{{ input.Id }}"{% endif %}
     {% if input.Class %} class="{{ input.Class }}" {% endif %}
     {% if input.Style %} style="{{ input.Style }}" {% endif %}

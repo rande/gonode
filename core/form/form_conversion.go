@@ -11,23 +11,53 @@ import (
 	"strconv"
 )
 
-func convert(value interface{}, kind reflect.Kind) (interface{}, bool) {
+func StrToValue(value interface{}, src reflect.Value) (interface{}, bool) {
 	if value == nil {
 		return nil, false
 	}
 
-	switch kind {
+	switch src.Kind() {
 	case reflect.Bool:
 		return StrToBool(value)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
 		reflect.Float32, reflect.Float64:
-		return StrToNumber(value.(string), kind)
+		return StrToNumber(value.(string), src.Kind())
 	case reflect.String:
 		return value, true
+	default:
+		panic(fmt.Sprintf("Case not implemented - StrToValue: value `%s` to type `%s`", value, src.Kind()))
+	}
+}
+
+func ValueToStrSlice(value interface{}, src reflect.Value) ([]string, bool) {
+	c := make([]string, 0)
+	// for _, _ := range value.([]interface{}) {
+	// 	// c = append(c, ValueToStr(v, kind.Elem().Kind().Elem()))
+	// }
+	return c, true
+}
+
+func ValueToStr(value interface{}, src reflect.Value) (string, bool) {
+	if value == nil {
+		return "", false
 	}
 
-	return nil, false
+	fmt.Printf("ValueToStr: %s - %s, %s\n", value, src.Kind(), src.Kind())
+
+	switch src.Kind() {
+
+	case reflect.Bool:
+		return BoolToStr(value)
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Float32, reflect.Float64:
+		return NumberToStr(value)
+	case reflect.String:
+		return value.(string), true
+	default:
+		panic(fmt.Sprintf("Case not implemented - ValueToStr: value `%s` to type `%s`", value, src.Kind()))
+	}
 }
 
 func yes(value string) bool {

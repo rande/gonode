@@ -444,9 +444,17 @@ func Test_Bind_Form_Select(t *testing.T) {
 		{Label: "Car", Value: int32(2)},
 		{Label: "Travel", Value: int32(3)},
 		{Label: "Games", Value: int32(4)},
-	}).SetMultiple(true)
+	})
 
 	PrepareForm(form)
+
+	assert.True(t, form.Get("Items").Input.Multiple)
+	assert.True(t, form.Get("Items").Get("0").Input.Checked)
+	assert.True(t, form.Get("Items").Get("1").Input.Checked)
+	assert.False(t, form.Get("Items").Get("2").Input.Checked)
+	assert.False(t, form.Get("Items").Get("3").Input.Checked)
+
+	assert.Equal(t, form.Get("Items").Get("3").Input.Name, "Items[3]")
 
 	v := url.Values{
 		"Enabled":  []string{"0"},
@@ -462,8 +470,8 @@ func Test_Bind_Form_Select(t *testing.T) {
 	err = AttachValues(form)
 	assert.Nil(t, err)
 
-	// assert.Equal(t, false, user.Enabled)
-	// assert.Equal(t, int32(3), user.Position)
+	assert.Equal(t, false, user.Enabled)
+	assert.Equal(t, int32(3), user.Position)
 	assert.Equal(t, []int32{1, 3}, user.Items)
 }
 

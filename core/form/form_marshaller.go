@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -17,12 +18,18 @@ var (
 	ErrInvalidType = errors.New("value does not match the expected type")
 )
 
+var replacers = strings.NewReplacer(".", "_", "[", "_", "]", "")
+
+func generateId(name string) string {
+	return replacers.Replace(name)
+}
+
 func iterateFields(form *Form, fields []*FormField) {
 	for _, field := range fields {
 		field.Input.Name = field.Name
 		configure(field, form)
 		marshal(field, form)
-		field.Input.Id = replacers.Replace(field.Input.Name)
+		field.Input.Id = generateId(field.Input.Name)
 	}
 }
 
@@ -61,11 +68,20 @@ type MarshallerResult struct {
 }
 
 func findMarshaller(rv reflect.Value) *MarshallerResult {
+
 	if rv.Kind() == reflect.String {
 		return &MarshallerResult{
 			Marshaller:   defaultMarshal,
 			Unmarshaller: defaultUnmarshal,
 			Type:         "text",
+		}
+	}
+
+	if rv.Kind() == reflect.Slice {
+		return &MarshallerResult{
+			Marshaller:   sliceMarshal,
+			Unmarshaller: sliceUnmarshal,
+			Type:         "slice",
 		}
 	}
 
@@ -105,6 +121,8 @@ func findMarshaller(rv reflect.Value) *MarshallerResult {
 				Type:         "date",
 			}
 		}
+
+		panic(fmt.Sprintf("Unable to find marshaller for %s", rv.Type()))
 	}
 
 	if rv.Kind() == reflect.Ptr {
@@ -123,6 +141,8 @@ func findMarshaller(rv reflect.Value) *MarshallerResult {
 				Type:         "collection",
 			}
 		}
+
+		panic(fmt.Sprintf("Unable to find marshaller for %s", rv.Type()))
 	}
 
 	return &MarshallerResult{
@@ -139,7 +159,6 @@ func configure(field *FormField, form *Form) {
 	}
 
 	if field.reflect.Kind() == reflect.Invalid && field.InitialValue != nil {
-
 		field.reflect = reflect.ValueOf(field.InitialValue)
 	}
 
@@ -162,10 +181,21 @@ func configure(field *FormField, form *Form) {
 	}
 }
 
+func sliceMarshal(field *FormField, form *Form) error {
+	defaultMarshal(field, form)
+
+	return nil
+}
+
+func sliceUnmarshal(field *FormField, form *Form, values url.Values) error {
+
+	return nil
+}
+
 func defaultMarshal(field *FormField, form *Form) error {
 	field.Input.Value = fmt.Sprintf("%s", field.InitialValue)
 	field.Input.Name = fmt.Sprintf("%s%s", field.Prefix, field.Name)
-	field.Input.Id = replacers.Replace(field.Input.Name)
+	field.Input.Id = generateId(field.Input.Name)
 
 	return nil
 }
@@ -299,7 +329,7 @@ func formMarshal(field *FormField, form *Form) error {
 
 	for _, subField := range field.Children {
 		subField.Input.Name = fmt.Sprintf("%s.%s", field.Name, subField.Name)
-		subField.Input.Id = replacers.Replace(subField.Input.Name)
+		subField.Input.Id = generateId(subField.Input.Name)
 		subField.Prefix = field.Input.Name + "."
 		configure(subField, subForm)
 		marshal(subField, subForm)
@@ -320,7 +350,7 @@ func collectionMarshal(field *FormField, form *Form) error {
 	options := field.Options.(*FieldCollectionOptions)
 
 	field.Input.Name = fmt.Sprintf("%s%s", field.Prefix, field.Name)
-	field.Input.Id = replacers.Replace(field.Input.Name)
+	field.Input.Id = generateId(field.Input.Name)
 
 	for _, value := range options.Items {
 		subForm := options.Configure(value.Value)
@@ -328,7 +358,7 @@ func collectionMarshal(field *FormField, form *Form) error {
 		subField := create(value.Key, "form", subForm)
 		subField.Input.Name = fmt.Sprintf("%s[%s]", field.Input.Name, value.Key)
 
-		subField.Input.Id = replacers.Replace(subField.Input.Name)
+		subField.Input.Id = generateId(subField.Input.Name)
 		subField.Prefix = field.Input.Name + "."
 
 		field.Children = append(field.Children, subField)
@@ -354,14 +384,14 @@ func collectionUnmarshal(field *FormField, form *Form, values url.Values) error 
 
 func checkboxMarshal(field *FormField, form *Form) error {
 	field.Input.Name = fmt.Sprintf("%s%s", field.Prefix, field.Name)
-	field.Input.Id = replacers.Replace(field.Input.Name)
+	field.Input.Id = generateId(field.Input.Name)
 
 	for i, option := range field.Options.(FieldOptions) {
 		// find a nice way to generate the name
 		subField := CreateFormField()
 		subField.Name = fmt.Sprintf("%d", i)
 		subField.Input.Name = fmt.Sprintf("%s[%s]", field.Input.Name, subField.Name)
-		subField.Input.Id = replacers.Replace(subField.Input.Name)
+		subField.Input.Id = generateId(subField.Input.Name)
 		subField.Label.Value = option.Label
 		subField.Input.Type = "checkbox"
 		subField.InitialValue = option.Checked
@@ -406,22 +436,44 @@ func checkboxUnmarshal(field *FormField, form *Form, values url.Values) error {
 
 func selectMarshal(field *FormField, form *Form) error {
 	field.Input.Name = fmt.Sprintf("%s%s", field.Prefix, field.Name)
-	field.Input.Id = replacers.Replace(field.Input.Name)
+	field.Input.Id = generateId(field.Input.Name)
+
+	marshallers := findMarshaller(field.reflect)
+	marshallers.Marshaller(field, form)
+
+	if field.reflect.Kind() == reflect.Slice {
+		field.SetMultiple(true)
+	}
 
 	for i, option := range field.Options.(FieldOptions) {
 		marshallers := findMarshaller(reflect.ValueOf(option.Value))
 
 		// find a nice way to generate the name
 		subField := CreateFormField()
+		subField.InitialValue = option.Value
 		subField.Name = fmt.Sprintf("%d", i)
-		subField.Input.Name = fmt.Sprintf("%s[%s]", field.Input.Name, subField.Name)
-		subField.Input.Id = replacers.Replace(subField.Input.Name)
 		subField.Label.Value = option.Label
 		subField.Input.Type = "option"
 		subField.Marshaller = marshallers.Marshaller
 		subField.Unmarshaller = marshallers.Unmarshaller
 
 		marshal(subField, form)
+
+		subField.Input.Name = fmt.Sprintf("%s[%s]", field.Input.Name, subField.Name)
+		subField.Input.Id = generateId(subField.Input.Name)
+
+		if field.reflect.Kind() == reflect.Slice {
+			for i := 0; i < field.reflect.Len(); i++ {
+				v := field.reflect.Index(i)
+
+				if v.Equal(reflect.ValueOf(option.Value)) {
+					subField.Input.Checked = true
+				}
+			}
+
+		} else {
+			subField.Input.Checked = field.Input.Value == subField.Input.Value
+		}
 
 		field.Children = append(field.Children, subField)
 	}
@@ -440,10 +492,11 @@ func selectUnmarshal(field *FormField, form *Form, values url.Values) error {
 		field.Children[0].Unmarshaller(field, form, values)
 	} else {
 		slice := reflect.MakeSlice(reflect.SliceOf(field.reflect.Type().Elem()), 0, 0)
+		value := reflect.Zero(field.reflect.Type().Elem())
 
 		for _, valueStr := range values[field.Input.Id] {
-			if value, ok := convert(valueStr, field.reflect.Type().Elem().Kind()); ok {
-				slice = reflect.Append(slice, reflect.ValueOf(value))
+			if v, ok := StrToValue(valueStr, value); ok {
+				slice = reflect.Append(slice, reflect.ValueOf(v))
 			} else {
 				// fmt.Printf("Unable to convert %s to %s\n", valueStr, field.reflect.Type().Elem())
 				field.Errors = append(field.Errors, "Unable to convert value to the correct type")

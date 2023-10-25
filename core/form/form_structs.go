@@ -10,15 +10,12 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
-	"strings"
 )
 
 var (
 	ErrNoValue              = errors.New("unable to find the value")
 	ErrInvalidSubmittedData = errors.New("invalid submitted data")
 )
-
-var replacers = strings.NewReplacer(".", "_", "[", "_", "]", "")
 
 type FieldCollectionValue struct {
 	Value interface{}
@@ -230,6 +227,7 @@ func create(name string, options ...interface{}) *FormField {
 	if field.Input.Type == "select" {
 		field.Marshaller = selectMarshal
 		field.Unmarshaller = selectUnmarshal
+		field.Input.Template = "form:fields/input.select.tpl"
 	}
 
 	// if fieldType == "form" {
