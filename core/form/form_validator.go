@@ -9,6 +9,7 @@ import (
 	"errors"
 	"net/mail"
 	"net/url"
+	"reflect"
 )
 
 var (
@@ -18,6 +19,7 @@ var (
 	ErrUrlValidator      = errors.New("the value is not a valid url")
 	ErrMaxValidator      = errors.New("the value is too big")
 	ErrMinValidator      = errors.New("the value is too small")
+	ErrOptionsValidator  = errors.New("the value is not in the list of options")
 )
 
 type number interface {
@@ -100,7 +102,7 @@ func EmailValidator() Validator {
 		code: "email",
 		validator: func(field *FormField, form *Form) error {
 			if field.SubmittedValue == nil {
-				return ErrEmailValidator
+				return nil
 			}
 
 			if _, err := mail.ParseAddress(field.SubmittedValue.(string)); err != nil {
@@ -116,12 +118,8 @@ func UrlValidator() Validator {
 	return &ValidatorFunc{
 		code: "url",
 		validator: func(field *FormField, form *Form) error {
-			if !field.Touched {
-				return ErrUrlValidator
-			}
-
 			if field.SubmittedValue == nil {
-				return ErrUrlValidator
+				return nil
 			}
 
 			if _, err := url.Parse(field.SubmittedValue.(string)); err != nil {
@@ -138,7 +136,7 @@ func MinValidator[T number](min T) Validator {
 		code: "min",
 		validator: func(field *FormField, form *Form) error {
 			if field.SubmittedValue == nil {
-				return ErrMinValidator
+				return nil
 			}
 
 			if field.SubmittedValue.(T) < min {
@@ -155,7 +153,7 @@ func MaxValidator[T number](max T) Validator {
 		code: "max",
 		validator: func(field *FormField, form *Form) error {
 			if field.SubmittedValue == nil {
-				return ErrMaxValidator
+				return nil
 			}
 
 			if field.SubmittedValue.(T) > max {
@@ -172,7 +170,7 @@ func MaxLengthValidator(max uint32, mode string) Validator {
 		code: "max_length",
 		validator: func(field *FormField, form *Form) error {
 			if field.SubmittedValue == nil {
-				return ErrMaxValidator
+				return nil
 			}
 
 			if mode == "bytes" {
@@ -197,7 +195,7 @@ func MinLengthValidator(min uint32, mode string) Validator {
 		code: "min_length",
 		validator: func(field *FormField, form *Form) error {
 			if field.SubmittedValue == nil {
-				return ErrMaxValidator
+				return nil
 			}
 
 			if mode == "bytes" {
@@ -210,6 +208,50 @@ func MinLengthValidator(min uint32, mode string) Validator {
 				}
 			} else {
 				panic("Invalid mode")
+			}
+
+			return nil
+		},
+	}
+}
+
+func OptionsValidator() Validator {
+	return &ValidatorFunc{
+		code: "select",
+		validator: func(field *FormField, form *Form) error {
+			if field.SubmittedValue == nil {
+				return nil
+			}
+
+			if !field.Input.Multiple {
+				submittedValue := reflect.ValueOf(field.SubmittedValue)
+				for _, option := range field.Options.(FieldOptions) {
+					optionValue := reflect.ValueOf(option.Value)
+
+					if optionValue.Equal(submittedValue) {
+						return nil
+					}
+				}
+
+				return ErrOptionsValidator
+			} else {
+				slice := reflect.ValueOf(field.SubmittedValue)
+				for i := 0; i < slice.Len(); i++ {
+					v := slice.Index(i)
+
+					found := false
+					for _, option := range field.Options.(FieldOptions) {
+						optionValue := reflect.ValueOf(option.Value)
+
+						if optionValue.Equal(v) {
+							found = true
+						}
+					}
+
+					if !found {
+						return ErrOptionsValidator
+					}
+				}
 			}
 
 			return nil

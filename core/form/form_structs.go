@@ -227,6 +227,7 @@ func create(name string, options ...interface{}) *FormField {
 	if field.Input.Type == "select" {
 		field.Marshaller = selectMarshal
 		field.Unmarshaller = selectUnmarshal
+		field.Validators = append(field.Validators, OptionsValidator())
 		field.Input.Template = "form:fields/input.select.tpl"
 	}
 

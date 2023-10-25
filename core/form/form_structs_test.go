@@ -114,7 +114,7 @@ func Test_FormField_Validate(t *testing.T) {
 	assert.Nil(t, result)
 
 	field.Touched = false
-	field.SubmittedValue = nil
+	field.SubmittedValue = "john.doe"
 
 	result = validateForm(form.Fields, form)
 
@@ -490,7 +490,7 @@ func Test_Bind_Form_Select_Invalid_Multiple_Type(t *testing.T) {
 		{Label: "Car", Value: int32(2)},
 		{Label: "Travel", Value: int32(3)},
 		{Label: "Games", Value: int32(4)},
-	}).SetMultiple(true)
+	})
 
 	PrepareForm(form)
 
@@ -505,6 +505,43 @@ func Test_Bind_Form_Select_Invalid_Multiple_Type(t *testing.T) {
 	assert.Equal(t, "Unable to convert value to the correct type", form.Get("Items").Errors[0])
 
 	ValidateForm(form)
+
+	err = AttachValues(form)
+
+	assert.NotNil(t, err)
+}
+
+func Test_Bind_Form_Select_Invalid_Multiple_Type_Scope(t *testing.T) {
+	user := &TestUser{
+		Name:     "John Doe",
+		Enabled:  true,
+		Hidden:   false,
+		Position: int32(1),
+		Items:    []int32{1, 2},
+	}
+
+	form := CreateForm(user)
+	form.Add("Items", "select", nil, FieldOptions{
+		{Label: "Food", Value: int32(1)},
+		{Label: "Car", Value: int32(2)},
+		{Label: "Travel", Value: int32(3)},
+		{Label: "Games", Value: int32(4)},
+	})
+
+	PrepareForm(form)
+
+	v := url.Values{
+		"Items": []string{"5", "3"}, // 5 is not a valid value
+	}
+
+	err := BindUrlValues(form, v)
+	assert.Nil(t, err)
+
+	err = ValidateForm(form)
+
+	assert.NotNil(t, err)
+	assert.Equal(t, 1, len(form.Get("Items").Errors))
+	assert.Equal(t, "the value is not in the list of options", form.Get("Items").Errors[0])
 
 	err = AttachValues(form)
 

@@ -6,7 +6,6 @@
 package form
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -79,10 +78,10 @@ func Test_Min_Validator_Float(t *testing.T) {
 }
 
 func Test_MaxLength(t *testing.T) {
-	msg := "abc"
-	fmt.Printf("size: %d\n", len(msg))
-	fmt.Printf("size: %d\n", len([]rune(msg)))
-	fmt.Printf("size: %d\n", uint32(len([]rune(msg))))
+	// msg := "abc"
+	// fmt.Printf("size: %d\n", len(msg))
+	// fmt.Printf("size: %d\n", len([]rune(msg)))
+	// fmt.Printf("size: %d\n", uint32(len([]rune(msg))))
 
 	field := &FormField{
 		Name:    "Name",
@@ -118,10 +117,10 @@ func Test_MaxLength(t *testing.T) {
 }
 
 func Test_MinLength(t *testing.T) {
-	msg := "🇫🇷🇫🇷"
-	fmt.Printf("size: %d\n", len(msg))
-	fmt.Printf("size: %d\n", len([]rune(msg)))
-	fmt.Printf("size: %d\n", uint32(len([]rune(msg))))
+	// msg := "🇫🇷🇫🇷"
+	// fmt.Printf("size: %d\n", len(msg))
+	// fmt.Printf("size: %d\n", len([]rune(msg)))
+	// fmt.Printf("size: %d\n", uint32(len([]rune(msg))))
 
 	field := &FormField{
 		Name:    "Name",
