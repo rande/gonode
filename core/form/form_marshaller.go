@@ -15,7 +15,9 @@ import (
 )
 
 var (
-	ErrInvalidType = errors.New("value does not match the expected type")
+	ErrInvalidType  = errors.New("value does not match the expected type")
+	ErrConvertValue = errors.New("unable to convert value to the correct type")
+	ErrNoOptions    = errors.New("no options found")
 )
 
 var replacers = strings.NewReplacer(".", "_", "[", "_", "]", "")
@@ -484,7 +486,7 @@ func selectMarshal(field *FormField, form *Form) error {
 func selectUnmarshal(field *FormField, form *Form, values url.Values) error {
 
 	if len(field.Children) == 0 {
-		field.Errors = append(field.Errors, "Unable to find any options")
+		field.Errors = append(field.Errors, ErrNoOptions.Error())
 		field.HasErrors = true
 	}
 
@@ -498,8 +500,7 @@ func selectUnmarshal(field *FormField, form *Form, values url.Values) error {
 			if v, ok := StrToValue(valueStr, value); ok {
 				slice = reflect.Append(slice, reflect.ValueOf(v))
 			} else {
-				// fmt.Printf("Unable to convert %s to %s\n", valueStr, field.reflect.Type().Elem())
-				field.Errors = append(field.Errors, "Unable to convert value to the correct type")
+				field.Errors = append(field.Errors, ErrConvertValue.Error())
 				field.HasErrors = true
 			}
 		}

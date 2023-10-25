@@ -502,7 +502,7 @@ func Test_Bind_Form_Select_Invalid_Multiple_Type(t *testing.T) {
 	assert.NotNil(t, err)
 
 	assert.Equal(t, 1, len(form.Get("Items").Errors))
-	assert.Equal(t, "Unable to convert value to the correct type", form.Get("Items").Errors[0])
+	assert.Equal(t, "unable to convert value to the correct type", form.Get("Items").Errors[0])
 
 	ValidateForm(form)
 
