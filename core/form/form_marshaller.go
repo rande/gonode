@@ -70,7 +70,6 @@ type MarshallerResult struct {
 }
 
 func findMarshaller(rv reflect.Value) *MarshallerResult {
-
 	if rv.Kind() == reflect.String {
 		return &MarshallerResult{
 			Marshaller:   defaultMarshal,
@@ -155,7 +154,6 @@ func findMarshaller(rv reflect.Value) *MarshallerResult {
 }
 
 func configure(field *FormField, form *Form) {
-
 	if form.Data != nil && field.InitialValue == nil {
 		field.reflect = form.reflect.FieldByName(field.Name)
 	}
@@ -186,10 +184,44 @@ func configure(field *FormField, form *Form) {
 func sliceMarshal(field *FormField, form *Form) error {
 	defaultMarshal(field, form)
 
+	values := []string{}
+
+	for i := 0; i < field.reflect.Len(); i++ {
+		v := field.reflect.Index(i)
+		values = append(values, v.String())
+	}
+
+	field.Input.Value = strings.Join(values, ", ")
+
 	return nil
 }
 
 func sliceUnmarshal(field *FormField, form *Form, values url.Values) error {
+	defaultUnmarshal(field, form, values)
+
+	parts := strings.Split(field.SubmittedValue.(string), ",")
+
+	for i, part := range parts {
+		parts[i] = strings.TrimSpace(part)
+	}
+
+	// transform the final slice to the correct type
+	slice := reflect.MakeSlice(reflect.SliceOf(field.reflect.Type().Elem()), 0, 0)
+	value := reflect.Zero(field.reflect.Type().Elem())
+
+	for _, part := range parts {
+		if v, ok := StrToValue(part, value); ok {
+			rv := reflect.ValueOf(v)
+			if len(rv.String()) == 0 {
+				continue
+			}
+
+			slice = reflect.Append(slice, reflect.ValueOf(v))
+		}
+	}
+
+	field.SubmittedValue = slice.Interface()
+	field.Touched = true
 
 	return nil
 }

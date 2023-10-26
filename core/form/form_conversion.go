@@ -43,7 +43,7 @@ func ValueToStr(value interface{}, src reflect.Value) (string, bool) {
 		return "", false
 	}
 
-	fmt.Printf("ValueToStr: %s - %s, %s\n", value, src.Kind(), src.Kind())
+	//fmt.Printf("ValueToStr: %s - %s, %s\n", value, src.Kind(), src.Kind())
 
 	switch src.Kind() {
 

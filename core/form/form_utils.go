@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"time"
 )
 
 const (
@@ -167,9 +168,18 @@ func attachValues(fields []*FormField) {
 		}
 
 		newValue := reflect.ValueOf(field.SubmittedValue)
-		// fmt.Printf("attachValues > Field name: %s, value: %s\n", field.Name, newValue)
+		// fmt.Printf("attachValues > Field name: %s, type: %s, value: %s\n", field.Name, field.reflect.Type(), newValue)
 		if newValue.CanConvert(field.reflect.Type()) {
-			field.reflect.Set(newValue.Convert(field.reflect.Type()))
+			// v := newValue.Convert(field.reflect.Type())
+			// fmt.Printf("attachValues > Field name: %s, type: %s, value: %s\n", field.Name, field.reflect.Type(), v)
+			// fmt.Printf("attachValues > %s\n", field.reflect)
+
+			if field.reflect.Type() == reflect.TypeOf(time.Time{}) {
+				field.reflect.Set(newValue)
+			} else {
+				field.reflect.Set(newValue.Convert(field.reflect.Type()))
+			}
+
 		} else {
 			// fmt.Printf("attachValues > Unable to convert type: Type, field: %s (kind: %s) submitted: %s, value: %s\n", field.Name, field.reflect.Kind(), newValue.Kind(), newValue.Interface())
 		}

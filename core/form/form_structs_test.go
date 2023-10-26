@@ -23,6 +23,7 @@ type TestUser struct {
 	Ratio    float32
 	DOB      time.Time
 	Items    []int32
+	Tags     []string
 }
 
 type TestBlogPost struct {
@@ -581,4 +582,30 @@ func Test_Bind_Form_Select_Invalid_Type(t *testing.T) {
 	err := AttachValues(form)
 
 	assert.NotNil(t, err)
+}
+
+func Test_Form_Tags_As_String(t *testing.T) {
+	user := &TestUser{
+		Tags: []string{"foo", "bar"},
+	}
+
+	form := CreateForm(user)
+	form.Add("Tags")
+
+	PrepareForm(form)
+
+	assert.Equal(t, "foo, bar", form.Get("Tags").Input.Value)
+
+	v := url.Values{
+		"Tags": []string{"boo, far"},
+	}
+
+	BindUrlValues(form, v)
+
+	ValidateForm(form)
+
+	AttachValues(form)
+
+	assert.False(t, form.HasErrors)
+	assert.Equal(t, []string{"boo", "far"}, user.Tags)
 }
