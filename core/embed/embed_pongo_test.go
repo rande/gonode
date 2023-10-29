@@ -6,19 +6,12 @@
 package embed
 
 import (
-	"embed"
 	"testing"
 
 	"github.com/flosch/pongo2"
+	"github.com/rande/gonode/core/embed/fixtures"
 	"github.com/stretchr/testify/assert"
 )
-
-//go:embed all:fixtures
-var content embed.FS
-
-func GetTestEmbedFS() embed.FS {
-	return content
-}
 
 // func Test_PongoTemplateLoader_Valid_Template(t *testing.T) {
 // 	assets := NewAssets()
@@ -47,11 +40,10 @@ func GetTestEmbedFS() embed.FS {
 
 func Test_PongoTemplateLoader_Integration(t *testing.T) {
 	embeds := NewEmbeds()
-	embeds.Add("testmodule", GetTestEmbedFS())
+	embeds.Add("testmodule", fixtures.GetTestEmbedFS())
 
 	loader := &PongoTemplateLoader{
-		Embeds:   embeds,
-		BasePath: "fixtures/",
+		Embeds: embeds,
 	}
 
 	pongo := pongo2.NewSet("gonode_test", loader)
@@ -76,11 +68,10 @@ func Test_PongoTemplateLoader_Integration(t *testing.T) {
 
 func Test_PongoTemplateLoader_Integration_NotFound(t *testing.T) {
 	embeds := NewEmbeds()
-	embeds.Add("testmodule", GetTestEmbedFS())
+	embeds.Add("testmodule", fixtures.GetTestEmbedFS())
 
 	loader := &PongoTemplateLoader{
-		Embeds:   embeds,
-		BasePath: "fixtures/",
+		Embeds: embeds,
 	}
 
 	pongo := pongo2.NewSet("gonode_test", loader)
@@ -92,11 +83,10 @@ func Test_PongoTemplateLoader_Integration_NotFound(t *testing.T) {
 func Test_PongoTemplateLoader_Integration_InvalidSyntax(t *testing.T) {
 
 	embeds := NewEmbeds()
-	embeds.Add("testmodule", GetTestEmbedFS())
+	embeds.Add("testmodule", fixtures.GetTestEmbedFS())
 
 	loader := &PongoTemplateLoader{
-		Embeds:   embeds,
-		BasePath: "fixtures/",
+		Embeds: embeds,
 	}
 
 	pongo := pongo2.NewSet("gonode_test", loader)
