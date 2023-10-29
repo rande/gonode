@@ -50,11 +50,13 @@ type Input struct {
 	Pattern      string // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#pattern
 	List         string
 	Autocomplete string // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#autocomplete
+	Spellcheck   string
 	Readonly     bool
 	Checked      bool
 	Multiple     bool
 	Required     bool
 	Autofocus    bool
+	Autocorrect  bool
 	Novalidate   bool
 	Size         uint16
 	MinLength    uint32
@@ -229,6 +231,10 @@ func create(name string, options ...interface{}) *FormField {
 		field.Unmarshaller = selectUnmarshal
 		field.Validators = append(field.Validators, OptionsValidator())
 		field.Input.Template = "form:fields/input.select.tpl"
+	}
+
+	if field.Input.Type == "textarea" {
+		field.Input.Template = "form:fields/input.textarea.tpl"
 	}
 
 	// if fieldType == "form" {
@@ -473,6 +479,11 @@ func (f *FormField) SetNovalidation(value bool) *FormField {
 
 func (f *FormField) SetAutofocus(value bool) *FormField {
 	f.Input.Autofocus = value
+	return f
+}
+
+func (f *FormField) SetAutocorrect(value bool) *FormField {
+	f.Input.Autocorrect = value
 	return f
 }
 
