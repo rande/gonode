@@ -20,6 +20,7 @@ import (
 	"github.com/rande/gonode/modules/api"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/blog"
+	"github.com/rande/gonode/modules/bootstrap"
 	"github.com/rande/gonode/modules/dashboard"
 	"github.com/rande/gonode/modules/debug"
 	"github.com/rande/gonode/modules/feed"
@@ -51,6 +52,7 @@ func Configure(configFile string) *goapp.Lifecycle {
 	feed.Configure(l, conf)
 
 	dashboard.Configure(l, conf)
+	bootstrap.Configure(l, conf)
 	logger.Configure(l, conf)
 	commands.Configure(l, conf)
 	security.ConfigureCors(l, conf)
