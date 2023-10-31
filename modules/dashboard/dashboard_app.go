@@ -14,13 +14,13 @@ import (
 
 func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
-	l.Prepare(func(app *goapp.App) error {
+	l.Register(func(app *goapp.App) error {
 		app.Get("gonode.embeds").(*embed.Embeds).Add("dashboard", GetEmbedFS())
 
 		return nil
 	})
 
-	l.Prepare(func(app *goapp.App) error {
+	l.Config(func(app *goapp.App) error {
 
 		r := app.Get("gonode.router").(*router.Router)
 

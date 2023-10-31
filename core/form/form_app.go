@@ -14,9 +14,13 @@ import (
 
 func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
-	l.Prepare(func(app *goapp.App) error {
+	l.Register(func(app *goapp.App) error {
 		app.Get("gonode.embeds").(*embed.Embeds).Add("form", GetEmbedFS())
 
+		return nil
+	})
+
+	l.Prepare(func(app *goapp.App) error {
 		pongo := app.Get("gonode.pongo").(*pongo2.TemplateSet)
 
 		pongo.Globals["form_field"] = createPongoField(pongo)

@@ -115,8 +115,8 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 	})
 
 	base.Configure(l, conf)
-	form.Configure(l, conf)
 	embed.Configure(l, conf)
+	form.Configure(l, conf)
 	debug.Configure(l, conf)
 	user.Configure(l, conf)
 	raw.Configure(l, conf)

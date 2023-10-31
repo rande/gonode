@@ -27,7 +27,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		return nil
 	})
 
-	l.Prepare(func(app *goapp.App) error {
+	l.Register(func(app *goapp.App) error {
 		app.Get("gonode.embeds").(*embed.Embeds).Add("feed", GetEmbedFS())
 
 		return nil
