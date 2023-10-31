@@ -7,15 +7,19 @@ package embed
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"html/template"
-	"io"
-	"strings"
+)
+
+var (
+	ErrRootTemplateNotFound = errors.New("root template not found")
 )
 
 type TemplateLoader struct {
-	Embeds   *Embeds
-	BasePath string
-	Template *template.Template
+	Embeds    *Embeds
+	BasePath  string
+	Templates map[string]*template.Template
 }
 
 // Abs calculates the path to a given template. Whenever a path must be resolved
@@ -35,32 +39,15 @@ func (l *TemplateLoader) Abs(base, name string) string {
 	return name
 }
 
-// Get returns an io.Reader where the template's content can be read from.
-// blog:foo/blog.post.html => module=blog templates/foo/blog.post.html
-func (l *TemplateLoader) Get(path string) (io.Reader, error) {
-	sections := strings.Split(path, ":")
-
-	if len(sections) != 2 {
-		return nil, ErrInvalidPongoRef
-	}
-
-	data, err := l.Embeds.ReadFile(sections[0], l.BasePath+"templates/"+strings.Join(sections[1:], "/"))
-
-	if err != nil {
-		return nil, err
-	}
-
-	return bytes.NewReader(data), nil
-}
-
-func (l *TemplateLoader) Execute(path string, data interface{}) (string, error) {
+func (l *TemplateLoader) Execute(path string, data interface{}) ([]byte, error) {
 	var buf bytes.Buffer
 
-	err := l.Template.ExecuteTemplate(&buf, path, data)
-
-	if err != nil {
-		return "", err
+	fmt.Printf("Execute: %s\n", path)
+	if tpl, ok := l.Templates[path]; !ok {
+		return nil, ErrRootTemplateNotFound
+	} else if err := tpl.ExecuteTemplate(&buf, path, data); err != nil {
+		return nil, err
+	} else {
+		return buf.Bytes(), nil
 	}
-
-	return buf.String(), nil
 }

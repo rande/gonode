@@ -12,7 +12,6 @@ import (
 )
 
 func Configure(l *goapp.Lifecycle, conf *config.Config) {
-
 	l.Register(func(app *goapp.App) error {
 		// configure main services
 		app.Set("gonode.embeds", func(app *goapp.App) interface{} {
@@ -24,7 +23,6 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
 	l.Register(func(app *goapp.App) error {
 		app.Set("gonode.pongo", func(app *goapp.App) interface{} {
-
 			engine := pongo2.NewSet("gonode.embeds", &PongoTemplateLoader{
 				Embeds:   app.Get("gonode.embeds").(*Embeds),
 				BasePath: "",
@@ -42,7 +40,6 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 			return &TemplateLoader{
 				Embeds:   app.Get("gonode.embeds").(*Embeds),
 				BasePath: "",
-				Template: template.New("default"),
 			}
 		})
 
@@ -62,38 +59,95 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		loader := app.Get("gonode.template").(*TemplateLoader)
 		embeds := app.Get("gonode.embeds").(*Embeds)
 
-		ConfigureTemplates(loader.Template, embeds)
+		loader.Templates = GetTemplates(embeds)
+
 		ConfigureEmbedMux(mux, asset, "/static", logger)
 
 		return nil
 	})
 }
 
-func ConfigureTemplates(tpl *template.Template, embeds *Embeds) error {
+// This function is called only once at boot time to configure the different template
+func GetTemplates(embeds *Embeds) map[string]*template.Template {
 	entries := embeds.GetFilesByExt(".html")
+	// in the entries we need to find the page, each page will have its own set of templates (layout, blocks, etc ...)
 
+	templates := map[string]*template.Template{}
+
+	// create root template without parsing them
+	pagesPath := "templates/pages/"
 	for _, entry := range entries {
-		// reformat template name to respect the convention: module:template.html
-		if len(entry.Path) < 10 {
+		if len(entry.Path) < len(pagesPath) || entry.Path[0:len(pagesPath)] != pagesPath {
 			continue
 		}
 
-		name := fmt.Sprintf("%s:%s", entry.Module, entry.Path[10:])
+		name := fmt.Sprintf("%s:%s", entry.Module, entry.Path[10:len(entry.Path)-5])
+		templates[name] = template.New(name)
+	}
 
-		data, err := embeds.ReadFile(entry.Module, entry.Path)
+	layoutsPath := "templates/layouts/"
+	blocksPath := "templates/blocks/"
 
-		if err != nil {
-			fmt.Printf("Unable to read file: %s\n", err)
-			return err
+	// load all the layout first, default templates will be defined
+	for name, tpl := range templates {
+
+		fmt.Printf("Iterating over layout: %s\n", name)
+		for _, entry := range entries {
+			if len(entry.Path) < len(layoutsPath) || entry.Path[0:len(layoutsPath)] != layoutsPath {
+				continue
+			}
+
+			name := fmt.Sprintf("%s:%s", entry.Module, entry.Path[10:len(entry.Path)-5])
+
+			fmt.Printf("Loading layout: %s\n", name)
+
+			if data, err := embeds.ReadFile(entry.Module, entry.Path); err != nil {
+				fmt.Printf("Unable to read file: %s\n", err)
+				panic(err)
+			} else if _, err = tpl.New(name).Parse(string(data)); err != nil {
+				fmt.Printf("Error parsing the template: %s, %s\n", name, err)
+				panic(err)
+			}
 		}
 
-		_, err = tpl.New(name).Parse(string(data))
+		// load all the blocks first, so this will let an option to overwrite them if needed in
+		// the page
 
-		if err != nil {
-			fmt.Printf("Error parsing the template: %s, %s\n", name, err)
-			return err
+		fmt.Printf("Iterating over block: %s\n", name)
+		for _, entry := range entries {
+			if len(entry.Path) < len(blocksPath) || entry.Path[0:len(blocksPath)] != blocksPath {
+				continue
+			}
+
+			name := fmt.Sprintf("%s:%s", entry.Module, entry.Path[10:len(entry.Path)-5])
+
+			fmt.Printf("Loading blocks: %s\n", name)
+
+			if data, err := embeds.ReadFile(entry.Module, entry.Path); err != nil {
+				fmt.Printf("Unable to read file: %s\n", err)
+				panic(err)
+			} else if _, err = tpl.New(name).Parse(string(data)); err != nil {
+				fmt.Printf("Error parsing the template: %s, %s\n", name, err)
+				panic(err)
+			}
 		}
 	}
 
-	return nil
+	// we need to load the main template last in order to ensure the defined template will be
+	// the last registered in the template stack.
+	for _, entry := range entries {
+		if len(entry.Path) < len(pagesPath) || entry.Path[0:len(pagesPath)] != pagesPath {
+			continue
+		}
+
+		name := fmt.Sprintf("%s:%s", entry.Module, entry.Path[10:len(entry.Path)-5])
+		if data, err := embeds.ReadFile(entry.Module, entry.Path); err != nil {
+			fmt.Printf("Unable to read file: %s\n", err)
+			panic(err)
+		} else {
+			templates[name].Parse(string(data))
+		}
+	}
+
+	return templates
 }

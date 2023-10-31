@@ -7,7 +7,6 @@ package embed
 
 import (
 	"bytes"
-	"html/template"
 	"testing"
 
 	"github.com/gkampitakis/go-snaps/snaps"
@@ -16,28 +15,35 @@ import (
 )
 
 func Test_Template_With_Custom_Path(t *testing.T) {
-
 	embeds := NewEmbeds()
 	embeds.Add("testmodule", fixtures.GetTestEmbedFS())
 
-	data, err := embeds.ReadFile("testmodule", "templates/layout.html")
-
-	assert.Nil(t, err)
-	assert.NotNil(t, data)
-	tpl, err := template.New("default").Parse(string(data))
-	assert.NoError(t, err)
-
 	var buf bytes.Buffer
 
-	err = tpl.Execute(&buf, nil)
-	assert.Nil(t, err)
+	templates := GetTemplates(embeds)
+	ctx := map[string]interface{}{
+		"Title": "Hello World!",
+	}
 
-	tpl = template.New("default")
-	err = ConfigureTemplates(tpl, embeds)
-	assert.Nil(t, err)
+	if tpl, ok := templates["testmodule:pages/index"]; !ok {
+		assert.True(t, ok)
+	} else {
+		err := tpl.ExecuteTemplate(&buf, "testmodule:pages/index", ctx)
 
-	err = tpl.ExecuteTemplate(&buf, "testmodule:content.html", nil)
-	assert.Nil(t, err)
+		assert.Nil(t, err)
 
-	snaps.MatchSnapshot(t, buf.String())
+		snaps.MatchSnapshot(t, buf.String())
+	}
+
+	buf = *bytes.NewBuffer([]byte{})
+
+	if tpl, ok := templates["testmodule:pages/blog"]; !ok {
+		assert.True(t, ok)
+	} else {
+		err := tpl.ExecuteTemplate(&buf, "testmodule:pages/blog", ctx)
+
+		assert.Nil(t, err)
+
+		snaps.MatchSnapshot(t, buf.String())
+	}
 }

@@ -1,19 +1,17 @@
-{{define "layout"}}
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="utf-8" />
         <title>{{.SITENAME}}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        {{template "testmodule:meta.html" .}}
+        {{template "testmodule:blocks/meta" .}}
         <link href="/static/bootstrap/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-
-  </head>
     </head>
     <body>
-        {{block "content" .}}{{end}} {{template "footer" .}}
+        <h1>Default template</h1>
+        {{template "content" .}}
+        {{template "testmodule:blocks/footer" .}}
 
         <script src="/static/bootstrap/bootstrap.bundle.min.js"></script>
     </body>
 </html>
-{{end}}
