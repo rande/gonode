@@ -1,0 +1,47 @@
+
+[Test_Form_Rendering_Error - 1]
+<form action="POST" action="" encoding="application/x-www-form-urlencoded">
+
+    <label for="position" class="block text-gray-700 text-sm font-bold mb-2" >position</label>
+    <input name="position" type="number" value="1" id="position" autocomplete="off" autocorrect="off" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" max="" min="">
+    <span>The position</span>
+    
+
+</form>
+---
+
+[Test_Form_Rendering_Error - 2]
+<form action="POST" action="" encoding="application/x-www-form-urlencoded">
+
+    <label for="position" class="block text-gray-700 text-sm font-bold mb-2" >position</label>
+    <input name="position" type="number" value="foo" id="position" autocomplete="off" autocorrect="off" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" max="" min="">
+    <span>The position</span>
+    <ul>
+        <li class="text-red-500 text-xs italic" style="" >value does not match the expected type</li>
+    
+        <li class="text-red-500 text-xs italic" style="" >the value is not a valid email</li>
+    </ul>
+
+</form>
+---
+
+[Test_Form_Rendering - 1]
+<form action="POST" action="/update" encoding="application/x-www-form-urlencoded">
+
+    <label for="name" class="block text-gray-700 text-sm font-bold mb-2" >name</label>
+    <input name="name" type="text" value="John Doe" id="name" autocomplete="on" autocorrect="off" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter the name" required readonly autofocus size="10" maxlength="100" minlength="10" max="100" min="10" step="10" pattern="^[a-z]&#43;$"  autocomplete="on">
+    
+    
+
+    <label for="email" class="block text-gray-700 text-sm font-bold mb-2" >email</label>
+    <input name="email" type="email" value="john.doe@gmail.com" id="email" autocomplete="off" autocorrect="off" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" max="" min="">
+    
+    
+
+    <label for="date" class="block text-gray-700 text-sm font-bold mb-2" >date</label>
+    <input name="date" type="date" value="2022-04-01" id="date" autocomplete="off" autocorrect="off" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" max="" min="">
+    
+    
+
+</form>
+---

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"html/template"
 
-	"github.com/flosch/pongo2"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	log "github.com/sirupsen/logrus"
@@ -18,28 +17,11 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 			return NewEmbeds()
 		})
 
-		return nil
-	})
-
-	l.Register(func(app *goapp.App) error {
-		app.Set("gonode.pongo", func(app *goapp.App) interface{} {
-			engine := pongo2.NewSet("gonode.embeds", &PongoTemplateLoader{
-				Embeds:   app.Get("gonode.embeds").(*Embeds),
-				BasePath: "",
-			})
-
-			engine.Options = &pongo2.Options{
-				TrimBlocks:   true,
-				LStripBlocks: true,
-			}
-
-			return engine
-		})
-
 		app.Set("gonode.template", func(app *goapp.App) interface{} {
 			return &TemplateLoader{
 				Embeds:   app.Get("gonode.embeds").(*Embeds),
 				BasePath: "",
+				FuncMap:  map[string]interface{}{},
 			}
 		})
 
@@ -51,15 +33,13 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 			return nil
 		}
 
-		// expose files using static/modules/[path]
-
 		mux := app.Get("goji.mux").(*web.Mux)
 		logger := app.Get("logger").(*log.Logger)
 		asset := app.Get("gonode.embeds").(*Embeds)
 		loader := app.Get("gonode.template").(*TemplateLoader)
 		embeds := app.Get("gonode.embeds").(*Embeds)
 
-		loader.Templates = GetTemplates(embeds)
+		loader.Templates = GetTemplates(embeds, loader.FuncMap)
 
 		ConfigureEmbedMux(mux, asset, "/static", logger)
 
@@ -68,11 +48,31 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 }
 
 // This function is called only once at boot time to configure the different template
-func GetTemplates(embeds *Embeds) map[string]*template.Template {
+func GetTemplates(embeds *Embeds, funcMap map[string]interface{}) map[string]*template.Template {
 	entries := embeds.GetFilesByExt(".html")
 	// in the entries we need to find the page, each page will have its own set of templates (layout, blocks, etc ...)
 
 	templates := map[string]*template.Template{}
+
+	formPath := "templates/form/"
+	for _, entry := range entries {
+		if len(entry.Path) < len(formPath) || entry.Path[0:len(formPath)] != formPath {
+			continue
+		}
+
+		name := fmt.Sprintf("%s:%s", entry.Module, entry.Path[10:len(entry.Path)-5])
+
+		if data, err := embeds.ReadFile(entry.Module, entry.Path); err != nil {
+			fmt.Printf("Unable to read file: %s\n", err)
+			panic(err)
+		} else {
+			templates[name] = template.New(name).Funcs(funcMap)
+			_, err := templates[name].Parse(string(data))
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
 
 	// create root template without parsing them
 	pagesPath := "templates/pages/"
@@ -82,24 +82,20 @@ func GetTemplates(embeds *Embeds) map[string]*template.Template {
 		}
 
 		name := fmt.Sprintf("%s:%s", entry.Module, entry.Path[10:len(entry.Path)-5])
-		templates[name] = template.New(name)
+		templates[name] = template.New(name).Funcs(funcMap)
 	}
 
 	layoutsPath := "templates/layouts/"
 	blocksPath := "templates/blocks/"
 
 	// load all the layout first, default templates will be defined
-	for name, tpl := range templates {
-
-		fmt.Printf("Iterating over layout: %s\n", name)
+	for _, tpl := range templates {
 		for _, entry := range entries {
 			if len(entry.Path) < len(layoutsPath) || entry.Path[0:len(layoutsPath)] != layoutsPath {
 				continue
 			}
 
 			name := fmt.Sprintf("%s:%s", entry.Module, entry.Path[10:len(entry.Path)-5])
-
-			fmt.Printf("Loading layout: %s\n", name)
 
 			if data, err := embeds.ReadFile(entry.Module, entry.Path); err != nil {
 				fmt.Printf("Unable to read file: %s\n", err)
@@ -112,16 +108,12 @@ func GetTemplates(embeds *Embeds) map[string]*template.Template {
 
 		// load all the blocks first, so this will let an option to overwrite them if needed in
 		// the page
-
-		fmt.Printf("Iterating over block: %s\n", name)
 		for _, entry := range entries {
 			if len(entry.Path) < len(blocksPath) || entry.Path[0:len(blocksPath)] != blocksPath {
 				continue
 			}
 
 			name := fmt.Sprintf("%s:%s", entry.Module, entry.Path[10:len(entry.Path)-5])
-
-			fmt.Printf("Loading blocks: %s\n", name)
 
 			if data, err := embeds.ReadFile(entry.Module, entry.Path); err != nil {
 				fmt.Printf("Unable to read file: %s\n", err)

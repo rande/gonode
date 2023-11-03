@@ -1,0 +1,10 @@
+{{template "prism:layouts/error" .}} 
+
+{{define "prism:block/content"}}
+    <h1>Bad Request</h1>
+
+    <div>
+        The request is not valid.<br />
+        <em>(no prism handler found.)</em>
+    </div>
+{{end}}

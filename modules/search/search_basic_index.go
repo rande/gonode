@@ -133,7 +133,7 @@ func (v *IndexViewHandler) Execute(node *base.Node, request *base.ViewRequest, r
 	pager := GetPager(search, v.Manager, v.Search, options)
 
 	response.
-		Set(200, fmt.Sprintf("search:nodes/%s.tpl", node.Type)).
+		Set(200, fmt.Sprintf("search:pages/%s", node.Type)).
 		Add("pager", pager)
 
 	return nil

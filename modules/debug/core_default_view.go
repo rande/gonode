@@ -21,7 +21,7 @@ func (v *DefaultViewHandler) Support(node *base.Node, request *base.ViewRequest,
 func (v *DefaultViewHandler) Execute(node *base.Node, request *base.ViewRequest, response *base.ViewResponse) error {
 
 	response.
-		Set(200, fmt.Sprintf("nodes/%s.tpl", node.Type)).
+		Set(200, fmt.Sprintf("pages/%s", node.Type)).
 		Add("node", node)
 
 	return nil

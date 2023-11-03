@@ -6,17 +6,17 @@
 package prism
 
 import (
+	"errors"
 	"fmt"
+	"html/template"
 	"net/http"
 	"net/url"
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/flosch/pongo2"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/embed"
-	"github.com/rande/gonode/core/helper"
 	"github.com/rande/gonode/core/router"
 	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/modules/base"
@@ -26,7 +26,7 @@ import (
 
 func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *http.Request) {
 	manager := app.Get("gonode.manager").(*base.PgNodeManager)
-	pongo := app.Get("gonode.pongo").(*pongo2.TemplateSet)
+	loader := app.Get("gonode.template").(*embed.TemplateLoader)
 	handlers := app.Get("gonode.view_handler_collection").(base.ViewHandlerCollection)
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
@@ -158,7 +158,7 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 
 			if !handler.Support(node, request, response) {
 				// the execute method already take care of the rendering, nothing to do
-				response.Template = "prism:pages/bad_request.tpl"
+				response.Template = "prism:pages/bad_request"
 				response.StatusCode = http.StatusBadRequest
 
 				if logger != nil {
@@ -185,19 +185,17 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 						}).Warn("Error while executing ViewHandler")
 					}
 
-					response.Template = "prism:pages/internal_error.tpl"
+					response.Template = "prism:pages/internal_error"
 					response.StatusCode = http.StatusInternalServerError
 				}
 
 				if response.Template == "" {
 					return
 				}
-				// pongo does not support template
-				// context["base_template"] = "layouts/base.tpl"
 			}
 
 		} else {
-			response.Template = "prism:pages/not_found.tpl"
+			response.Template = "prism:pages/not_found"
 			response.StatusCode = http.StatusNotFound
 		}
 
@@ -210,17 +208,15 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 			}).Debug("Render node from ViewHandler")
 		}
 
-		tpl, err := pongo.FromFile(response.Template)
-
-		helper.PanicOnError(err)
-
-		data, err := tpl.ExecuteBytes(response.Context)
+		data, err := loader.Execute(response.Template, response.Context)
 
 		if err != nil {
 			res.Header().Set("Content-Type", "text/html; charset=UTF-8")
 			res.WriteHeader(500)
 			res.Write([]byte("<html><head><title>Internal Server Error</title></head><body><h1>Internal Server Error</h1><p>Sorry, an unexpected error occurs on the server...</p></body></html>"))
 
+			fmt.Printf("Template: %s\n", response.Template)
+			fmt.Printf("Error: %s %s\n", err, errors.Unwrap(err))
 			panic(err)
 		} else {
 			res.WriteHeader(response.StatusCode)
@@ -229,20 +225,14 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 	}
 }
 
-func PrismPath(router *router.Router) func(nv *pongo2.Value, vparams ...*pongo2.Value) *pongo2.Value {
+func PrismPath(router *router.Router) func(node *base.Node, params ...interface{}) template.HTML {
 
-	return func(nv *pongo2.Value, vparams ...*pongo2.Value) *pongo2.Value {
+	return func(node *base.Node, options ...interface{}) template.HTML {
 		var route string
 
-		if nv.Interface() == nil {
-			return pongo2.AsSafeValue("no-node")
-		}
-
-		node := nv.Interface().(*base.Node)
-
 		params := url.Values{}
-		if len(vparams) > 0 {
-			params = vparams[0].Interface().(url.Values)
+		if len(options) > 0 {
+			params = options[0].(url.Values)
 		}
 
 		if len(node.Path) > 0 {
@@ -269,7 +259,7 @@ func PrismPath(router *router.Router) func(nv *pongo2.Value, vparams ...*pongo2.
 			panic(err)
 		}
 
-		return pongo2.AsSafeValue(path)
+		return template.HTML(path)
 	}
 }
 
@@ -295,10 +285,11 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		return nil
 	})
 
-	l.Prepare(func(app *goapp.App) error {
+	l.Config(func(app *goapp.App) error {
+		loader := app.Get("gonode.template").(*embed.TemplateLoader)
 		router := app.Get("gonode.router").(*router.Router)
-		pongo := app.Get("gonode.pongo").(*pongo2.TemplateSet)
-		pongo.Globals["prism_path"] = PrismPath(router)
+
+		loader.FuncMap["prism_path"] = PrismPath(router)
 
 		return nil
 	})

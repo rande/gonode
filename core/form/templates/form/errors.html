@@ -1,0 +1,7 @@
+<!-- errors -->{{ if .field.HasErrors -}}
+    <ul>
+    {{- range $index, $error := .field.Errors }}
+        <li class="{{ $.field.Error.Class}}" style="{{ $.field.Error.Style }}" >{{ $error }}</li>
+    {{ end -}}
+    </ul>
+{{- end}}

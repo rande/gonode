@@ -1,0 +1,10 @@
+{{template "prism:layouts/base" .}} 
+
+{{define "prism:block/content"}}
+    <h1>Title: {{ .node.Name }}</h1>
+
+    <div>
+        <h2>{{ .node.Data.Title }}</h2>
+        {{ .node.Data.Content }}
+    </div>
+{{end}}

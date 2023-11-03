@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+    <channel>
+        <title>{{ node_data .node "Title" }}</title>
+        <link>{{ .request_context.Prefix }}{{ .request.URL }}</link>
+        <description>{{ node_data .node "Description" }}</description>
+
+        {{ range .pager.Elements }}
+            <item>
+                 <title>{{ node_data . "Title" }}</title>
+                 <link>{{ url "prism" (url_values "uuid" .Uuid) $.request_context }}</link>
+                 <description>{{ safe (node_data . "Content") }}</description>
+                 <pubDate>{{ node_data . "PublicationDate" }}</pubDate>
+                 <gui>{{ .Uuid }}</gui>
+            </item>
+        {{ end }}
+    </channel>
+</rss>

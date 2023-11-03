@@ -1,0 +1,5 @@
+<form action="{{ .form.Method }}" action="{{ .form.Action }}" encoding="{{ .form.EncType }}">
+{{ range .form.Fields }}
+    {{ form_field .Name $.form }}
+{{ end }}
+</form>

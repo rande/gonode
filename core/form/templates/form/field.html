@@ -1,0 +1,10 @@
+{{- if eq .field.Input.Type "form" -}}
+    {{- range .field.Children -}}
+        {{ form_field .Name $.field.InitialValue }}
+    {{- end -}}
+{{- else -}}
+    {{ form_label .field.Name .form }}
+    {{ form_input .field.Name .form }}
+    {{ form_help .field.Name .form }}
+    {{ form_errors .field.Name .form }}
+{{- end -}}

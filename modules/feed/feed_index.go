@@ -66,7 +66,7 @@ func (v *FeedViewHandler) Execute(node *base.Node, request *base.ViewRequest, re
 	}
 
 	response.
-		Set(200, fmt.Sprintf("feed:nodes/%s.%s.tpl", node.Type, request.Format)).
+		Set(200, fmt.Sprintf("feed:pages/%s.%s", node.Type, request.Format)).
 		Add("pager", pager)
 
 	return nil

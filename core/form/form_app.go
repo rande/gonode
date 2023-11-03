@@ -6,7 +6,6 @@
 package form
 
 import (
-	"github.com/flosch/pongo2"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/embed"
@@ -14,20 +13,16 @@ import (
 
 func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
-	l.Register(func(app *goapp.App) error {
+	l.Config(func(app *goapp.App) error {
 		app.Get("gonode.embeds").(*embed.Embeds).Add("form", GetEmbedFS())
 
-		return nil
-	})
+		loader := app.Get("gonode.template").(*embed.TemplateLoader)
 
-	l.Prepare(func(app *goapp.App) error {
-		pongo := app.Get("gonode.pongo").(*pongo2.TemplateSet)
-
-		pongo.Globals["form_field"] = createPongoField(pongo)
-		pongo.Globals["form_label"] = createPongoLabel(pongo)
-		pongo.Globals["form_input"] = createPongoInput(pongo)
-		pongo.Globals["form_help"] = createPongoHelp(pongo)
-		pongo.Globals["form_errors"] = createPongoErrors(pongo)
+		loader.FuncMap["form_field"] = createTemplateField(loader)
+		loader.FuncMap["form_label"] = createTemplateLabel(loader)
+		loader.FuncMap["form_input"] = createTemplateInput(loader)
+		loader.FuncMap["form_help"] = createTemplateHelp(loader)
+		loader.FuncMap["form_errors"] = createTemplateErrors(loader)
 
 		return nil
 	})

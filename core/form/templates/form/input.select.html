@@ -1,0 +1,13 @@
+<select name="{{ .input.Name}}" value="{{ .input.Value }}" id="{{ .input.Id }}"
+{{- if .input.Class }} class="{{ .input.Class }}" {{ end }}
+{{- if .input.Style }} style="{{ .input.Style }}" {{ end }}
+{{- if .input.Required }} required {{ end }}
+{{- if .input.Readonly }} readonly {{ end }}
+{{- if .input.Disabled }} disabled {{ end }}
+{{- if .input.Multiple }} multiple{{ end }}
+{{- if .input.Autofocus }} autofocus{{ end }}
+{{- if .input.Novalidate }} novalidate{{ end }}>
+{{ range .field.Children }}
+    <option value="{{ .Input.Value }}" id="{{ .Input.Id }}" {{ if .Input.Checked }} selected {{ end }}>{{ .Label.Value }}</option>
+{{ end }}
+</select>

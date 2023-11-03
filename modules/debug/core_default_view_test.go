@@ -8,7 +8,7 @@ package debug
 import (
 	"testing"
 
-	"github.com/flosch/pongo2"
+	"github.com/rande/gonode/core/embed"
 	"github.com/rande/gonode/modules/base"
 	"github.com/stretchr/testify/assert"
 )
@@ -22,7 +22,7 @@ func Test_Default_View(t *testing.T) {
 
 	response := &base.ViewResponse{
 		StatusCode: 200,
-		Context:    pongo2.Context{},
+		Context:    embed.Context{},
 	}
 
 	v := &DefaultViewHandler{}
@@ -32,5 +32,5 @@ func Test_Default_View(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, node, response.Context["node"])
 	assert.Equal(t, 200, response.StatusCode)
-	assert.Equal(t, "nodes/foo.bar.tpl", response.Template)
+	assert.Equal(t, "pages/foo.bar", response.Template)
 }

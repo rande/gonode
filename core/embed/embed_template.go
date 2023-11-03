@@ -8,7 +8,6 @@ package embed
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"html/template"
 )
 
@@ -16,10 +15,14 @@ var (
 	ErrRootTemplateNotFound = errors.New("root template not found")
 )
 
+type Context map[string]interface{}
+type FuncMap map[string]interface{}
+
 type TemplateLoader struct {
 	Embeds    *Embeds
 	BasePath  string
 	Templates map[string]*template.Template
+	FuncMap   map[string]interface{}
 }
 
 // Abs calculates the path to a given template. Whenever a path must be resolved
@@ -42,7 +45,6 @@ func (l *TemplateLoader) Abs(base, name string) string {
 func (l *TemplateLoader) Execute(path string, data interface{}) ([]byte, error) {
 	var buf bytes.Buffer
 
-	fmt.Printf("Execute: %s\n", path)
 	if tpl, ok := l.Templates[path]; !ok {
 		return nil, ErrRootTemplateNotFound
 	} else if err := tpl.ExecuteTemplate(&buf, path, data); err != nil {

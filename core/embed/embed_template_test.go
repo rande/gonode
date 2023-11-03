@@ -20,7 +20,7 @@ func Test_Template_With_Custom_Path(t *testing.T) {
 
 	var buf bytes.Buffer
 
-	templates := GetTemplates(embeds)
+	templates := GetTemplates(embeds, map[string]interface{}{})
 	ctx := map[string]interface{}{
 		"Title": "Hello World!",
 	}

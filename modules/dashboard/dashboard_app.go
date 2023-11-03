@@ -20,7 +20,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		return nil
 	})
 
-	l.Config(func(app *goapp.App) error {
+	l.Prepare(func(app *goapp.App) error {
 
 		r := app.Get("gonode.router").(*router.Router)
 

@@ -10,7 +10,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/flosch/pongo2"
+	"github.com/rande/gonode/core/embed"
 	"github.com/rande/gonode/core/helper"
 	"github.com/zenazn/goji/web"
 )
@@ -223,7 +223,7 @@ type ViewRequest struct {
 func NewViewResponse(res http.ResponseWriter) *ViewResponse {
 	return &ViewResponse{
 		StatusCode:   200,
-		Context:      pongo2.Context{},
+		Context:      embed.Context{},
 		HttpResponse: res,
 		ContentType:  "text/html; charset=UTF-8",
 	}
@@ -232,7 +232,7 @@ func NewViewResponse(res http.ResponseWriter) *ViewResponse {
 type ViewResponse struct {
 	StatusCode   int
 	Template     string
-	Context      pongo2.Context
+	Context      embed.Context
 	HttpResponse http.ResponseWriter
 	ContentType  string
 }

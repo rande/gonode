@@ -1,0 +1,22 @@
+<input name="{{ .input.Name}}" type="{{ .input.Type }}" value="{{.input.Value}}" id="{{ .input.Id }}" autocomplete="{{ if .input.Autocomplete }}on{{ else }}off{{ end }}" autocorrect="{{ if .input.Autocorrect }}on{{ else }}off{{ end }}"
+{{- if .input.Class }} class="{{ .input.Class }}"{{ end }}
+{{- if .input.Style }} style="{{ .input.Style }}"{{ end }}
+{{- if .input.Placeholder }} placeholder="{{ .input.Placeholder }}"{{ end }}
+{{- if .input.Required }} required{{ end }}
+{{- if .input.Readonly }} readonly{{ end }}
+{{- if .input.Disabled }} disabled{{ end }}
+{{- if .input.Checked }} checked{{ end }}
+{{- if .input.Multiple }} multiple{{ end }}
+{{- if .input.Autofocus }} autofocus{{ end }}
+{{- if .input.Novalidate }} novalidate{{ end }}
+{{- if gt .input.Size 0 }} size="{{ .input.Size }}"{{ end }}
+{{- if or (ne .input.MaxLength 0) (ne .input.MinLength 0) }} maxlength="{{ .input.MaxLength }}"{{ end }}
+{{- if or (ne .input.MaxLength 0) (ne .input.MinLength 0) }} minlength="{{ .input.MinLength }}"{{ end }}
+{{- if or (ne .input.Min 0) (ne .input.Max 0) }} max="{{ .input.Max }}"{{ end }}
+{{- if or (ne .input.Min 0) (ne .input.Max 0) }} min="{{ .input.Min }}"{{ end }}
+{{- if gt .input.Step 0 }} step="{{ .input.Step }}"{{ end }}
+{{- if gt .input.Height 0 }} height="{{ .input.Height }}"{{ end }}
+{{- if gt .input.Width 0 }} width="{{ .input.Width }}"{{ end }}
+{{- if .input.Pattern }} pattern="{{ .input.Pattern }}" {{ end }}
+{{- if .input.Autocomplete }} autocomplete="{{ .input.Autocomplete }}"{{ end }}
+{{- if .input.List }} list="{{ .input.List }}"{{ end }}>

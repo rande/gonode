@@ -7,11 +7,13 @@ package base
 
 import (
 	"database/sql"
+	"fmt"
+	"html/template"
 	"reflect"
 
-	"github.com/flosch/pongo2"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
+	"github.com/rande/gonode/core/embed"
 	"github.com/rande/gonode/core/security"
 	log "github.com/sirupsen/logrus"
 )
@@ -52,6 +54,24 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		return nil
 	})
 
+	l.Config(func(app *goapp.App) error {
+		loader := app.Get("gonode.template").(*embed.TemplateLoader)
+
+		loader.FuncMap["safe"] = func(v interface{}) template.HTML {
+			return template.HTML(fmt.Sprintf("%v", v))
+		}
+
+		loader.FuncMap["node_data"] = func(node *Node, name string) interface{} {
+			return GetValue(node.Data, name)
+		}
+
+		loader.FuncMap["node_meta"] = func(node *Node, name string) interface{} {
+			return GetValue(node.Meta, name)
+		}
+
+		return nil
+	})
+
 	l.Prepare(func(app *goapp.App) error {
 		app.Set("gonode.manager", func(app *goapp.App) interface{} {
 			return &PgNodeManager{
@@ -69,24 +89,6 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 
 			return s
 		})
-
-		return nil
-	})
-
-	l.Prepare(func(app *goapp.App) error {
-		pongo := app.Get("gonode.pongo").(*pongo2.TemplateSet)
-
-		pongo.Globals["node_data"] = func(vnode, vname *pongo2.Value) *pongo2.Value {
-			node := vnode.Interface().(*Node)
-
-			return pongo2.AsValue(GetValue(node.Data, vname.String()))
-		}
-
-		pongo.Globals["node_meta"] = func(vnode, vname *pongo2.Value) *pongo2.Value {
-			node := vnode.Interface().(*Node)
-
-			return pongo2.AsValue(GetValue(node.Meta, vname.String()))
-		}
 
 		return nil
 	})

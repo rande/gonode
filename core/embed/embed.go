@@ -15,7 +15,6 @@ import (
 var (
 	ErrUnableToFindEmbed  = errors.New("unable to find the embed file/directory")
 	ErrModuleDoesNotExist = errors.New("module does not exist")
-	ErrInvalidPongoRef    = errors.New("invalid pongo reference name")
 	ErrInvalidTemplateRef = errors.New("invalid template reference name")
 )
 

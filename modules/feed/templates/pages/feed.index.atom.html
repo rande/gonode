@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>{{ node_data .node "Title" }}</title>
+    <link href="feeds/system.atom" rel="self" />
+
+    {{ range .pager.Elements }}
+        <entry>
+            <title>{{ node_data . "Title" }}</title>
+            <link rel="alternate" type="text/html" href="{{ url "prism" (url_values "uuid" .Uuid) $.request_context }}"/>
+            <id>{{ .Uuid }}</id>
+            <summary>{{ safe (node_data . "Content")}}]]</summary>
+        </entry>
+    {{ end }}
+</feed>

@@ -6,11 +6,11 @@
 package prism
 
 import (
+	"html/template"
 	"net/http"
 	"net/url"
 	"testing"
 
-	"github.com/flosch/pongo2"
 	"github.com/rande/gonode/core/router"
 	"github.com/rande/gonode/modules/base"
 	"github.com/stretchr/testify/assert"
@@ -29,20 +29,20 @@ func Test_PrimPath_Node_With_Path(t *testing.T) {
 	cases := []struct {
 		node   *base.Node
 		params url.Values
-		url    string
+		url    template.HTML
 	}{
 		{node, url.Values{}, "/path/to/my/content"},
-		{node, url.Values{"name": []string{"foobar"}}, "/path/to/my/content?name=foobar"},
-		{node, url.Values{"format": []string{"html"}}, "/path/to/my/content.html"},
-		{node, url.Values{"format": []string{"html"}, "name": []string{"foobar"}}, "/path/to/my/content.html?name=foobar"},
+		{node, url.Values{"name": []string{"foobar"}}, template.HTML("/path/to/my/content?name=foobar")},
+		{node, url.Values{"format": []string{"html"}}, template.HTML("/path/to/my/content.html")},
+		{node, url.Values{"format": []string{"html"}, "name": []string{"foobar"}}, template.HTML("/path/to/my/content.html?name=foobar")},
 	}
 
 	f := PrismPath(r)
 
 	for _, data := range cases {
-		url := f(pongo2.AsValue(data.node), pongo2.AsValue(data.params))
+		url := f(data.node, data.params)
 
-		assert.Equal(t, data.url, url.String())
+		assert.Equal(t, data.url, url)
 	}
 }
 
@@ -57,18 +57,18 @@ func Test_PrimPath_Node_Without_Path(t *testing.T) {
 	cases := []struct {
 		node   *base.Node
 		params url.Values
-		url    string
+		url    template.HTML
 	}{
-		{node, url.Values{}, "/prism/11111111-1111-1111-1111-111111111111"},
-		{node, url.Values{"name": []string{"foobar"}}, "/prism/11111111-1111-1111-1111-111111111111?name=foobar"},
-		{node, url.Values{"name": []string{"foobar"}, "format": []string{"html"}}, "/prism/11111111-1111-1111-1111-111111111111.html?name=foobar"},
+		{node, url.Values{}, template.HTML("/prism/11111111-1111-1111-1111-111111111111")},
+		{node, url.Values{"name": []string{"foobar"}}, template.HTML("/prism/11111111-1111-1111-1111-111111111111?name=foobar")},
+		{node, url.Values{"name": []string{"foobar"}, "format": []string{"html"}}, template.HTML("/prism/11111111-1111-1111-1111-111111111111.html?name=foobar")},
 	}
 
 	f := PrismPath(r)
 
 	for _, data := range cases {
-		url := f(pongo2.AsValue(data.node), pongo2.AsValue(data.params))
+		url := f(data.node, data.params)
 
-		assert.Equal(t, data.url, url.String())
+		assert.Equal(t, data.url, url)
 	}
 }

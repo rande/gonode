@@ -1,0 +1,23 @@
+{{template "prism:layouts/base" .}} 
+
+{{define "prism:block/content"}}
+    <h1>Name: {{ .node.Name }} - {{ .node.Type }}</h1>
+
+    <div>
+        <ul>
+            <li>Page: {{ .pager.Page }}</li>
+            <li>Per Page: {{ .pager.PerPage }}</li>
+        </ul>
+
+        <ul>
+            {{ range .pager.Elements }}
+                <li><a href="{{ prism_path . }}">{{ .Name }}</a> - {{ .Type }}</li>
+            {{ end }}
+        </ul>
+
+        <ul>
+            <li><a href="{{ prism_path .node (url_values "page" .pager.Previous) }}">Previous</li>
+            <li><a href="{{ prism_path .node (url_values "page" .pager.Next) }}">Next</li>
+        </ul>
+    </div>
+{{end}}

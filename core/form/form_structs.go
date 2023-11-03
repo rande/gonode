@@ -52,6 +52,7 @@ type Input struct {
 	Autocomplete string // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#autocomplete
 	Spellcheck   string
 	Readonly     bool
+	Disabled     bool
 	Checked      bool
 	Multiple     bool
 	Required     bool
@@ -230,11 +231,11 @@ func create(name string, options ...interface{}) *FormField {
 		field.Marshaller = selectMarshal
 		field.Unmarshaller = selectUnmarshal
 		field.Validators = append(field.Validators, OptionsValidator())
-		field.Input.Template = "form:fields/input.select.tpl"
+		field.Input.Template = "form:form/input.select"
 	}
 
 	if field.Input.Type == "textarea" {
-		field.Input.Template = "form:fields/input.textarea.tpl"
+		field.Input.Template = "form:form/input.textarea"
 	}
 
 	// if fieldType == "form" {
@@ -268,18 +269,19 @@ func create(name string, options ...interface{}) *FormField {
 }
 
 func CreateForm(data interface{}) *Form {
-	if data == nil {
-		return &Form{}
-	}
-
-	return &Form{
-		Data:    data,
-		reflect: reflect.ValueOf(data).Elem(),
+	form := &Form{
 		EncType: "application/x-www-form-urlencoded",
 		Action:  "",
 		Method:  "POST",
 		State:   Initialized,
 	}
+
+	if data != nil {
+		form.Data = data
+		form.reflect = reflect.ValueOf(data).Elem()
+	}
+
+	return form
 }
 
 func CreateFormField() *FormField {
@@ -289,7 +291,7 @@ func CreateFormField() *FormField {
 		Label: Label{
 			Class:    "",
 			Value:    "",
-			Template: "form:label.tpl",
+			Template: "form:form/label",
 		},
 		Input: Input{
 			Class:       "",
@@ -297,7 +299,7 @@ func CreateFormField() *FormField {
 			Value:       "",
 			Placeholder: "",
 			Type:        "text",
-			Template:    "form:fields/input.text.tpl",
+			Template:    "form:form/input.text",
 			Readonly:    false,
 		},
 		Module:         "form",

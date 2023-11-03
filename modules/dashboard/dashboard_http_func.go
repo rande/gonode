@@ -20,24 +20,25 @@ import (
 
 func Dashboard_GET_Index(app *goapp.App) ViewHandlerInterface {
 	return func(c web.C, res http.ResponseWriter, req *http.Request) *ViewResponse {
-		return HtmlResponse(200, "dashboard:dash/index.tpl")
+		return HtmlResponse(200, "dashboard:pages/index")
 	}
 }
 
 func Dashboard_GET_Login(app *goapp.App) ViewHandlerInterface {
 	return func(c web.C, res http.ResponseWriter, req *http.Request) *ViewResponse {
-		return HtmlResponse(200, "dashboard:auth/login.tpl")
+		return HtmlResponse(200, "dashboard:pages/login")
 	}
 }
 
 func Dashboard_GET_ToDo(app *goapp.App) ViewHandlerInterface {
 	return func(c web.C, res http.ResponseWriter, req *http.Request) *ViewResponse {
-		return HtmlResponse(200, "dashboard:dash/todo.tpl")
+		return HtmlResponse(200, "dashboard:dash/todo")
 	}
 }
 
 func Dashboard_GET_Node_List(app *goapp.App) ViewHandlerInterface {
 	manager := app.Get("gonode.manager").(*base.PgNodeManager)
+	logger := app.Get("logger").(*logrus.Logger)
 
 	queryBuilder := app.Get("gonode.search.pgsql").(*search.SearchPGSQL)
 
