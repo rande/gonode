@@ -3,19 +3,20 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package embed
+package template
 
 import (
 	"bytes"
 	"testing"
 
 	"github.com/gkampitakis/go-snaps/snaps"
-	"github.com/rande/gonode/core/embed/fixtures"
+	"github.com/rande/gonode/core/embed"
+	"github.com/rande/gonode/modules/template/fixtures"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_Template_With_Custom_Path(t *testing.T) {
-	embeds := NewEmbeds()
+	embeds := embed.NewEmbeds()
 	embeds.Add("testmodule", fixtures.GetTestEmbedFS())
 
 	var buf bytes.Buffer

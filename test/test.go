@@ -31,6 +31,7 @@ import (
 	"github.com/rande/gonode/modules/api"
 	"github.com/rande/gonode/modules/base"
 	"github.com/rande/gonode/modules/blog"
+	"github.com/rande/gonode/modules/dashboard"
 	"github.com/rande/gonode/modules/debug"
 	"github.com/rande/gonode/modules/feed"
 	node_guard "github.com/rande/gonode/modules/guard"
@@ -39,6 +40,7 @@ import (
 	"github.com/rande/gonode/modules/raw"
 	"github.com/rande/gonode/modules/search"
 	"github.com/rande/gonode/modules/setup"
+	"github.com/rande/gonode/modules/template"
 	"github.com/rande/gonode/modules/user"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -124,6 +126,8 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 	media.Configure(l, conf)
 	search.Configure(l, conf)
 	feed.Configure(l, conf)
+	dashboard.Configure(l, conf)
+	template.Configure(l, conf)
 
 	logger.Configure(l, conf)
 	commands.Configure(l, conf)

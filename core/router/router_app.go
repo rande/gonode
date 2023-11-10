@@ -7,12 +7,12 @@ package router
 
 import (
 	"fmt"
-	"html/template"
+	tpl "html/template"
 	"net/url"
 
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
-	"github.com/rande/gonode/core/embed"
+	"github.com/rande/gonode/modules/template"
 	"github.com/zenazn/goji/web"
 )
 
@@ -31,9 +31,9 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 		mux.Use(RequestContextMiddleware)
 
 		router := app.Get("gonode.router").(*Router)
-		loader := app.Get("gonode.template").(*embed.TemplateLoader)
+		loader := app.Get("gonode.template").(*template.TemplateLoader)
 
-		loader.FuncMap["path"] = func(name string, options ...interface{}) template.HTML {
+		loader.FuncMap["path"] = func(name string, options ...interface{}) tpl.HTML {
 			params := url.Values{}
 
 			if len(options) > 0 && options[0] != nil {
@@ -43,11 +43,11 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 			if path, err := router.GeneratePath(name, params); err != nil {
 				panic(err)
 			} else {
-				return template.HTML(path)
+				return tpl.HTML(path)
 			}
 		}
 
-		loader.FuncMap["url"] = func(name string, options ...interface{}) template.HTML {
+		loader.FuncMap["url"] = func(name string, options ...interface{}) tpl.HTML {
 
 			params := url.Values{}
 			requestContext := &RequestContext{}
@@ -63,11 +63,11 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 			if path, err := router.GenerateUrl(name, params, requestContext); err != nil {
 				panic(err)
 			} else {
-				return template.HTML(path)
+				return tpl.HTML(path)
 			}
 		}
 
-		loader.FuncMap["net"] = func(name string, options ...interface{}) template.HTML {
+		loader.FuncMap["net"] = func(name string, options ...interface{}) tpl.HTML {
 			params := url.Values{}
 
 			if len(options) > 0 && options[0] != nil {
@@ -80,7 +80,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 				panic(err)
 			}
 
-			return template.HTML(path)
+			return tpl.HTML(path)
 		}
 
 		loader.FuncMap["url_values"] = func(values ...interface{}) url.Values {

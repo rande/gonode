@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/rande/gonode/core/embed"
+	"github.com/rande/gonode/modules/template"
 )
 
 func TestMain(t *testing.M) {
@@ -26,11 +27,11 @@ func TestMain(t *testing.M) {
 	os.Exit(v)
 }
 
-func GetTemplate() *embed.TemplateLoader {
+func GetTemplate() *template.TemplateLoader {
 	embeds := embed.NewEmbeds()
 	embeds.Add("form", GetEmbedFS())
 
-	loader := &embed.TemplateLoader{
+	loader := &template.TemplateLoader{
 		Embeds:   embeds,
 		BasePath: "",
 	}
@@ -43,7 +44,7 @@ func GetTemplate() *embed.TemplateLoader {
 		"form_errors": createTemplateErrors(loader),
 	}
 
-	loader.Templates = embed.GetTemplates(embeds, funcMap)
+	loader.Templates = template.GetTemplates(embeds, funcMap)
 
 	return loader
 }
@@ -80,7 +81,7 @@ func Test_Form_Rendering(t *testing.T) {
 	form.Get("name").Input.MinLength = 10
 	form.Get("name").Input.MaxLength = 100
 
-	data, err := loader.Execute("form:form/form", embed.Context{
+	data, err := loader.Execute("form:form/form", template.Context{
 		"form": form,
 		"foo":  "bar",
 	})
@@ -101,7 +102,7 @@ func Test_Form_Rendering_Error(t *testing.T) {
 	loader := GetTemplate()
 
 	// -- Render form
-	data, err := loader.Execute("form:form/form", embed.Context{
+	data, err := loader.Execute("form:form/form", template.Context{
 		"form": form,
 	})
 
@@ -121,7 +122,7 @@ func Test_Form_Rendering_Error(t *testing.T) {
 	assert.NotNil(t, result)
 
 	// -- render form with errors
-	data, err = loader.Execute("form:form/form", embed.Context{
+	data, err = loader.Execute("form:form/form", template.Context{
 		"form": form,
 	})
 

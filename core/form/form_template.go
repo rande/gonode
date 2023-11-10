@@ -8,22 +8,22 @@ package form
 import (
 	"errors"
 	"fmt"
-	"html/template"
+	tpl "html/template"
 
-	"github.com/rande/gonode/core/embed"
 	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/modules/template"
 )
 
 var (
 	ErrNoTemplate = errors.New("unable to find the template to render")
 )
 
-func createTemplateField(loader *embed.TemplateLoader) func(name string, form *Form) template.HTML {
+func createTemplateField(loader *template.TemplateLoader) func(name string, form *Form) tpl.HTML {
 
-	return func(name string, form *Form) template.HTML {
+	return func(name string, form *Form) tpl.HTML {
 		field := form.Get(name)
 
-		data, err := loader.Execute("form:form/field", embed.Context{
+		data, err := loader.Execute("form:form/field", template.Context{
 			"form":  form,
 			"field": form.Get(name),
 			"input": field.Input,
@@ -32,16 +32,16 @@ func createTemplateField(loader *embed.TemplateLoader) func(name string, form *F
 
 		helper.PanicOnError(err)
 
-		return template.HTML(string(data))
+		return tpl.HTML(string(data))
 	}
 }
 
-func createTemplateLabel(loader *embed.TemplateLoader) func(name string, form *Form) template.HTML {
+func createTemplateLabel(loader *template.TemplateLoader) func(name string, form *Form) tpl.HTML {
 
-	return func(name string, form *Form) template.HTML {
+	return func(name string, form *Form) tpl.HTML {
 		field := form.Get(name)
 
-		data, err := loader.Execute(field.Label.Template, embed.Context{
+		data, err := loader.Execute(field.Label.Template, template.Context{
 			"form":  form,
 			"field": field,
 			"input": field.Input,
@@ -50,13 +50,13 @@ func createTemplateLabel(loader *embed.TemplateLoader) func(name string, form *F
 
 		helper.PanicOnError(err)
 
-		return template.HTML(string(data))
+		return tpl.HTML(string(data))
 	}
 }
 
-func createTemplateInput(loader *embed.TemplateLoader) func(name string, form *Form) template.HTML {
+func createTemplateInput(loader *template.TemplateLoader) func(name string, form *Form) tpl.HTML {
 
-	return func(name string, form *Form) template.HTML {
+	return func(name string, form *Form) tpl.HTML {
 		field := form.Get(name)
 
 		templates := []string{
@@ -65,7 +65,7 @@ func createTemplateInput(loader *embed.TemplateLoader) func(name string, form *F
 		}
 
 		for _, path := range templates {
-			data, err := loader.Execute(path, embed.Context{
+			data, err := loader.Execute(path, template.Context{
 				"form":  form,
 				"field": field,
 				"input": field.Input,
@@ -73,22 +73,22 @@ func createTemplateInput(loader *embed.TemplateLoader) func(name string, form *F
 			})
 
 			if err == nil {
-				return template.HTML(string(data))
+				return tpl.HTML(string(data))
 			}
 		}
 
 		helper.PanicOnError(ErrNoTemplate)
 
-		return template.HTML("")
+		return tpl.HTML("")
 	}
 }
 
-func createTemplateErrors(loader *embed.TemplateLoader) func(name string, form *Form) template.HTML {
+func createTemplateErrors(loader *template.TemplateLoader) func(name string, form *Form) tpl.HTML {
 
-	return func(name string, form *Form) template.HTML {
+	return func(name string, form *Form) tpl.HTML {
 		field := form.Get(name)
 
-		data, err := loader.Execute("form:form/errors", embed.Context{
+		data, err := loader.Execute("form:form/errors", template.Context{
 			"form":  form,
 			"field": field,
 			"input": field.Input,
@@ -97,16 +97,16 @@ func createTemplateErrors(loader *embed.TemplateLoader) func(name string, form *
 
 		helper.PanicOnError(err)
 
-		return template.HTML(string(data))
+		return tpl.HTML(string(data))
 	}
 }
 
-func createTemplateHelp(loader *embed.TemplateLoader) func(name string, form *Form) template.HTML {
+func createTemplateHelp(loader *template.TemplateLoader) func(name string, form *Form) tpl.HTML {
 
-	return func(name string, form *Form) template.HTML {
+	return func(name string, form *Form) tpl.HTML {
 		field := form.Get(name)
 
-		data, err := loader.Execute("form:form/help", embed.Context{
+		data, err := loader.Execute("form:form/help", template.Context{
 			"form":  form,
 			"field": field,
 			"help":  field.Help,
@@ -116,6 +116,6 @@ func createTemplateHelp(loader *embed.TemplateLoader) func(name string, form *Fo
 
 		helper.PanicOnError(err)
 
-		return template.HTML(string(data))
+		return tpl.HTML(string(data))
 	}
 }

@@ -8,8 +8,8 @@ package debug
 import (
 	"testing"
 
-	"github.com/rande/gonode/core/embed"
 	"github.com/rande/gonode/modules/base"
+	"github.com/rande/gonode/modules/template"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,7 +22,7 @@ func Test_Default_View(t *testing.T) {
 
 	response := &base.ViewResponse{
 		StatusCode: 200,
-		Context:    embed.Context{},
+		Context:    template.Context{},
 	}
 
 	v := &DefaultViewHandler{}

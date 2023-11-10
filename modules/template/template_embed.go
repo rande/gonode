@@ -3,12 +3,14 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package embed
+package template
 
 import (
 	"bytes"
 	"errors"
 	"html/template"
+
+	"github.com/rande/gonode/core/embed"
 )
 
 var (
@@ -19,27 +21,10 @@ type Context map[string]interface{}
 type FuncMap map[string]interface{}
 
 type TemplateLoader struct {
-	Embeds    *Embeds
+	Embeds    *embed.Embeds
 	BasePath  string
 	Templates map[string]*template.Template
 	FuncMap   map[string]interface{}
-}
-
-// Abs calculates the path to a given template. Whenever a path must be resolved
-// due to an import from another template, the base equals the parent template's path.
-func (l *TemplateLoader) Abs(base, name string) string {
-	// for _, lookupPath := range l.Paths {
-
-	// 	path := lookupPath + "/" + name
-
-	// 	_, err := l.Asset(path)
-
-	// 	if err == nil {
-	// 		return path
-	// 	}
-	// }
-
-	return name
 }
 
 func (l *TemplateLoader) Execute(path string, data interface{}) ([]byte, error) {

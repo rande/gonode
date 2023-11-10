@@ -4,9 +4,9 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/flosch/pongo2"
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/modules/template"
 	"github.com/zenazn/goji/web"
 )
 
@@ -17,7 +17,7 @@ type ViewResponse struct {
 	StatusCode  int
 	ContentType string
 	Template    string
-	Context     pongo2.Context
+	Context     template.Context
 	Location    string
 	Body        io.Reader
 	Headers     map[string]string
@@ -29,11 +29,11 @@ func (r *ViewResponse) Add(name string, v interface{}) *ViewResponse {
 	return r
 }
 
-func HtmlResponse(code int, template string) *ViewResponse {
+func HtmlResponse(code int, tpl string) *ViewResponse {
 	return &ViewResponse{
 		StatusCode:  code,
-		Template:    template,
-		Context:     pongo2.Context{},
+		Template:    tpl,
+		Context:     template.Context{},
 		Headers:     map[string]string{},
 		ContentType: "text/html; charset=UTF-8",
 	}
@@ -68,7 +68,7 @@ func StreamedResponse(code int, contentType string, body io.Reader) *ViewRespons
 type ViewHandlerInterface func(c web.C, res http.ResponseWriter, req *http.Request) *ViewResponse
 
 func InitView(app *goapp.App, creator func(app *goapp.App) ViewHandlerInterface) web.HandlerFunc {
-	pongo := app.Get("gonode.pongo").(*pongo2.TemplateSet)
+	loader := app.Get("gonode.template").(*template.TemplateLoader)
 
 	handler := creator(app)
 

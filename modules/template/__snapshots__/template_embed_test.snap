@@ -1,0 +1,52 @@
+
+[Test_Template_With_Custom_Path - 1]
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+    </head>
+    <body>
+        <h1>Empty layout</h1>
+        
+        
+    
+    <div>Hello World!</div>
+    <div>The index page with the empty layout</div>
+
+    </body>
+</html>
+
+
+
+---
+
+[Test_Template_With_Custom_Path - 2]
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title></title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+        <link href="/static/bootstrap/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    </head>
+    <body>
+        <h1>Default template</h1>
+        
+    
+    <div>Hello World!</div>
+    <div>The blog page with the default layout</div>
+
+        <div>
+    Powered by
+    <a href="https://golang.org/">Go</a>
+</div>
+
+        <script src="/static/bootstrap/bootstrap.bundle.min.js"></script>
+    </body>
+</html>
+
+
+---

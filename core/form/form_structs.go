@@ -106,13 +106,10 @@ type FormField struct {
 	Errors         []string
 	HasErrors      bool
 	Validators     []Validator
-	// from go to serialized
-	Marshaller Marshaller
-	// from serialized to go
-	Unmarshaller Unmarshaller
-	// Validator
-	reflect reflect.Value
-	Options interface{}
+	Marshaller     Marshaller   // from go to serialized
+	Unmarshaller   Unmarshaller // from serialized to go
+	reflect        reflect.Value
+	Options        interface{}
 }
 
 func (f *FormField) Get(name string) *FormField {
@@ -211,8 +208,8 @@ func create(name string, options ...interface{}) *FormField {
 		field.Options = options[2]
 	}
 
-	field.Input.Class = "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-	field.Label.Class = "block text-gray-700 text-sm font-bold mb-2"
+	field.Input.Class = "form-control"
+	field.Label.Class = "form-label"
 
 	if field.Input.Type == "color" {
 		field.Input.Class = ""

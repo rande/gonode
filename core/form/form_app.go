@@ -9,6 +9,7 @@ import (
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
 	"github.com/rande/gonode/core/embed"
+	"github.com/rande/gonode/modules/template"
 )
 
 func Configure(l *goapp.Lifecycle, conf *config.Config) {
@@ -16,7 +17,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 	l.Config(func(app *goapp.App) error {
 		app.Get("gonode.embeds").(*embed.Embeds).Add("form", GetEmbedFS())
 
-		loader := app.Get("gonode.template").(*embed.TemplateLoader)
+		loader := app.Get("gonode.template").(*template.TemplateLoader)
 
 		loader.FuncMap["form_field"] = createTemplateField(loader)
 		loader.FuncMap["form_label"] = createTemplateLabel(loader)

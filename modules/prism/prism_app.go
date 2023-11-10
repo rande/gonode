@@ -8,7 +8,7 @@ package prism
 import (
 	"errors"
 	"fmt"
-	"html/template"
+	tpl "html/template"
 	"net/http"
 	"net/url"
 	"strings"
@@ -20,13 +20,14 @@ import (
 	"github.com/rande/gonode/core/router"
 	"github.com/rande/gonode/core/security"
 	"github.com/rande/gonode/modules/base"
+	"github.com/rande/gonode/modules/template"
 	log "github.com/sirupsen/logrus"
 	"github.com/zenazn/goji/web"
 )
 
 func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *http.Request) {
 	manager := app.Get("gonode.manager").(*base.PgNodeManager)
-	loader := app.Get("gonode.template").(*embed.TemplateLoader)
+	loader := app.Get("gonode.template").(*template.TemplateLoader)
 	handlers := app.Get("gonode.view_handler_collection").(base.ViewHandlerCollection)
 	authorizer := app.Get("security.authorizer").(security.AuthorizationChecker)
 
@@ -225,9 +226,9 @@ func RenderPrism(app *goapp.App) func(c web.C, res http.ResponseWriter, req *htt
 	}
 }
 
-func PrismPath(router *router.Router) func(node *base.Node, params ...interface{}) template.HTML {
+func PrismPath(router *router.Router) func(node *base.Node, params ...interface{}) tpl.HTML {
 
-	return func(node *base.Node, options ...interface{}) template.HTML {
+	return func(node *base.Node, options ...interface{}) tpl.HTML {
 		var route string
 
 		params := url.Values{}
@@ -259,7 +260,7 @@ func PrismPath(router *router.Router) func(node *base.Node, params ...interface{
 			panic(err)
 		}
 
-		return template.HTML(path)
+		return tpl.HTML(path)
 	}
 }
 
@@ -286,7 +287,7 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 	})
 
 	l.Config(func(app *goapp.App) error {
-		loader := app.Get("gonode.template").(*embed.TemplateLoader)
+		loader := app.Get("gonode.template").(*template.TemplateLoader)
 		router := app.Get("gonode.router").(*router.Router)
 
 		loader.FuncMap["prism_path"] = PrismPath(router)

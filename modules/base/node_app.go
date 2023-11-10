@@ -8,13 +8,14 @@ package base
 import (
 	"database/sql"
 	"fmt"
-	"html/template"
+	tpl "html/template"
 	"reflect"
 
 	"github.com/rande/goapp"
 	"github.com/rande/gonode/core/config"
-	"github.com/rande/gonode/core/embed"
 	"github.com/rande/gonode/core/security"
+	"github.com/rande/gonode/modules/template"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -55,10 +56,10 @@ func Configure(l *goapp.Lifecycle, conf *config.Config) {
 	})
 
 	l.Config(func(app *goapp.App) error {
-		loader := app.Get("gonode.template").(*embed.TemplateLoader)
+		loader := app.Get("gonode.template").(*template.TemplateLoader)
 
-		loader.FuncMap["safe"] = func(v interface{}) template.HTML {
-			return template.HTML(fmt.Sprintf("%v", v))
+		loader.FuncMap["safe"] = func(v interface{}) tpl.HTML {
+			return tpl.HTML(fmt.Sprintf("%v", v))
 		}
 
 		loader.FuncMap["node_data"] = func(node *Node, name string) interface{} {

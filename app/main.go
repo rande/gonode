@@ -30,6 +30,7 @@ import (
 	"github.com/rande/gonode/modules/raw"
 	"github.com/rande/gonode/modules/search"
 	"github.com/rande/gonode/modules/setup"
+	"github.com/rande/gonode/modules/template"
 	"github.com/rande/gonode/modules/user"
 	log "github.com/sirupsen/logrus"
 )
@@ -51,6 +52,7 @@ func Configure(configFile string) *goapp.Lifecycle {
 	search.Configure(l, conf)
 	feed.Configure(l, conf)
 
+	template.Configure(l, conf)
 	dashboard.Configure(l, conf)
 	bootstrap.Configure(l, conf)
 	logger.Configure(l, conf)

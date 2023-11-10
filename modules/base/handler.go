@@ -10,8 +10,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/rande/gonode/core/embed"
 	"github.com/rande/gonode/core/helper"
+	"github.com/rande/gonode/modules/template"
 	"github.com/zenazn/goji/web"
 )
 
@@ -183,10 +183,10 @@ func (c ViewHandlerCollection) Get(node *Node) ViewHandler {
 
 func (c ViewHandlerCollection) GetByType(code string) ViewHandler {
 	if handler, ok := c[code]; ok {
-		return handler.(ViewHandler)
+		return handler
 	}
 
-	return c["default"].(ViewHandler)
+	return c["default"]
 }
 
 func (c ViewHandlerCollection) GetTypes() []string {
@@ -223,7 +223,7 @@ type ViewRequest struct {
 func NewViewResponse(res http.ResponseWriter) *ViewResponse {
 	return &ViewResponse{
 		StatusCode:   200,
-		Context:      embed.Context{},
+		Context:      template.Context{},
 		HttpResponse: res,
 		ContentType:  "text/html; charset=UTF-8",
 	}
@@ -232,7 +232,7 @@ func NewViewResponse(res http.ResponseWriter) *ViewResponse {
 type ViewResponse struct {
 	StatusCode   int
 	Template     string
-	Context      embed.Context
+	Context      template.Context
 	HttpResponse http.ResponseWriter
 	ContentType  string
 }
