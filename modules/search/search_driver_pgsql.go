@@ -7,6 +7,7 @@ package search
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
@@ -56,81 +57,71 @@ type SearchPager struct {
 	PerPage  uint64
 	Next     uint64
 	Previous uint64
+	Form     *SearchForm
+}
+
+func (s *SearchPager) PageQuery(page uint64) url.Values {
+	params := s.Form.UrlValues()
+
+	params.Set("page", fmt.Sprintf("%v", page))
+
+	return params
 }
 
 type SearchPGSQL struct {
 }
 
-func (s *SearchPGSQL) BuildQuery(searchForm *SearchForm, query sq.SelectBuilder) sq.SelectBuilder {
+func AddEqClause(column string, query sq.SelectBuilder, params []*Param) sq.SelectBuilder {
+	if len(params) == 0 {
+		return query
+	}
 
+	values := []interface{}{}
+	for _, param := range params {
+		values = append(values, param.Value)
+	}
+
+	query = query.Where(sq.Eq{column: values})
+
+	return query
+}
+
+func AddClause(column string, query sq.SelectBuilder, params *Param) sq.SelectBuilder {
+	if params == nil {
+		return query
+	}
+
+	query = query.Where(fmt.Sprintf("%s = ?", column), params.Value)
+
+	return query
+}
+
+func (s *SearchPGSQL) BuildQuery(searchForm *SearchForm, query sq.SelectBuilder) sq.SelectBuilder {
 	for _, order := range searchForm.OrderBy {
 		helper.PanicIf(len(order.SubField) == 0, "OrderBy field name is empty")
 
 		query = query.OrderBy(GetJsonQuery(order.SubField, "->") + " " + order.Operation)
 	}
 
-	if searchForm.Uuid != nil {
-		query = query.Where(sq.Eq{"uuid": searchForm.Uuid.Value})
-	}
+	query = AddEqClause("uuid", query, searchForm.Uuid)
+	query = AddEqClause("type", query, searchForm.Type)
+	query = AddEqClause("updated_by", query, searchForm.UpdatedBy)
+	query = AddEqClause("created_by", query, searchForm.CreatedBy)
+	query = AddEqClause("parent_uuid", query, searchForm.ParentUuid)
+	query = AddEqClause("set_uuid", query, searchForm.SetUuid)
+	query = AddEqClause("source", query, searchForm.Source)
+	query = AddEqClause("status", query, searchForm.Status)
+	query = AddEqClause("weight", query, searchForm.Weight)
 
-	if searchForm.Type != nil {
-		query = query.Where(sq.Eq{"type": searchForm.Type.Value})
-	}
-
-	if searchForm.Name != nil {
-		query = query.Where("name = ?", searchForm.Name.Value)
-	}
-
-	if searchForm.Slug != nil {
-		query = query.Where("slug = ?", searchForm.Slug.Value)
-	}
+	query = AddClause("name", query, searchForm.Name)
+	query = AddClause("slug", query, searchForm.Slug)
+	query = AddClause("revision", query, searchForm.Revision)
+	query = AddClause("enabled", query, searchForm.Enabled)
+	query = AddClause("deleted", query, searchForm.Deleted)
+	query = AddClause("current", query, searchForm.Current)
 
 	query = GetJsonSearchQuery(query, searchForm.Data, "data")
 	query = GetJsonSearchQuery(query, searchForm.Meta, "meta")
-
-	if searchForm.Status != nil {
-		query = query.Where(sq.Eq{"status": searchForm.Status.Value})
-	}
-
-	if searchForm.Weight != nil {
-		query = query.Where("weight = ?", searchForm.Weight.Value)
-	}
-
-	if searchForm.Revision != nil {
-		query = query.Where("revision = ?", searchForm.Revision.Value)
-	}
-
-	if searchForm.Enabled != nil {
-		query = query.Where("enabled = ?", searchForm.Enabled.Value)
-	}
-
-	if searchForm.Deleted != nil {
-		query = query.Where("deleted = ?", searchForm.Deleted.Value)
-	}
-
-	if searchForm.Current != nil {
-		query = query.Where("current = ?", searchForm.Current.Value)
-	}
-
-	if searchForm.UpdatedBy != nil {
-		query = query.Where(sq.Eq{"updated_by": searchForm.UpdatedBy.Value})
-	}
-
-	if searchForm.CreatedBy != nil {
-		query = query.Where(sq.Eq{"created_by": searchForm.CreatedBy.Value})
-	}
-
-	if searchForm.ParentUuid != nil {
-		query = query.Where(sq.Eq{"parent_uuid": searchForm.ParentUuid.Value})
-	}
-
-	if searchForm.SetUuid != nil {
-		query = query.Where(sq.Eq{"set_uuid": searchForm.SetUuid.Value})
-	}
-
-	if searchForm.Source != nil {
-		query = query.Where(sq.Eq{"source": searchForm.Source.Value})
-	}
 
 	return query
 }

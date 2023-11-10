@@ -61,7 +61,7 @@ func Setup_Feed_Data(app *goapp.App) *base.Node {
 	data.Description = "Blog post list"
 	data.Title = "Blog post title"
 	data.Index.Enabled = search.NewParam(true)
-	data.Index.Type = search.NewParam("blog.post")
+	data.Index.Type = []*search.Param{search.NewParam("blog.post")}
 
 	manager.Save(index, false)
 	manager.Move(index.Uuid, home.Uuid)

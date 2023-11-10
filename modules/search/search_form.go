@@ -6,6 +6,10 @@
 package search
 
 import (
+	"fmt"
+	"net/url"
+	"strconv"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/rande/gonode/core/squirrel"
 	"github.com/rande/gonode/modules/base"
@@ -39,23 +43,81 @@ type SearchForm struct {
 	Page       uint64   `json:"page"`
 	PerPage    uint64   `json:"per_page"`
 	OrderBy    []*Param `json:"order_by"`
-	Uuid       *Param   `json:"uuid"`
-	Type       *Param   `json:"type"`
+	Uuid       []*Param `json:"uuid"`
+	Type       []*Param `json:"type"`
 	Name       *Param   `json:"name"`
 	Slug       *Param   `json:"slug"`
 	Data       []*Param `json:"data"`
 	Meta       []*Param `json:"meta"`
-	Status     *Param   `json:"status"`
-	Weight     *Param   `json:"weight"`
+	Status     []*Param `json:"status"`
+	Weight     []*Param `json:"weight"`
 	Revision   *Param   `json:"revision"`
 	Enabled    *Param   `json:"enabled"`
 	Deleted    *Param   `json:"deleted"`
 	Current    *Param   `json:"current"`
-	UpdatedBy  *Param   `json:"updated_by"`
-	CreatedBy  *Param   `json:"created_by"`
-	ParentUuid *Param   `json:"parent_uuid"`
-	SetUuid    *Param   `json:"set_uuid"`
-	Source     *Param   `json:"source"`
+	UpdatedBy  []*Param `json:"updated_by"`
+	CreatedBy  []*Param `json:"created_by"`
+	ParentUuid []*Param `json:"parent_uuid"`
+	SetUuid    []*Param `json:"set_uuid"`
+	Source     []*Param `json:"source"`
+}
+
+func addUrlValue(values url.Values, name string, param *Param) {
+	if param == nil || param.Value == nil {
+		return
+	}
+
+	values.Add(name, fmt.Sprintf("%v", param.Value))
+}
+
+func addUrlValues(values url.Values, name string, param []*Param) {
+	if param == nil {
+		return
+	}
+
+	for _, param := range param {
+		addUrlValue(values, name, param)
+	}
+}
+
+func (s *SearchForm) UrlValues() url.Values {
+	values := url.Values{}
+	values.Add("page", strconv.FormatUint(s.Page, 10))
+	values.Add("per_page", strconv.FormatUint(s.PerPage, 10))
+
+	addUrlValues(values, "uuid", s.Uuid)
+	addUrlValues(values, "type", s.Type)
+	addUrlValues(values, "status", s.Status)
+	addUrlValues(values, "weight", s.Weight)
+	addUrlValues(values, "updated_by", s.UpdatedBy)
+	addUrlValues(values, "order_by", s.OrderBy)
+	addUrlValues(values, "created_by", s.CreatedBy)
+	addUrlValues(values, "parent_uuid", s.ParentUuid)
+	addUrlValues(values, "set_uuid", s.SetUuid)
+	addUrlValues(values, "source", s.Source)
+
+	addUrlValue(values, "name", s.Name)
+	addUrlValue(values, "slug", s.Slug)
+	addUrlValue(values, "revision", s.Revision)
+	addUrlValue(values, "enabled", s.Enabled)
+	addUrlValue(values, "deleted", s.Deleted)
+	addUrlValue(values, "current", s.Current)
+
+	for _, param := range s.Meta {
+		if param.Value == nil {
+			continue
+		}
+		values.Add(fmt.Sprintf("meta.%s", param.SubField), fmt.Sprintf("%v", param.Value))
+	}
+
+	for _, param := range s.Data {
+		if param.Value == nil {
+			continue
+		}
+		values.Add(fmt.Sprintf("data.%s", param.SubField), fmt.Sprintf("%v", param.Value))
+	}
+
+	return values
 }
 
 func NewSearchForm() *SearchForm {
@@ -92,8 +154,8 @@ func NewSearchFormFromIndex(index *Index) *SearchForm {
 	return search
 }
 
-func GetPager(search *SearchForm, manager base.NodeManager, engine *SearchPGSQL, options *base.AccessOptions) *SearchPager {
-	query := engine.BuildQuery(search, manager.SelectBuilder(base.NewSelectOptions()))
+func GetPager(form *SearchForm, manager base.NodeManager, engine *SearchPGSQL, options *base.AccessOptions) *SearchPager {
+	query := engine.BuildQuery(form, manager.SelectBuilder(base.NewSelectOptions()))
 
 	// apply security access
 	if options != nil && len(options.Roles) > 0 {
@@ -102,24 +164,25 @@ func GetPager(search *SearchForm, manager base.NodeManager, engine *SearchPGSQL,
 		query = query.Where(squirrel.NewExprSlice("\"access\" && ARRAY["+sq.Placeholders(len(options.Roles))+"]", value))
 	}
 
-	list := manager.FindBy(query, (search.Page-1)*search.PerPage, search.PerPage+1)
+	list := manager.FindBy(query, (form.Page-1)*form.PerPage, form.PerPage+1)
 
 	pager := &SearchPager{
-		Page:     search.Page,
-		PerPage:  search.PerPage,
+		Page:     form.Page,
+		PerPage:  form.PerPage,
 		Elements: make([]*base.Node, 0),
 		Previous: uint64(0),
 		Next:     uint64(0),
+		Form:     form,
 	}
 
-	if search.Page > 1 {
-		pager.Previous = search.Page - 1
+	if form.Page > 1 {
+		pager.Previous = form.Page - 1
 	}
 
 	counter := uint64(0)
 	for e := list.Front(); e != nil; e = e.Next() {
-		if counter == search.PerPage {
-			pager.Next = search.Page + 1
+		if counter == form.PerPage {
+			pager.Next = form.Page + 1
 			break
 		}
 		pager.Elements = append(pager.Elements, e.Value.(*base.Node))

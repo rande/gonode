@@ -46,7 +46,7 @@ func GetHttpSearchForm() *HttpSearchForm {
 	return &HttpSearchForm{
 		Data:    make(map[string][]string),
 		Meta:    make(map[string][]string),
-		OrderBy: []string{"updated_at,ASC"},
+		OrderBy: []string{"created_at,DESC"},
 	}
 }
 
@@ -69,11 +69,11 @@ func (h *HttpSearchParser) HandleSearch(res http.ResponseWriter, req *http.Reque
 		return nil
 	}
 
-	if httpSearchForm.Page == 0 {
+	if httpSearchForm.Page < 1 {
 		httpSearchForm.Page = 1
 	}
 
-	if httpSearchForm.PerPage == 0 {
+	if httpSearchForm.PerPage < 1 || httpSearchForm.PerPage > 256 {
 		httpSearchForm.PerPage = 32
 	}
 
@@ -92,12 +92,12 @@ func (h *HttpSearchParser) HandleSearch(res http.ResponseWriter, req *http.Reque
 		searchForm.OrderBy = append(searchForm.OrderBy, NewParam(nil, r[0][2], r[0][1]))
 	}
 
-	if len(httpSearchForm.Uuid) > 0 {
-		searchForm.Uuid = NewParam(httpSearchForm.Uuid, "=")
+	for _, uuid := range httpSearchForm.Uuid {
+		searchForm.Uuid = append(searchForm.Uuid, NewParam(uuid))
 	}
 
-	if len(httpSearchForm.Type) > 0 {
-		searchForm.Type = NewParam(httpSearchForm.Type, "=")
+	for _, nodeType := range httpSearchForm.Type {
+		searchForm.Type = append(searchForm.Type, NewParam(nodeType))
 	}
 
 	if len(httpSearchForm.Name) > 0 {
@@ -126,12 +126,12 @@ func (h *HttpSearchParser) HandleSearch(res http.ResponseWriter, req *http.Reque
 		}
 	}
 
-	if len(httpSearchForm.Status) > 0 {
-		searchForm.Status = NewParam(httpSearchForm.Status, "=")
+	for _, status := range httpSearchForm.Status {
+		searchForm.Status = append(searchForm.Status, NewParam(status))
 	}
 
-	if len(httpSearchForm.Weight) > 0 {
-		searchForm.Weight = NewParam(httpSearchForm.Weight, "=")
+	for _, weight := range httpSearchForm.Weight {
+		searchForm.Weight = append(searchForm.Weight, NewParam(weight, "="))
 	}
 
 	if len(httpSearchForm.Revision) > 0 {
@@ -169,24 +169,24 @@ func (h *HttpSearchParser) HandleSearch(res http.ResponseWriter, req *http.Reque
 		return nil
 	}
 
-	if len(httpSearchForm.UpdatedBy) > 0 {
-		searchForm.UpdatedBy = NewParam(httpSearchForm.UpdatedBy, "=")
+	for _, updatedBy := range httpSearchForm.UpdatedBy {
+		searchForm.UpdatedBy = append(searchForm.UpdatedBy, NewParam(updatedBy, "="))
 	}
 
-	if len(httpSearchForm.CreatedBy) > 0 {
-		searchForm.CreatedBy = NewParam(httpSearchForm.CreatedBy, "=")
+	for _, source := range httpSearchForm.Source {
+		searchForm.Source = append(searchForm.Source, NewParam(source, "="))
 	}
 
-	if len(httpSearchForm.ParentUuid) > 0 {
-		searchForm.ParentUuid = NewParam(httpSearchForm.ParentUuid, "=")
+	for _, createdBy := range httpSearchForm.CreatedBy {
+		searchForm.CreatedBy = append(searchForm.CreatedBy, NewParam(createdBy, "="))
 	}
 
-	if len(httpSearchForm.SetUuid) > 0 {
-		searchForm.SetUuid = NewParam(httpSearchForm.SetUuid, "=")
+	for _, setUuid := range httpSearchForm.SetUuid {
+		searchForm.SetUuid = append(searchForm.SetUuid, NewParam(setUuid, "="))
 	}
 
-	if len(httpSearchForm.Source) > 0 {
-		searchForm.Source = NewParam(httpSearchForm.Source, "=")
+	for _, parentUuid := range httpSearchForm.ParentUuid {
+		searchForm.ParentUuid = append(searchForm.ParentUuid, NewParam(parentUuid, "="))
 	}
 
 	return searchForm

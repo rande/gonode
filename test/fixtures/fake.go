@@ -129,7 +129,7 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 	archive.Name = "Blog Archive"
 	archive.Slug = "blog"
 	archive.Data = &search.Index{
-		Type: search.NewParam([]string{"blog.post"}),
+		Type: []*search.Param{search.NewParam([]string{"blog.post"})},
 	}
 	archive.Meta = &search.IndexMeta{}
 	archive.Access = []string{"node:api:master", "node:api:read", "node:owner:XXXXXX", "node:prism:render"}
@@ -162,7 +162,7 @@ func LoadFixtures(m *base.PgNodeManager, max int) error {
 		Title:       "Archive blog",
 		Description: "This is a description.",
 		Index: &search.Index{
-			Type: search.NewParam([]string{"blog.post"}),
+			Type: []*search.Param{search.NewParam([]string{"blog.post"})},
 		},
 	}
 	f.Meta = &search.IndexMeta{}

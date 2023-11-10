@@ -24,23 +24,23 @@ type Index struct {
 	Page       int64    `json:"page"`
 	PerPage    int64    `json:"per_page"`
 	OrderBy    []*Param `json:"order_by"`
-	Uuid       *Param   `json:"uuid"`
-	Type       *Param   `json:"type"`
+	Uuid       []*Param `json:"uuid"`
+	Type       []*Param `json:"type"`
 	Name       *Param   `json:"name"`
 	Slug       *Param   `json:"slug"`
 	Data       []*Param `json:"data"`
 	Meta       []*Param `json:"meta"`
-	Status     *Param   `json:"status"`
-	Weight     *Param   `json:"weight"`
+	Status     []*Param `json:"status"`
+	Weight     []*Param `json:"weight"`
 	Revision   *Param   `json:"revision"`
 	Enabled    *Param   `json:"enabled"`
 	Deleted    *Param   `json:"deleted"`
 	Current    *Param   `json:"current"`
-	UpdatedBy  *Param   `json:"updated_by"`
-	CreatedBy  *Param   `json:"created_by"`
-	ParentUuid *Param   `json:"parent_uuid"`
-	SetUuid    *Param   `json:"set_uuid"`
-	Source     *Param   `json:"source"`
+	UpdatedBy  []*Param `json:"updated_by"`
+	CreatedBy  []*Param `json:"created_by"`
+	ParentUuid []*Param `json:"parent_uuid"`
+	SetUuid    []*Param `json:"set_uuid"`
+	Source     []*Param `json:"source"`
 }
 
 type IndexHandler struct {
