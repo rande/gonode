@@ -25,6 +25,7 @@ import (
 	"github.com/rande/gonode/modules/debug"
 	"github.com/rande/gonode/modules/feed"
 	node_guard "github.com/rande/gonode/modules/guard"
+	"github.com/rande/gonode/modules/localisation"
 	"github.com/rande/gonode/modules/media"
 	"github.com/rande/gonode/modules/prism"
 	"github.com/rande/gonode/modules/raw"
@@ -53,6 +54,7 @@ func Configure(configFile string) *goapp.Lifecycle {
 	feed.Configure(l, conf)
 
 	template.Configure(l, conf)
+	localisation.Configure(l, conf)
 	dashboard.Configure(l, conf)
 	bootstrap.Configure(l, conf)
 	logger.Configure(l, conf)

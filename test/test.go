@@ -35,6 +35,7 @@ import (
 	"github.com/rande/gonode/modules/debug"
 	"github.com/rande/gonode/modules/feed"
 	node_guard "github.com/rande/gonode/modules/guard"
+	"github.com/rande/gonode/modules/localisation"
 	"github.com/rande/gonode/modules/media"
 	"github.com/rande/gonode/modules/prism"
 	"github.com/rande/gonode/modules/raw"
@@ -129,6 +130,7 @@ func GetLifecycle(file string) *goapp.Lifecycle {
 	dashboard.Configure(l, conf)
 	template.Configure(l, conf)
 
+	localisation.Configure(l, conf)
 	logger.Configure(l, conf)
 	commands.Configure(l, conf)
 	security.ConfigureCors(l, conf)
